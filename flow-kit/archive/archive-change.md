@@ -76,47 +76,53 @@ archive/
 | metadata.yaml | 包含所有必填字段 |
 | INDEX.md | 已更新归档引用 |
 
-## 边界情况
+## 上下文归档模式 (Context Archival)
 
-### 归档失败
-- 文件被锁或不可访问
-- 目标目录已存在
-- 权限不足
+当 check-expiry.md 触发（30+ 天）时使用此模式。
 
-**处理**：中止操作，返回错误，不修改任何文件
+### 触发条件
 
-### 部分归档
-- 只归档部分文件
-- 保留剩余文件在原位置
-- 记录为 Partial Archive
+- 上下文过期（30 天无活动）
+- 用户执行 `/flow-kit:archive --context`
+- check-expiry.md 调用
 
-### 恢复归档
-- 从 archive 移回 .specs/
-- 需要明确恢复原因
-- 记录恢复操作
-
-## 输出物
+### 归档目标结构
 
 ```
-Archive Operation Report
-========================
-Change ID: {change-id}
-Archive Path: archive/{YYYY-MM}/{change-id}
-
-Files Archived:
-  - [file1]
-  - [file2]
-
-Validation:
-  - README.md: [Created/Missing]
-  - metadata.yaml: [Created/Missing]
-  - INDEX.md: [Updated/Not Updated]
-
-Status: [SUCCESS/FAILED/PARTIAL]
+archive/{YYYY-MM}/context-{YYYY-MM-DD}/
+  ├── README.md          # 上下文摘要（包含哪些 phase，最后活动）
+  ├── .planning/        # 完整 .planning 目录快照
+  └── metadata.yaml      # archived_at, original_path, reason: context-expiry
 ```
+
+### 上下文归档步骤
+
+1. 创建时间戳目录
+2. 复制 .planning/ 目录
+3. 创建 README.md（包含 phase 摘要和恢复命令）
+4. 创建 metadata.yaml（reason: context-expiry）
+
+### 验证检查
+
+| 检查项 | 要求 |
+|--------|------|
+| .planning/ 完整性 | 所有 phase 子目录已复制 |
+| README.md | 包含 phase 摘要和恢复命令 |
+| metadata.yaml | reason: context-expiry |
+
+## 恢复上下文 (Recovery)
+
+从上下文归档恢复：`/flow-kit:recovery archive/{YYYY-MM}/context-{YYYY-MM-DD}`
+
+### 恢复步骤
+
+1. 验证归档路径存在且包含 .planning/ 目录
+2. 备份当前 .planning/（若存在）
+3. 复制归档内容回 .planning/
+4. 更新文件时间戳为恢复时刻
+5. 输出恢复报告
 
 ---
 
 **关联文件**：
-- `@flow-kit/commands/M-health.md` (健康检查)
-- `.specs/INDEX.md` (变更索引)
+- `@flow-kit/commands/check-expiry.md` (上下文过期检测)

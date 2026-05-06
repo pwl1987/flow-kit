@@ -7,6 +7,20 @@
 2. **立即加载** `@flow-kit/config/default-user-config.md`，若存在 `.flow-kit/user-config.md` 则优先加载用户自定义配置
 3. 后续所有逻辑必须遵守这两份配置
 
+## 启动检查（自动执行，非阻塞）
+
+在命令路由之前执行以下检查：
+
+1. **上下文过期检测** (`@flow-kit/commands/check-expiry.md`)
+   - 扫描 `.planning/phases/` 下 .md 文件的最后修改时间
+   - 15 天警告：输出 `[WARNING] Context will expire in {N} days`
+   - 30 天阻止：输出 `[BLOCK] Context expired, run recovery or archive`
+
+2. **Token 估算** (`@flow-kit/commands/estimate-tokens.md`)
+   - 静默统计 .planning/phases/ 下 LOC（排除 template）
+   - 80% budget：输出警告
+   - 100% budget：阻止继续
+
 ## 命令路由规则
 
 当用户输入 `/flow-kit:xxx` 格式命令时，按以下顺序匹配：
@@ -24,10 +38,19 @@
 
 | 命令 | 目标文件 |
 |------|----------|
+| `/flow-kit:offline` | `@flow-kit/commands/offline-mode.md` |
+| `/flow-kit:minimal` | `@flow-kit/commands/minimal-mode.md` |
+| `/flow-kit:online` | `@flow-kit/commands/offline-mode.md` |
 | `/flow-kit:health` | `@flow-kit/commands/M-health.md` |
 | `/flow-kit:scan` | `@flow-kit/commands/I-intel-scan.md` |
 | `/flow-kit:update-context` | `@flow-kit/commands/update-context.md` |
 | `/flow-kit:sync-config` | `@flow-kit/commands/sync-team-config.md` |
+| `/flow-kit:check-expiry` | `@flow-kit/commands/check-expiry.md` |
+| `/flow-kit:estimate-tokens` | `@flow-kit/commands/estimate-tokens.md` |
+| `/flow-kit:recovery` | `@flow-kit/commands/check-expiry.md` |
+| `/flow-kit:pr-description` | `@flow-kit/commands/pr-description.md` |
+| `/flow-kit:cost-report` | `@flow-kit/commands/cost-report.md` |
+| `/flow-kit:p0` | `@flow-kit/commands/p0-approval.md` |
 | `/flow-kit:archive` | `@flow-kit/archive/archive-change.md` |
 | `/flow-kit:skill:[name]` | `@flow-kit/skills/[name].md` |
 
@@ -58,7 +81,7 @@
 4. SUBSTRING MATCH:
    - if command is substring of any known -> suggest matched command
 5. NO MATCH:
-   - show "Available commands: /flow-kit:health, /flow-kit:scan, /flow-kit:update-context, /flow-kit:sync-config, /flow-kit:archive"
+   - show "Available commands: /flow-kit:health, /flow-kit:scan, /flow-kit:update-context, /flow-kit:sync-config, /flow-kit:check-expiry, /flow-kit:estimate-tokens, /flow-kit:offline, /flow-kit:minimal, /flow-kit:pr-description, /flow-kit:cost-report, /flow-kit:p0, /flow-kit:archive"
 ```
 
 ## Levenshtein Implementation

@@ -1,0 +1,172 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件实现阶段执行器，协调各阶段的执行流程。
+> 集成 Offline Mode 和 Minimal Mode 支持
+
+# Phase Executor
+
+## 概述
+
+Phase Executor 负责协调 flow-kit 8阶段工作流的执行，处理模式切换和阶段调度。
+
+## 阶段执行流程
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Constitution Check                   │
+│              (SEC/DATA/DEPLOY/GIT rules)               │
+└────────────────────────┬────────────────────────────────┘
+                         │
+         ┌───────────────┴───────────────┐
+         ▼                               ▼
+   [Offline Mode?]                 [Minimal Mode?]
+         │                               │
+         ▼                               ▼
+   Built-in Lint                  Skip Phase 5/6
+   (offline-mode.md)              (minimal-mode.md)
+         │                               │
+         └───────────────┬───────────────┘
+                         ▼
+    ┌────────────────────────────────────┐
+    │         8 Phase Execution          │
+    │  0-Change -> 1-Plan -> ... -> 8   │
+    └────────────────────────────────────┘
+```
+
+## 集成点
+
+### 1. Offline Mode 检测 (offline-mode.md)
+
+**执行前检查**：
+```
+Before running external lint tools:
+  1. Check isOffline flag (from offline-mode.md)
+  2. If isOffline == true:
+     - Invoke built-in lint adapter
+     - Log: "Running in offline mode (built-in lint)"
+  3. Else:
+     - Run external linters as normal
+```
+
+**自动故障转移**：
+```
+On external tool failure:
+  1. Set isOffline = true
+  2. Set offlineReason = "auto-failover"
+  3. Retry with built-in lint
+```
+
+### 2. Minimal Mode 检测 (minimal-mode.md)
+
+**Phase 5 跳过检查**：
+```
+Before Phase 5 (Test):
+  1. Check isMinimal flag (from minimal-mode.md)
+  2. If isMinimal == true:
+     - Log: "Skipping Phase 5 (Test) - minimal mode"
+     - Skip to Phase 6 check
+  3. Else:
+     - Execute Phase 5 normally
+```
+
+**Phase 6 跳过检查**：
+```
+Before Phase 6 (Review):
+  1. Check isMinimal flag (from minimal-mode.md)
+  2. If isMinimal == true:
+     - Log: "Skipping Phase 6 (Review) - minimal mode"
+     - Skip to Phase 7
+  3. Else:
+     - Execute Phase 6 normally
+```
+
+### 3. P0 Approval 检测 (p0-approval.md)
+
+**Phase 7 执行前检查**：
+```
+Before Phase 7 (Integration):
+  1. Check if P0 flag is set (auto-detected or manual)
+  2. If P0 == true:
+     - Call p0-approval.md for approval workflow
+     - Block until Admin or Reviewer approves
+     - Log approval decision
+  3. Else:
+     - Continue to Phase 7
+```
+
+**P0 触发条件**：
+- `BREAKING-CHANGE.md` 文件存在
+- `*.sql` 文件（DDL/DML）存在
+- `migration/` 目录存在
+- 手动触发：`/flow-kit:p0`
+
+**Minimal Mode 保证**：P0 审批不能被 Minimal Mode 跳过
+
+### 4. PR Description 生成 (pr-description.md)
+
+**Phase 7 完成后**：
+```
+After Phase 7 (Integration) complete:
+  1. Call pr-description.md
+  2. Generate PR body from git log
+  3. Output PR description for review
+```
+
+## Constitution 安全墙
+
+**所有阶段前必须通过**：
+
+```javascript
+function checkConstitutionSafety(change) {
+  const rules = loadConstitutionRules();
+  for (const rule of rules) {
+    if (!rule.check(change)) {
+      throw new Error(`Constitution violation: ${rule.name}`);
+    }
+  }
+}
+```
+
+安全规则类型：
+- **SEC**: 安全相关检查（不允许的危险操作）
+- **DATA**: 数据保护检查（敏感信息处理）
+- **DEPLOY**: 部署安全检查
+- **GIT**: git操作安全检查
+
+## 正常执行路径
+
+| 阶段 | 说明 | 检查 |
+|------|------|------|
+| Phase 0 | Change Detection | Constitution + Offline check |
+| Phase 1 | Planning | Constitution + Offline check |
+| Phase 2 | Planning | Constitution + Offline check |
+| Phase 3 | Planning | Constitution + Offline check |
+| Phase 4 | Development | Constitution + Offline check |
+| Phase 5 | Test | **Skip if Minimal** + Constitution |
+| Phase 6 | Review | **Skip if Minimal** + Constitution |
+| Phase 7 | Integration | **P0 Gate** + Constitution + All checks |
+| Phase 8 | Rollback | Constitution only |
+
+## 日志输出
+
+```
+[Phase Executor] Starting Phase {N}
+[Phase Executor] Offline mode: {isOffline} ({offlineReason})
+[Phase Executor] Minimal mode: {isMinimal} ({minimalReason})
+[Phase Executor] Constitution checks: PASSED
+[Phase Executor] Phase {N} complete
+```
+
+## 错误处理
+
+| 错误类型 | 处理方式 |
+|----------|----------|
+| Constitution violation | Block execution, throw error |
+| External lint timeout | Auto-switch to offline mode |
+| Phase skip | Log and continue to next phase |
+
+---
+
+**关联文件**：
+- `@flow-kit/commands/offline-mode.md` (离线模式)
+- `@flow-kit/commands/minimal-mode.md` (最小模式)
+- `@flow-kit/config/constitution.md` (安全规则)

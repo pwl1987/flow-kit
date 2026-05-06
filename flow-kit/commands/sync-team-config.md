@@ -28,11 +28,28 @@ Sync team configuration across team members. Merge team conventions, shared sett
 
 | Config | Location | Sync Strategy |
 |--------|----------|---------------|
+| Constitution (safety floor) | `config/constitution.md` | Immutable, cannot be modified, team version always wins |
+| Team roles | `config/team-roles.md` | Team standard, defines permissions, user cannot override |
 | User preferences | `.flow-kit/user-config.md` | User wins on conflict |
 | Team conventions | `.flow-kit/conventions.md` | Team default, user can override |
 | Code style | `.flow-kit/style.md` | Merge, keep strictest |
 | Review process | `.flow-kit/review.md` | Team standard |
 | Decision log | `.flow-kit/decisions.md` | Append only |
+
+### Constitution Sync Rules
+
+- Constitution syncs as **immutable** (read-only safety floor)
+- User cannot override Constitution rules (SEC/DATA/DEPLOY/GIT)
+- If local constitution conflicts with team version, **team version wins**
+- Constitution always loads first, enforces last
+
+### Team Roles Sync Rules
+
+- Roles sync with **team standard priority**
+- User cannot modify role definitions
+- Roles validated against schema: `admin`, `reviewer`, `developer`, `viewer`
+- **Unknown roles rejected** at config load with error
+- Default fallback: `viewer` if no role specified
 
 ## Execution
 
@@ -42,22 +59,26 @@ For git source:
 ```bash
 git fetch origin
 git checkout origin/team-config -- .flow-kit/
+git checkout origin/team-config -- flow-kit/config/
 ```
 
 For local path:
 ```bash
 cp -r /path/to/team-config/.flow-kit/* .flow-kit/
+cp -r /path/to/team-config/flow-kit/config/* flow-kit/config/
 ```
 
 ### 2. Merge Strategy
 
-**User config wins on conflicts** — personal preferences preserved.
+**Constitution and roles**: Team version always wins (immutable)
+**User preferences**: User wins on conflicts
 
 For each config file:
-1. Read team config
-2. Read local user config
-3. Merge with user override priority
-4. Validate merged result
+1. Read team config (constitution, roles first)
+2. Validate roles against known schema
+3. Reject unknown roles
+4. Read local user config
+5. Merge with role priority
 
 ### 3. Validation Checks
 
@@ -66,6 +87,11 @@ Validate merged config for:
 - **Value validity** — settings within acceptable ranges
 - **No conflicts** — important settings not contradictory
 - **Completeness** — required fields present
+
+**Role Validation**:
+- Known roles: `admin`, `reviewer`, `developer`, `viewer`
+- Unknown roles rejected with error: "Unknown role: {role}. Valid roles: admin, reviewer, developer, viewer"
+- Default fallback: `viewer` if no role specified
 
 ### 4. Conflict Resolution
 
@@ -90,6 +116,8 @@ Write to `.flow-kit/user-config.md` with original values preserved.
 
 | Config File | Status | Changes |
 |-------------|--------|---------|
+| constitution.md | Synced (immutable) | Team version applied |
+| team-roles.md | Synced (validated) | 4 roles validated |
 | user-config.md | Merged | 3 overrides applied |
 | conventions.md | Updated | 1 new convention |
 | style.md | Merged | 2 conflicts resolved |
