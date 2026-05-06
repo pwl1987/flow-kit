@@ -22,7 +22,8 @@ function countBusinessCode(cwd, whitelist) {
     let entries;
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch {
+    } catch (e) {
+      console.warn(`Failed to read directory: ${dir}`, e);
       return;
     }
 
@@ -52,8 +53,8 @@ function countBusinessCode(cwd, whitelist) {
           const content = fs.readFileSync(fullPath, 'utf8');
           const lines = content.split('\n').length;
           totalLines += lines;
-        } catch {
-          // Skip files that can't be read
+        } catch (e) {
+          console.warn(`Failed to read file: ${fullPath}`, e);
         }
       }
     }

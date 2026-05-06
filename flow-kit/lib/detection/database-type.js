@@ -97,19 +97,22 @@ function detectKnex(configPath) {
 
 function detectFromConnectionString(connString) {
   if (!connString) return null;
-  const CONN_MAP = {
-    'mysql': DATABASE_TYPES.MYSQL,
-    'postgres': DATABASE_TYPES.POSTGRESQL,
-    'postgresql': DATABASE_TYPES.POSTGRESQL,
-    'mongodb': DATABASE_TYPES.MONGODB,
-    'sqlite': DATABASE_TYPES.SQLITE,
-    'mssql': DATABASE_TYPES.MSSQL,
-    'sqlserver': DATABASE_TYPES.MSSQL
-  };
-  for (const [key, dbType] of Object.entries(CONN_MAP)) {
-    if (connString.includes(key)) return dbType;
+  try {
+    const url = new URL(connString);
+    const protocol = url.protocol.replace(':', '').toLowerCase();
+    const CONN_MAP = {
+      'mysql': DATABASE_TYPES.MYSQL,
+      'postgres': DATABASE_TYPES.POSTGRESQL,
+      'postgresql': DATABASE_TYPES.POSTGRESQL,
+      'mongodb': DATABASE_TYPES.MONGODB,
+      'sqlite': DATABASE_TYPES.SQLITE,
+      'mssql': DATABASE_TYPES.MSSQL,
+      'sqlserver': DATABASE_TYPES.MSSQL
+    };
+    return CONN_MAP[protocol] || null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 function detectFromFileExtension(filePath) {
@@ -176,18 +179,10 @@ function detectDatabaseType(projectRoot) {
   }
 
   // E3: File extension (lowest priority)
-  const dbFilePatterns = [
-    path.join(projectRoot, '**', '*.sqlite'),
-    path.join(projectRoot, '**', '*.sqlite3'),
-    path.join(projectRoot, '**', '*.db')
-  ];
-
-  for (const pattern of dbFilePatterns) {
-    const matches = fs.readdirSync(projectRoot, { recursive: true }).filter(f => f.endsWith('.sqlite') || f.endsWith('.sqlite3') || f.endsWith('.db'));
-    if (matches.length > 0) {
-      writeDatabaseTypeFile(projectRoot, DATABASE_TYPES.SQLITE, DETECTION_METHODS.FILE_EXTENSION, 'low');
-      return { databaseType: DATABASE_TYPES.SQLITE, method: DETECTION_METHODS.FILE_EXTENSION, confidence: 'low' };
-    }
+  const matches = fs.readdirSync(projectRoot, { recursive: true }).filter(f => f.endsWith('.sqlite') || f.endsWith('.sqlite3') || f.endsWith('.db'));
+  if (matches.length > 0) {
+    writeDatabaseTypeFile(projectRoot, DATABASE_TYPES.SQLITE, DETECTION_METHODS.FILE_EXTENSION, 'low');
+    return { databaseType: DATABASE_TYPES.SQLITE, method: DETECTION_METHODS.FILE_EXTENSION, confidence: 'low' };
   }
 
   // Fallback: unknown

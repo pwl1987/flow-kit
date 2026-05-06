@@ -23,7 +23,11 @@ function readCheckpoint(cwd) {
   if (!fs.existsSync(filePath)) {
     return null;
   }
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    return null; // Treat corrupted checkpoint as no checkpoint
+  }
 }
 
 /**
