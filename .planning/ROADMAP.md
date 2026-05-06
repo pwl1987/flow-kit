@@ -15,9 +15,18 @@
 
 ## Phase 1: Core Skeleton
 
-**Goal:** Complete directory creation, entry routing, 8-phase basic templates, and core template files.
+**Goal:** Complete directory creation, entry routing, 8-phase workflow, templates
 
 **Requirements:** CORE-01, CORE-02, CORE-03, CORE-10~19, TMPL-70~77
+
+**Plans:** 5 plans
+
+**Plan list:**
+- [ ] 01-01-PLAN.md — Directory structure creation
+- [ ] 01-02-PLAN.md — GO.md entry point with routing
+- [ ] 01-03-PLAN.md — README.md with cost table and decision tree
+- [ ] 01-04-PLAN.md — 8 phase files (0-change through 8-rollback)
+- [ ] 01-05-PLAN.md — 8 template files
 
 **Success Criteria:**
 1. All directories created per PRD spec
@@ -79,4 +88,4 @@
 See: .planning/STATE.md
 
 ---
-*Last updated: 2026-05-06 after roadmap creation*
+*Last updated: 2026-05-06 after Phase 1 planning*
