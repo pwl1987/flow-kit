@@ -149,6 +149,33 @@ On each phase load:
 - Phase 切换时：完整报告输出
 - 命令触发：`/flow-kit:estimate-tokens` 完整输出
 
+### 7. Checkpoint Resume Detection
+
+**Execution on phase load:**
+```
+On phase-executor start:
+  1. Call shouldResume(cwd) from checkpoint.js
+  2. If shouldResume.should == true:
+     - Display: message from checkpoint.message
+     - Prompt user: "输入 'resume' 恢复，或 'new' 覆盖"
+  3. If user chooses 'resume':
+     - Load checkpoint.checkpoint
+     - Set current phase/plan/task to resumed position
+     - Log: "Resuming from Phase {phase}, Plan {plan}, Task {task_index}"
+  4. If user chooses 'new' or no checkpoint exists:
+     - Proceed with normal execution
+     - If checkpoint existed, call clearCheckpoint(cwd) first
+```
+
+**Resume entry point:**
+- Command: `/gsd-execute-phase 5 --resume`
+- Auto-detect on phase start if .flow-kit/checkpoint-state.json exists
+
+**Cleanup triggers (D-05):**
+- Phase complete (all plans done)
+- New phase start (auto-clear previous phase checkpoint)
+- User reset: `/gsd-reset-phase 5` (explicit)
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：

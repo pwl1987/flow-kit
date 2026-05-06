@@ -11,6 +11,9 @@
 - 场景：用户显式请求护栏检查
 
 ### 自动检测
+- `.flow-kit/project-type` 标记文件存在 → 读取项目类型
+- 文件格式：`project_type: brownfield|greenfield`
+- 检测逻辑：`@flow-kit/lib/detection/project-type.js`
 - `.git/` 目录存在（已有仓库）
 - 包管理器文件共存：`package.json` + `package-lock.json` / `yarn.lock` / `pnpm-lock.yaml`
 - 多语言共存：`requirements.txt` + `Pipfile` / `pyproject.toml`
@@ -69,6 +72,8 @@ Classification: [P0/P1/P2]
 Database Impact: [None/Low/Medium/High]
 Security Review: [Required/Skipped]
 UI Changes: [Yes/No]
+
+Project Type Detection: [.flow-kit/project-type] (Phase 5)
 ```
 
 ---
