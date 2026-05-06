@@ -361,22 +361,16 @@ function findClosestCommand(input, commands) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What constitutes a "safety-critical" rule vs. a "preference"?**
-   - What we know: Constitution.md has safety/data/deployment; user-config has team conventions
-   - What's unclear: Edge cases like "require tests before merge" — safety or preference?
-   - Recommendation: Default to Constitution for any rule affecting artifacts outside the project
+1. **What constitutes a "safety-critical" rule vs. a "preference"?** (RESOLVED)
+   - Resolution: Default to Constitution for any rule affecting artifacts outside the project. Safety = security/data integrity/deployment. Preference = team conventions/workflow style.
 
-2. **Should guardrail B5/B6 be defined now or deferred?**
-   - What we know: GUARD-20 lists B1-B6, but only B1-B4 have defined names
-   - What's unclear: What are B5 and B6?
-   - Recommendation: Leave as placeholder `{{B5_TBD}}`, `{{B6_TBD}}` until Phase 2 planning
+2. **Should guardrail B5/B6 be defined now or deferred?** (RESOLVED)
+   - Resolution: Leave as placeholder `{{B5_TBD}}`, `{{B6_TBD}}` until Phase 2 planning/execution.
 
-3. **MCP tool enumeration accuracy**
-   - What we know: Phase 1 output shows GO.md with command routing; G4 describes tiers
-   - What's unclear: Exact list of tools in each tier, especially for `standard`
-   - Recommendation: Use conservative list (fewer tools in standard) and expand via Constitution overrides
+3. **MCP tool enumeration accuracy** (RESOLVED)
+   - Resolution: Use conservative list (fewer tools in standard tier) and expand via Constitution overrides per-project.
 
 ---
 
