@@ -1,3 +1,4 @@
+<!-- HEADER -->
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 >
 > 本文件为 flow-kit 的入口文档。所有 flow-kit 操作从本文档开始。
@@ -5,80 +6,212 @@
 
 --- BEGIN flow-kit/README.md ---
 
-# flow-kit 快速入口
+# flow-kit
 
-## Quick Start
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-Ready-blue)](https://claude.ai/code)
+[![Phases](https://img.shields.io/badge/Phases-8-green)](./phases)
+[![Language](https://img.shields.io/badge/Markdown-Zero%20Dependencies-orange)](https://example.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-### 如何调用 flow-kit
-
-1. **首次扫描**：执行 `/flow-kit:health` 进行代码健康检查
-2. **创建规格目录**：创建 `.specs/{change-id}/` 目录结构
-3. **开始变更**：使用 8 阶段开发工作流
-
-### 首次使用步骤
-
-```
-1. /flow-kit:health        # 运行健康扫描，识别代码质量基线
-2. mkdir .specs/$(date +%Y%m%d-%H%M%S)  # 创建变更规格目录
-3. /flow-kit:scan          # 运行 Intel 扫描，检测 TODO/FIXME
-4. /flow-kit:update-context  # 更新项目上下文
-```
-
-### 基本工作流
-
-```
-规划(0) → 上下文(1) → 规格(2) → 研究(3) → 计划(4) → 执行(5) → 审查(6) → 交付(7) → 回滚(8)
-```
-
-详细命令参考见 [GO.md](./GO.md)
+**flow-kit** 是面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、技能包、模板和工程参考材料。
 
 ---
 
-## Cost Table
+## 目录
 
-| Context Usage | Quality | Claude's State |
-|---------------|---------|----------------|
-| 0-30% | PEAK | Thorough, comprehensive |
-| 30-50% | GOOD | Confident, solid work |
-| 50-70% | DEGRADING | Efficiency mode begins |
-| 70%+ | POOR | Rushed, minimal |
-
----
-
-## Scenario Decision Tree
-
-**What type of change?**
-
-- **Simple** (1-3 files, known stack)
-  - Minimal mode / skip phases
-  - Example: Fix typo, update config, add simple feature
-
-- **Medium** (new feature, existing stack)
-  - Standard 8-phase flow
-  - Example: Add API endpoint, implement feature module
-
-- **Complex** (architecture, new stack)
-  - Full 8-phase with design review
-  - Example: New service, database migration, complex integration
-
-- **Brownfield** (existing project)
-  - Apply B1-B6 guardrails first
-  - Then proceed with appropriate flow
+- [特性](#特性)
+- [安装](#安装)
+- [快速开始](#快速开始)
+- [工作流](#工作流)
+- [命令参考](#命令参考)
+- [示例](#示例)
+- [项目结构](#项目结构)
+- [贡献](#贡献)
 
 ---
 
-## Command Reference
+## 特性
 
-| Command | Description |
-|---------|-------------|
-| `/flow-kit:health` | Code health scan - analyzes code quality baseline |
-| `/flow-kit:scan` | Intel scan - detects TODO/FIXME and technical debt |
-| `/flow-kit:update-context` | Update project context with latest information |
-| `/flow-kit:sync-config` | Sync team configuration across members |
-| `/flow-kit:archive` | Archive completed change to history |
+| 特性 | 描述 |
+|------|------|
+| **8 阶段工作流** | 从需求到集成的完整开发流程 |
+| **棕地护栏** | B1-B6 六大护栏，保护现有代码库 |
+| **元技能包** | 7 个可复用技能模块 |
+| **多语言支持** | TypeScript、Python、Java、Go、Rust、PHP |
+| **工程规范** | 前端/后端硬规则、TDD 标准、ADR 模板 |
+| **团队协作** | 角色定义、P0 审批、成本报告 |
 
 ---
 
-*See [GO.md](./GO.md) for detailed command documentation*
+## 安装
+
+### 方式一：克隆到项目
+
+```bash
+git clone https://github.com/pwl1987/flow-kit.git /path/to/your-project/.flow-kit
+```
+
+### 方式二：复制所需文件
+
+```bash
+# 复制核心文件到项目
+cp flow-kit/GO.md /path/to/project/
+cp -r flow-kit/phases /path/to/project/
+cp -r flow-kit/templates /path/to/project/
+```
+
+### 方式三：作为子模块
+
+```bash
+git submodule add https://github.com/pwl1987/flow-kit.git .flow-kit
+```
+
+---
+
+## 快速开始
+
+### 1. 首次健康扫描
+
+```bash
+/flow-kit:health
+```
+
+### 2. 创建变更规格目录
+
+```bash
+mkdir .specs/$(date +%Y%m%d%H%M%S)
+```
+
+### 3. 启动开发流程
+
+```bash
+@flow-kit/GO.md
+```
+
+### 场景决策
+
+| 场景 | 推荐流程 |
+|------|---------|
+| 简单变更（1-3 文件） | 极简模式，跳过测试/审查 |
+| 中等复杂度（新功能） | 标准 8 阶段 |
+| 复杂架构变更 | 完整流程 + 设计评审 |
+| 棕地项目迭代 | 启用 B1-B6 护栏 |
+
+---
+
+## 工作流
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  0-CHANGE  →  1-REQUIREMENT  →  2-DESIGN  →  3-TASK       │
+│                                                             │
+│  4-DEV     →  5-TEST       →  6-REVIEW   →  7-INTEGRATION  │
+│                                                             │
+│                                                    ↓        │
+│                                              8-ROLLBACK     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 阶段说明
+
+| 阶段 | 文件 | 描述 |
+|------|------|------|
+| 0 | [0-change.md](./phases/0-change/0-change.md) | 变更立项、生成 change-id |
+| 1 | [1-requirement.md](./phases/1-requirement/1-requirement.md) | 需求澄清、验收标准 |
+| 2 | [2-design.md](./phases/2-design/2-design.md) | 架构设计、技术选型 |
+| 3 | [3-task.md](./phases/3-task/3-task.md) | 任务拆解、并行检测 |
+| 4 | [4-dev.md](./phases/4-dev/4-dev.md) | 开发执行、TDD 驱动 |
+| 5 | [5-test.md](./phases/5-test/5-test.md) | 测试验证、覆盖率报告 |
+| 6 | [6-review.md](./phases/6-review/6-review.md) | 代码审查、三轮评审 |
+| 7 | [7-integration.md](./phases/7-integration/7-integration.md) | 集成归档、经验沉淀 |
+| 8 | [8-rollback.md](./phases/8-rollback/8-rollback.md) | 变更回滚、事故记录 |
+
+---
+
+## 命令参考
+
+| 命令 | 描述 |
+|------|------|
+| `/flow-kit:health` | 代码健康度扫描 |
+| `/flow-kit:scan` | 技术债务扫描（TODO/FIXME） |
+| `/flow-kit:update-context` | 更新项目上下文 |
+| `/flow-kit:sync-config` | 同步团队配置 |
+| `/flow-kit:archive` | 归档完成变更 |
+| `/flow-kit:minimal` | 启用极简模式 |
+| `/flow-kit:offline` | 启用离线模式 |
+
+详细命令文档请参阅 [GO.md](./GO.md)。
+
+---
+
+## 示例
+
+参见 [examples/](../examples/) 目录：
+
+- [simple-feature/](../examples/simple-feature/) — 简单功能变更示例
+- [brownfield-project/](../examples/brownfield-project/) — 棕地项目示例
+
+---
+
+## 项目结构
+
+```
+flow-kit/
+├── GO.md                      # 唯一入口
+├── README.md                  # 本文档
+├── phases/                    # 8 阶段流程定义
+│   ├── 0-change/
+│   ├── 1-requirement/
+│   ├── 2-design/
+│   ├── 3-task/
+│   ├── 4-dev/
+│   ├── 5-test/
+│   ├── 6-review/
+│   ├── 7-integration/
+│   └── 8-rollback/
+├── guardrails/                # 棕地护栏
+│   ├── brownfield-guardrails.md
+│   ├── breaking-change.md
+│   ├── database-guardrails.md
+│   ├── security-checklist.md
+│   └── ui-guardrails.md
+├── skills/                    # 元技能包
+│   ├── requirement-clarify.md
+│   ├── task-master.md
+│   ├── subagent-execution.md
+│   ├── code-review.md
+│   ├── debugging.md
+│   ├── parallel-dispatch.md
+│   └── verification.md
+├── commands/                  # 横向命令
+├── reference/                 # 工程规范
+│   ├── frontend-engineer-rules.md
+│   ├── backend-engineer-rules.md
+│   ├── tdd-standard.md
+│   ├── adr-template.md
+│   └── language-specs/        # 多语言栈规则
+├── templates/                 # 工件模板
+├── config/                    # 配置文件
+│   ├── constitution.md        # 全局最高约束
+│   ├── default-user-config.md
+│   └── team-roles.md
+├── mcp/                       # MCP 工具适配
+├── lib/                       # 共享库
+└── archive/                   # 归档逻辑
+```
+
+---
+
+## 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+---
+
+## 许可证
+
+[MIT License](../LICENSE)
+
+*Generated with flow-kit v1.0.0*
 
 --- END flow-kit/README.md ---
