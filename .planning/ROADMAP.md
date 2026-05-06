@@ -91,6 +91,12 @@
 
 **Requirements:** REQ-001, REQ-002, REQ-003, REQ-004
 
+**Plans:**
+- [ ] 05-01-PLAN.md — Brownfield/Greenfield detection (project-type.js)
+- [ ] 05-02-PLAN.md — Checkpoint resume (checkpoint.js)
+- [ ] 05-03-PLAN.md — Database type detection (database-type.js)
+- [ ] 05-04-PLAN.md — Skills validation (validate-skills.js)
+
 **Success Criteria:**
 1. phase 文件正确检测棕地/绿地项目类型
 2. phase-executor 支持断点续跑，检测 `.STATE` 文件恢复执行
@@ -135,4 +141,4 @@
 See: .planning/STATE.md
 
 ---
-*Last updated: 2026-05-06 after v1.1 initialization*
+*Last updated: 2026-05-07 after Phase 5 planning*
