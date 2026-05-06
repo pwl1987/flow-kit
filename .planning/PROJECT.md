@@ -12,36 +12,46 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 
 ### Validated
 
-(None yet — ship to validate)
+**v1.0 — 核心骨架完成 ✓**
+
+- flow-kit/GO.md — 单入口路由 ✓
+- flow-kit/core/ — 8 阶段文件 ✓
+- flow-kit/guardrails/ — 棕地护轨 B1-B6 ✓
+- flow-kit/skills/ — 7 个技能包 ✓
+- flow-kit/commands/ — 4 个横向命令 ✓
+- flow-kit/templates/ — 模板文件 ✓
+- flow-kit/reference/ — 工程规则 + 多语言规格 ✓
+- flow-kit/config/ — Constitution + 默认配置 ✓
+- phase-executor.md — 阶段执行器 ✓
+- check-expiry.md — 上下文过期检测 ✓
+- estimate-tokens.md — Token 估算 ✓
+- offline-mode.md — 离线模式 ✓
+- minimal-mode.md — 最小模式 ✓
 
 ### Active
 
-**Phase 1 — Core Skeleton:**
-- [ ] `flow-kit/GO.md` — Single entry point with routing logic
-- [ ] `flow-kit/README.md` — Quick start + cost table + scenario decision tree
-- [ ] `flow-kit/core/` — 8 phase files (0-change through 8-rollback)
-- [ ] `flow-kit/templates/` — All template files
+**v1.1 — 迭代优化（Phase 5-7）**
 
-**Phase 2 — Guardrails & Core Capabilities:**
-- [ ] `flow-kit/guardrails/` — B1-B6 brownfield guardrails
-- [ ] `flow-kit/skills/` — 7 skill packages
-- [ ] `flow-kit/commands/` — 4 lateral commands
-- [ ] `flow-kit/mcp/` — MCP tool adaptation files
-- [ ] `flow-kit/reference/` — Engineering rules + language specs
-- [ ] `flow-kit/config/` — Constitution and default config
+P0 — 立即修复（影响核心能力）:
+- [ ] phases 文件增加棕地/绿地分支检测
+- [ ] phase-executor 增加断点续跑和自动清窗
+- [ ] database-guardrails 增加数据库类型自动检测
+- [ ] skills 文件内容充实 + 实战验证
 
-**Phase 3 — Full Scenario Adaptation:**
-- [ ] Context expiry detection (15-day warning, 30-day enforcement)
-- [ ] Token usage estimation per phase
-- [ ] Offline mode full adaptation
-- [ ] Minimal mode (skip test/review for simple changes)
+P1 — 尽快补充（提升生产可用性）:
+- [ ] phases 文件增加棕地/绿地分支
+- [ ] phase-executor 增加断点续跑和自动清窗
+- [ ] database-guardrails 增加数据库类型自动检测
+- [ ] skills 文件内容充实 + 实战验证
+- [ ] GO.md 增加棕地/绿地自动路由
 
-**Phase 4 — Team Collaboration:**
-- [ ] Role definitions in constitution
-- [ ] P0 change approval workflow
-- [ ] PR description generation
-- [ ] Team config sync command
-- [ ] Monthly cost report generation
+P2 — 后续迭代（体验增强）:
+- [ ] constitution 增加技术栈约束和角色定义
+- [ ] 增加审批文件自动生成
+- [ ] 补充 APPROVAL.md.template
+- [ ] 多语言规格增加破坏性变更检测模式
+- [ ] M-health / I-intel-scan 充实具体扫描规则
+- [ ] sync-team-config.md 实现
 
 ### Out of Scope
 
@@ -51,10 +61,10 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 
 ## Context
 
-- **Project type:** Greenfield — building flow-kit from scratch
+- **Project type:** Brownfield → flow-kit 迭代开发
 - **Target users:** Developers using Claude Code for complex/large projects, especially team environments
 - **Delivery format:** Markdown files only, zero dependencies, copy-paste deployable
-- **PRD source:** `/data/Code/flow-kit/prd.md` — comprehensive specification provided
+- **PRD source:** `prd1.1.md` — v1.1 迭代规格
 
 ## Constraints
 
@@ -72,7 +82,8 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 | 8-phase workflow | Balances structure vs. simplicity | ✓ Confirmed |
 | B1-B6 brownfield guardrails | Critical for existing project safety | ✓ Confirmed |
 | Minimal mode for simple changes | Avoids over-engineering small tasks | ✓ Confirmed |
+| v1.1 P0-first approach | Fix production blockers before adding features | ✓ Confirmed |
 
 ---
 
-*Last updated: 2026-05-06 after initialization*
+*Last updated: 2026-05-06 after v1.0 completion and v1.1 initialization*

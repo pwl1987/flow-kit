@@ -2,14 +2,17 @@
 
 ## Overview
 
-**4 phases** | **4 phases** | **56 requirements mapped** | All v1 requirements covered ✓
+**7 phases** | **15 requirements mapped** | All v1.1 requirements covered ✓
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 1 | Core Skeleton | Complete directory structure, entry point, 8-phase workflow, templates | CORE-01~03, CORE-10~19, TMPL-70~77 | 6 |
 | 2 | Guardrails & Capabilities | Brownfield guardrails, skills, commands, MCP adaptation, config | GUARD-20~24, SKILL-30~36, CMD-40~43, MCP-50~52, CFG-80~81 | 5 |
-| 3 | Reference Materials | Engineering rules, language specs | REF-60~69, ARCH-90 | 3 |
-| 4 | Integration & Polish | Archive logic, context expiry, token estimation, offline mode, team features | v2 deferred items | 3 |
+| 3 | Reference Materials | Engineering rules, language specs | REF-60~69, ARCH-90 | 5 |
+| 4 | Integration & Polish | Archive logic, context expiry, token estimation, offline mode, team features | v2 deferred items | 5 |
+| 5 | P0 缺陷修复 | 棕地检测、断点续跑、数据库检测、skill 验证 | REQ-001~004 | 4 |
+| 6 | P1 功能补充 | phases 分支、executor 续跑、GO 路由、skills 充实 | REQ-005~009 | 5 |
+| 7 | P2 体验增强 | 审批流、技术栈、破坏性变更检测、扫描规则 | REQ-010~015 | 6 |
 
 ---
 
@@ -18,15 +21,6 @@
 **Goal:** Complete directory creation, entry routing, 8-phase workflow, templates
 
 **Requirements:** CORE-01, CORE-02, CORE-03, CORE-10~19, TMPL-70~77
-
-**Plans:** 5 plans
-
-**Plan list:**
-- [x] 01-01-PLAN.md — Directory structure creation (2026-05-06)
-- [x] 01-02-PLAN.md — GO.md entry point with routing (2026-05-06)
-- [x] 01-03-PLAN.md — README.md with cost table and decision tree (2026-05-06)
-- [x] 01-04-PLAN.md — 8 phase files (0-change through 8-rollback) (2026-05-06)
-- [x] 01-05-PLAN.md — 8 template files (2026-05-06)
 
 **Status:** ✅ Complete (2026-05-06)
 
@@ -46,6 +40,8 @@
 
 **Requirements:** GUARD-20~24, SKILL-30~36, CMD-40~43, MCP-50~52, CFG-80~81
 
+**Status:** ✅ Complete (2026-05-06)
+
 **Success Criteria:**
 1. B1-B6 brownfield guardrails documented with clear activation conditions
 2. All 7 skill packages functional with proper templates
@@ -60,6 +56,8 @@
 **Goal:** Complete engineering hard rules for frontend/backend, TDD standard, ADR template, all 6 language specs, and archive logic.
 
 **Requirements:** REF-60~69, ARCH-90
+
+**Status:** ✅ Complete (2026-05-06)
 
 **Success Criteria:**
 1. Frontend engineer rules include 11 delivery checks
@@ -76,6 +74,8 @@
 
 **Requirements:** v2 deferred items (context expiry, token estimation, offline mode, minimal mode, roles, approval flow, PR desc, cost report)
 
+**Status:** ✅ Complete (2026-05-06)
+
 **Success Criteria:**
 1. Context expiry warning at 15 days, enforcement at 30 days
 2. Token estimation outputs per phase with 80%/100% budget warnings
@@ -85,9 +85,54 @@
 
 ---
 
+## Phase 5: P0 缺陷修复
+
+**Goal:** 修复影响核心能力的缺陷 — 棕地/绿地检测、断点续跑、数据库类型识别、skills 验证
+
+**Requirements:** REQ-001, REQ-002, REQ-003, REQ-004
+
+**Success Criteria:**
+1. phase 文件正确检测棕地/绿地项目类型
+2. phase-executor 支持断点续跑，检测 `.STATE` 文件恢复执行
+3. database-guardrails 自动识别 MySQL/PG/MongoDB 类型并推荐工具
+4. skills 内容经实战验证达到可用标准
+
+---
+
+## Phase 6: P1 功能补充
+
+**Goal:** 补充提升生产可用性的功能 — phases 分支增强、executor 自动清窗、GO 智能路由、skills 充实
+
+**Requirements:** REQ-005, REQ-006, REQ-007, REQ-008, REQ-009
+
+**Success Criteria:**
+1. phases 文件包含完整的环境检测、依赖检测、项目历史分析
+2. phase-executor 实现自动清窗，超 80% token 预算时触发压缩
+3. GO.md 实现智能路由，向用户展示检测结果并支持手动覆盖
+4. skills 内容根据实战验证结果更新优化
+5. 全链路棕地/绿地自动路由完成
+
+---
+
+## Phase 7: P2 体验增强
+
+**Goal:** 增强用户体验 — 技术栈约束、审批流、破坏性变更检测、扫描规则
+
+**Requirements:** REQ-010, REQ-011, REQ-012, REQ-013, REQ-014, REQ-015
+
+**Success Criteria:**
+1. constitution.md 包含 TECH-01 技术栈约束和 architect/reviewer/ops 角色定义
+2. P0 变更触发审批文件自动生成
+3. APPROVAL.md.template 完整且与 p0-approval 命令集成
+4. 多语言规格包含破坏性变更检测模式
+5. M-health / I-intel-scan 扫描规则充实，输出结构化报告
+6. sync-team-config.md 从团队仓库拉取配置到 `.flow-kit/`
+
+---
+
 ## State
 
 See: .planning/STATE.md
 
 ---
-*Last updated: 2026-05-06 after Phase 1 planning*
+*Last updated: 2026-05-06 after v1.1 initialization*
