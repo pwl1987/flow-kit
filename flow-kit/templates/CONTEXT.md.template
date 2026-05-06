@@ -1,0 +1,54 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/CONTEXT.md.template ---
+
+# {{PROJECT_NAME}} - 项目上下文
+
+## 项目概述
+
+- **项目名称**: {{PROJECT_NAME}}
+- **创建日期**: {{DATE}}
+- **项目阶段**: {{PHASE_NAME}} (Phase {{PHASE_NUMBER}})
+
+## 项目目标
+
+{{GOAL}}
+
+## 技术栈
+
+| 层级 | 技术 | 备注 |
+|------|------|------|
+| 前端 | {{TECH_STACK_FRONTEND}} | |
+| 后端 | {{TECH_STACK_BACKEND}} | |
+| 数据库 | {{TECH_STACK_DB}} | |
+| 基础设施 | {{TECH_STACK_INFRA}} | |
+
+## 约束条件
+
+### 时间约束
+- {{TIME_CONSTRAINT}}
+
+### 技术约束
+- {{TECH_CONSTRAINT}}
+
+### 资源约束
+- {{RESOURCE_CONSTRAINT}}
+
+## 已有关键文档
+
+| 文档 | 路径 | 状态 |
+|------|------|------|
+| {{DOC_NAME_1}} | {{DOC_PATH_1}} | {{DOC_STATUS_1}} |
+| {{DOC_NAME_2}} | {{DOC_PATH_2}} | {{DOC_STATUS_2}} |
+
+## 依赖关系
+
+- 依赖项目: {{DEPENDENT_PROJECTS}}
+- 被依赖项目: {{DEPENDENCIES}}
+
+## 备注
+
+{{NOTES}}
+
+--- END flow-kit/templates/CONTEXT.md.template ---

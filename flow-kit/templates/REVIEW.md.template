@@ -1,0 +1,128 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/REVIEW.md.template ---
+
+# 审查报告 - {{PHASE_NAME}}
+
+## 审查信息
+
+| 字段 | 值 |
+|------|-----|
+| 阶段名称 | {{PHASE_NAME}} |
+| 变更ID | {{CHANGE_ID}} |
+| 审查日期 | {{DATE}} |
+| 审查状态 | {{REVIEW_STATUS}} |
+
+## CEO 审查 (业务价值)
+
+### 业务目标评估
+
+| 目标 | 达成情况 | 评估 |
+|------|----------|------|
+| {{BUSINESS_GOAL_1}} | {{GOAL_ATTAINMENT_1}} | {{EVALUATION_1}} |
+| {{BUSINESS_GOAL_2}} | {{GOAL_ATTAINMENT_2}} | {{EVALUATION_2}} |
+
+### 业务价值
+
+{{CEO_REVIEW}}
+
+### ROI 评估
+
+| 指标 | 预期 | 实际 | 状态 |
+|------|------|------|------|
+| {{ROI_METRIC_1}} | {{ROI_EXPECTED_1}} | {{ROI_ACTUAL_1}} | {{ROI_STATUS_1}} |
+
+### 业务风险
+
+| 风险 | 等级 | 缓解措施 |
+|------|------|----------|
+| {{RISK_1}} | {{RISK_LEVEL_1}} | {{MITIGATION_1}} |
+| {{RISK_2}} | {{RISK_LEVEL_2}} | {{MITIGATION_2}} |
+
+### 业务决策
+
+**批准**: {{CEO_APPROVAL}}
+**理由**: {{CEO_RATIONALE}}
+
+## Design 审查 (用户体验)
+
+### UX 目标评估
+
+| 目标 | 状态 | 说明 |
+|------|------|------|
+| {{UX_GOAL_1}} | {{UX_STATUS_1}} | {{UX_NOTE_1}} |
+| {{UX_GOAL_2}} | {{UX_STATUS_2}} | {{UX_NOTE_2}} |
+
+### 设计一致性
+
+{{DESIGN_REVIEW}}
+
+### 可用性问题
+
+| 问题 | 严重性 | 建议 |
+|------|--------|------|
+| {{USABILITY_ISSUE_1}} | {{SEVERITY_1}} | {{SUGGESTION_1}} |
+
+### Design 决策
+
+**批准**: {{DESIGN_APPROVAL}}
+**理由**: {{DESIGN_RATIONALE}}
+
+## Eng 审查 (代码质量)
+
+### 代码质量评估
+
+| 指标 | 目标 | 实际 | 状态 |
+|------|------|------|------|
+| 代码覆盖率 | {{COVERAGE_TARGET}} | {{COVERAGE_ACTUAL}} | {{COVERAGE_STATUS}} |
+| 圈复杂度 | {{COMPLEXITY_TARGET}} | {{COMPLEXITY_ACTUAL}} | {{COMPLEXITY_STATUS}} |
+| 代码规范 | {{STYLE_TARGET}} | {{STYLE_ACTUAL}} | {{STYLE_STATUS}} |
+
+### 技术债务
+
+{{TECHNICAL_DEBT}}
+
+### 安全审查
+
+| 检查项 | 状态 | 说明 |
+|--------|------|------|
+| {{SECURITY_CHECK_1}} | {{SECURITY_STATUS_1}} | {{SECURITY_NOTE_1}} |
+| {{SECURITY_CHECK_2}} | {{SECURITY_STATUS_2}} | {{SECURITY_NOTE_2}} |
+
+### 性能评估
+
+| 指标 | 目标 | 实际 | 状态 |
+|------|------|------|------|
+| 响应时间 | {{LATENCY_TARGET}} | {{LATENCY_ACTUAL}} | {{LATENCY_STATUS}} |
+| 吞吐量 | {{THROUGHPUT_TARGET}} | {{THROUGHPUT_ACTUAL}} | {{THROUGHPUT_STATUS}} |
+
+### Eng 决策
+
+**批准**: {{ENG_APPROVAL}}
+**理由**: {{ENG_RATIONALE}}
+
+## 综合审批
+
+### 整体审批
+
+| 角色 | 审批 | 备注 |
+|------|------|------|
+| CEO | {{CEO_APPROVAL}} | {{CEO_NOTES}} |
+| Design | {{DESIGN_APPROVAL}} | {{DESIGN_NOTES}} |
+| Engineering | {{ENG_APPROVAL}} | {{ENG_NOTES}} |
+
+### 整体结论
+
+**最终批准**: {{OVERALL_APPROVAL}}
+
+**综合意见**: {{OVERALL_COMMENTS}}
+
+### 后续行动
+
+| 行动项 | 负责人 | 截止日期 |
+|--------|--------|----------|
+| {{ACTION_ITEM_1}} | {{OWNER_1}} | {{DUE_DATE_1}} |
+| {{ACTION_ITEM_2}} | {{OWNER_2}} | {{DUE_DATE_2}} |
+
+--- END flow-kit/templates/REVIEW.md.template ---

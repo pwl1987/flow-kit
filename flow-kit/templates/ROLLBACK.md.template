@@ -1,0 +1,176 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/ROLLBACK.md.template ---
+
+# 回滚报告 - {{CHANGE_ID}}
+
+## 回滚信息
+
+| 字段 | 值 |
+|------|-----|
+| 变更ID | {{CHANGE_ID}} |
+| 回滚日期 | {{DATE}} |
+| 回滚状态 | {{STATUS}} |
+| 执行人 | {{EXECUTED_BY}} |
+
+## 回滚原因
+
+### 主要原因
+
+{{ROLLBACK_REASON}}
+
+### 问题详情
+
+**问题现象**: {{PROBLEM_MANIFESTATION}}
+
+**问题时间**: {{PROBLEM_TIME}}
+
+**影响范围**:
+- 服务: {{AFFECTED_SERVICES}}
+- 用户: {{AFFECTED_USERS}}
+- 数据: {{AFFECTED_DATA}}
+
+### 严重程度
+
+| 维度 | 等级 |
+|------|------|
+| 用户影响 | {{USER_IMPACT_LEVEL}} |
+| 业务影响 | {{BUSINESS_IMPACT_LEVEL}} |
+| 技术严重性 | {{TECHNICAL_SEVERITY}} |
+
+### 决定回滚的理由
+
+{{ROLLBACK_DECISION_RATIONALE}}
+
+## 执行步骤
+
+### 步骤 1: 准备工作
+
+```bash
+# 备份当前状态
+{{BACKUP_COMMAND}}
+
+# 通知相关方
+{{NOTIFICATION_COMMAND}}
+```
+
+**验证点**: {{PREPARATION_VERIFICATION}}
+
+### 步骤 2: 回滚代码
+
+```bash
+# 回滚到上一稳定版本
+{{CODE_ROLLBACK_COMMAND}}
+```
+
+**验证点**: {{CODE_ROLLBACK_VERIFICATION}}
+
+### 步骤 3: 回滚数据
+
+```bash
+# 恢复数据库
+{{DATABASE_ROLLBACK_COMMAND}}
+```
+
+**验证点**: {{DATABASE_ROLLBACK_VERIFICATION}}
+
+### 步骤 4: 回滚配置
+
+```bash
+# 恢复配置
+{{CONFIG_ROLLBACK_COMMAND}}
+```
+
+**验证点**: {{CONFIG_ROLLBACK_VERIFICATION}}
+
+### 步骤 5: 验证
+
+```bash
+# 健康检查
+{{HEALTH_CHECK_COMMAND}}
+
+# 功能验证
+{{FUNCTIONAL_VERIFICATION_COMMAND}}
+```
+
+**验证点**: {{FINAL_VERIFICATION}}
+
+## 验证方法
+
+### 功能验证
+
+| 功能 | 预期结果 | 实际结果 | 状态 |
+|------|----------|----------|------|
+| {{FUNC_1}} | {{FUNC_EXPECTED_1}} | {{FUNC_ACTUAL_1}} | {{FUNC_STATUS_1}} |
+| {{FUNC_2}} | {{FUNC_EXPECTED_2}} | {{FUNC_ACTUAL_2}} | {{FUNC_STATUS_2}} |
+
+### 性能验证
+
+| 指标 | 目标 | 实际 | 状态 |
+|------|------|------|------|
+| 响应时间 | {{LATENCY_TARGET}} | {{LATENCY_ACTUAL}} | {{LATENCY_STATUS}} |
+| 可用性 | {{AVAILABILITY_TARGET}} | {{AVAILABILITY_ACTUAL}} | {{AVAILABILITY_STATUS}} |
+
+### 数据完整性验证
+
+| 检查项 | 状态 |
+|--------|------|
+| {{DATA_CHECK_1}} | {{DATA_CHECK_STATUS_1}} |
+| {{DATA_CHECK_2}} | {{DATA_CHECK_STATUS_2}} |
+
+## 时间线
+
+| 时间 | 事件 |
+|------|------|
+| {{TIME_1}} | {{EVENT_1}} |
+| {{TIME_2}} | {{EVENT_2}} |
+| {{TIME_3}} | {{EVENT_3}} |
+| {{TIME_4}} | {{EVENT_4}} |
+
+**总回滚时间**: {{TOTAL_ROLLBACK_TIME}}
+
+## 经验教训
+
+### 防止再次发生
+
+{{PREVENTION_MEASURES}}
+
+### 改进行动
+
+| 行动项 | 负责人 | 截止日期 |
+|--------|--------|----------|
+| {{IMPROVEMENT_ACTION_1}} | {{IMPROVEMENT_OWNER_1}} | {{IMPROVEMENT_DUE_1}} |
+| {{IMPROVEMENT_ACTION_2}} | {{IMPROVEMENT_OWNER_2}} | {{IMPROVEMENT_DUE_2}} |
+
+### 监控改进
+
+{{MONITORING_IMPROVEMENTS}}
+
+## 相关问题
+
+| 问题ID | 描述 | 链接 |
+|--------|------|------|
+| {{ISSUE_1}} | {{ISSUE_DESC_1}} | {{ISSUE_LINK_1}} |
+| {{ISSUE_2}} | {{ISSUE_DESC_2}} | {{ISSUE_LINK_2}} |
+
+## 后续行动
+
+| 行动项 | 负责人 | 截止日期 | 状态 |
+|--------|--------|----------|------|
+| {{FOLLOW_UP_1}} | {{FOLLOW_UP_OWNER_1}} | {{FOLLOW_UP_DUE_1}} | {{FOLLOW_UP_STATUS_1}} |
+| {{FOLLOW_UP_2}} | {{FOLLOW_UP_OWNER_2}} | {{FOLLOW_UP_DUE_2}} | {{FOLLOW_UP_STATUS_2}} |
+
+## 附录
+
+### 回滚命令参考
+
+```bash
+{{ROLLBACK_COMMAND_REFERENCE}}
+```
+
+### 相关日志
+
+{{RELATED_LOGS}}
+
+--- END flow-kit/templates/ROLLBACK.md.template ---

@@ -1,0 +1,91 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/TASK.md.template ---
+
+# 任务清单 - {{CHANGE_ID}}
+
+## 变更信息
+
+| 字段 | 值 |
+|------|-----|
+| 变更ID | {{CHANGE_ID}} |
+| 阶段 | {{PHASE_NAME}} |
+| 创建日期 | {{DATE}} |
+| 状态 | {{STATUS}} |
+
+## 任务列表
+
+<?xml version="1.0" encoding="UTF-8"?>
+<tasks parallel="{{PARALLEL}}">
+
+    <task id="{{TASK_ID_1}}">
+        <description>{{DESC_1}}</description>
+        <files>
+            <read>{{FILES_READ_1}}</read>
+            <write>{{FILES_WRITE_1}}</write>
+        </files>
+        <verify>
+            {{VERIFY_1}}
+        </verify>
+        <status>{{TASK_STATUS_1}}</status>
+    </task>
+
+    <task id="{{TASK_ID_2}}">
+        <description>{{DESC_2}}</description>
+        <files>
+            <read>{{FILES_READ_2}}</read>
+            <write>{{FILES_WRITE_2}}</write>
+        </files>
+        <verify>
+            {{VERIFY_2}}
+        </verify>
+        <status>{{TASK_STATUS_2}}</status>
+    </task>
+
+    <task id="{{TASK_ID_3}}">
+        <description>{{DESC_3}}</description>
+        <files>
+            <read>{{FILES_READ_3}}</read>
+            <write>{{FILES_WRITE_3}}</write>
+        </files>
+        <verify>
+            {{VERIFY_3}}
+        </verify>
+        <status>{{TASK_STATUS_3}}</status>
+    </task>
+
+</tasks>
+
+## 执行顺序
+
+{{EXECUTION_ORDER}}
+
+## 验证标准
+
+### 单元测试
+```bash
+{{UNIT_TEST_COMMAND}}
+```
+
+### 集成测试
+```bash
+{{INTEGRATION_TEST_COMMAND}}
+```
+
+### 代码规范
+```bash
+{{LINT_COMMAND}}
+```
+
+## 依赖任务
+
+| 任务ID | 依赖类型 | 说明 |
+|--------|----------|------|
+| {{DEPENDENT_TASK_1}} | {{DEP_TYPE_1}} | {{DEP_REASON_1}} |
+
+## 备注
+
+{{NOTES}}
+
+--- END flow-kit/templates/TASK.md.template ---

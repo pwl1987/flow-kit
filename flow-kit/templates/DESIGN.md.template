@@ -1,0 +1,126 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/DESIGN.md.template ---
+
+# 设计文档 - {{PHASE_NAME}}
+
+## 阶段信息
+
+| 字段 | 值 |
+|------|-----|
+| 阶段名称 | {{PHASE_NAME}} |
+| 阶段编号 | {{PHASE_NUMBER}} |
+| 目标 | {{GOAL}} |
+| 创建日期 | {{DATE}} |
+
+## 架构决策
+
+### 决策 1: {{DECISION_TITLE_1}}
+
+**问题**: {{PROBLEM_1}}
+
+**方案**: {{SOLUTION_1}}
+
+**结果**: {{OUTCOME_1}}
+
+### 决策 2: {{DECISION_TITLE_2}}
+
+**问题**: {{PROBLEM_2}}
+
+**方案**: {{SOLUTION_2}}
+
+**结果**: {{OUTCOME_2}}
+
+## 5 Stack Cards
+
+### 1. Database (DB)
+
+```
+{{STACK_DB}}
+```
+
+**关键表结构**:
+```sql
+{{DB_SCHEMA}}
+```
+
+### 2. API Layer
+
+```
+{{STACK_API}}
+```
+
+**关键端点**:
+- `{{API_ENDPOINT_1}}` - {{API_ENDPOINT_DESC_1}}
+- `{{API_ENDPOINT_2}}` - {{API_ENDPOINT_DESC_2}}
+
+### 3. UI Layer
+
+```
+{{STACK_UI}}
+```
+
+**关键组件**:
+- {{UI_COMPONENT_1}}
+- {{UI_COMPONENT_2}}
+
+### 4. DevOps
+
+```
+{{STACK_DEVOPS}}
+```
+
+**部署配置**:
+```yaml
+{{DEVOPS_CONFIG}}
+```
+
+### 5. Testing
+
+```
+{{STACK_TESTING}}
+```
+
+**测试策略**:
+- {{TEST_STRATEGY_1}}
+- {{TEST_STRATEGY_2}}
+
+## 接口定义
+
+### 内部接口
+
+```typescript
+{{INTERNAL_INTERFACE}}
+```
+
+### 外部接口
+
+```typescript
+{{EXTERNAL_INTERFACE}}
+```
+
+## 数据流
+
+```
+{{DATA_FLOW}}
+```
+
+## 错误处理
+
+| 错误码 | 描述 | 处理方式 |
+|--------|------|----------|
+| {{ERROR_CODE_1}} | {{ERROR_DESC_1}} | {{ERROR_HANDLER_1}} |
+| {{ERROR_CODE_2}} | {{ERROR_DESC_2}} | {{ERROR_HANDLER_2}} |
+
+## 安全性考虑
+
+{{SECURITY_CONSIDERATIONS}}
+
+## 性能目标
+
+- 响应时间: {{RESPONSE_TIME_TARGET}}
+- 并发用户: {{CONCURRENCY_TARGET}}
+- 吞吐量: {{THROUGHPUT_TARGET}}
+
+--- END flow-kit/templates/DESIGN.md.template ---

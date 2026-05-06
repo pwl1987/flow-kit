@@ -1,0 +1,65 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/REQUIREMENT.md.template ---
+
+# 需求文档 - {{REQ_ID}}
+
+## 基本信息
+
+| 字段 | 值 |
+|------|-----|
+| 需求ID | {{REQ_ID}} |
+| 标题 | {{TITLE}} |
+| 优先级 | {{PRIORITY}} |
+| 创建日期 | {{DATE}} |
+| 状态 | {{STATUS}} |
+
+## 需求描述
+
+{{DESCRIPTION}}
+
+## 验收标准
+
+### 功能验收
+
+- [ ] {{ACCEPTANCE_CRITERION_1}}
+- [ ] {{ACCEPTANCE_CRITERION_2}}
+- [ ] {{ACCEPTANCE_CRITERION_3}}
+
+### 非功能验收
+
+- **性能**: {{PERFORMANCE_REQUIREMENT}}
+- **安全**: {{SECURITY_REQUIREMENT}}
+- **可用性**: {{USABILITY_REQUIREMENT}}
+
+## 依赖关系
+
+| 类型 | 需求ID | 说明 |
+|------|--------|------|
+| 阻塞 | {{BLOCKED_BY_1}} | {{BLOCKED_BY_REASON_1}} |
+| 依赖 | {{DEPENDS_ON_1}} | {{DEPENDS_ON_REASON_1}} |
+
+## 实现细节
+
+### 涉及文件
+
+**读取**: {{FILES_READ}}
+
+**写入**: {{FILES_WRITE}}
+
+### 影响范围
+
+- 模块: {{AFFECTED_MODULE}}
+- 接口: {{AFFECTED_INTERFACE}}
+- 数据模型: {{AFFECTED_MODEL}}
+
+## 测试策略
+
+{{TEST_STRATEGY}}
+
+## 备注
+
+{{NOTES}}
+
+--- END flow-kit/templates/REQUIREMENT.md.template ---

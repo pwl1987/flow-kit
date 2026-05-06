@@ -1,0 +1,85 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/SUMMARY.md.template ---
+
+# 阶段总结 - {{PHASE_NAME}}
+
+## 阶段信息
+
+| 字段 | 值 |
+|------|-----|
+| 阶段名称 | {{PHASE_NAME}} |
+| 阶段编号 | {{PHASE_NUMBER}} |
+| 完成日期 | {{DATE}} |
+| 状态 | {{STATUS}} |
+
+## 目标达成
+
+### 原始目标
+{{GOAL}}
+
+### 达成情况
+
+| 目标 | 状态 | 说明 |
+|------|------|------|
+| {{GOAL_ITEM_1}} | {{GOAL_STATUS_1}} | {{GOAL_NOTE_1}} |
+| {{GOAL_ITEM_2}} | {{GOAL_STATUS_2}} | {{GOAL_NOTE_2}} |
+
+### 完成度
+- **总体完成度**: {{COMPLETION_PERCENTAGE}}%
+
+## 关键决策
+
+### 决策 1: {{DECISION_TITLE_1}}
+- **问题**: {{PROBLEM_1}}
+- **方案**: {{SOLUTION_1}}
+- **理由**: {{RATIONALE_1}}
+
+### 决策 2: {{DECISION_TITLE_2}}
+- **问题**: {{PROBLEM_2}}
+- **方案**: {{SOLUTION_2}}
+- **理由**: {{RATIONALE_2}}
+
+## 交付物
+
+| 交付物 | 路径 | 状态 |
+|--------|------|------|
+| {{DELIVERABLE_1}} | {{DELIVERABLE_PATH_1}} | {{DELIVERABLE_STATUS_1}} |
+| {{DELIVERABLE_2}} | {{DELIVERABLE_PATH_2}} | {{DELIVERABLE_STATUS_2}} |
+
+## 经验教训
+
+### 做得好的
+{{WHAT_WENT_WELL}}
+
+### 可以改进的
+{{AREAS_FOR_IMPROVEMENT}}
+
+### Pattern 发现
+{{PATTERNS_ESTABLISHED}}
+
+## 统计数据
+
+| 指标 | 值 |
+|------|-----|
+| 任务完成数 | {{TASKS_COMPLETED}} |
+| 代码变更行数 | {{LINES_CHANGED}} |
+| 发现缺陷数 | {{DEFECTS_FOUND}} |
+| 总耗时 | {{TOTAL_TIME}} |
+
+## 下一步
+
+### 后续阶段
+- Next Phase: {{NEXT_PHASE}}
+- 依赖本阶段的变更: {{FOLLOW_UP_CHANGES}}
+
+### 待处理事项
+- [ ] {{PENDING_ITEM_1}}
+- [ ] {{PENDING_ITEM_2}}
+
+## 备注
+
+{{NOTES}}
+
+--- END flow-kit/templates/SUMMARY.md.template ---

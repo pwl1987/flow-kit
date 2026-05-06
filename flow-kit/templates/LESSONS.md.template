@@ -1,0 +1,152 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/LESSONS.md.template ---
+
+# 经验教训 - {{PHASE_NAME}}
+
+## 文档信息
+
+| 字段 | 值 |
+|------|-----|
+| 阶段名称 | {{PHASE_NAME}} |
+| 记录日期 | {{DATE}} |
+| 记录人 | {{AUTHOR}} |
+
+## What Worked
+
+### 成功实践 1: {{SUCCESS_PRACTICE_1}}
+
+**描述**: {{SUCCESS_DESC_1}}
+
+**效果**:
+- {{SUCCESS_EFFECT_1}}
+- {{SUCCESS_EFFECT_2}}
+
+**可复用的模式**:
+```
+{{SUCCESS_PATTERN_1}}
+```
+
+### 成功实践 2: {{SUCCESS_PRACTICE_2}}
+
+**描述**: {{SUCCESS_DESC_2}}
+
+**效果**:
+- {{SUCCESS_EFFECT_3}}
+- {{SUCCESS_EFFECT_4}}
+
+**可复用的模式**:
+```
+{{SUCCESS_PATTERN_2}}
+```
+
+## What Didn't Work
+
+### 问题 1: {{FAILED_PRACTICE_1}}
+
+**问题描述**: {{PROBLEM_DESC_1}}
+
+**根本原因**: {{ROOT_CAUSE_1}}
+
+**教训**:
+- {{LESSON_1}}
+- {{LESSON_2}}
+
+**如何避免**:
+{{PREVENTION_1}}
+
+### 问题 2: {{FAILED_PRACTICE_2}}
+
+**问题描述**: {{PROBLEM_DESC_2}}
+
+**根本原因**: {{ROOT_CAUSE_2}}
+
+**教训**:
+- {{LESSON_3}}
+- {{LESSON_4}}
+
+**如何避免**:
+{{PREVENTION_2}}
+
+## Patterns Established
+
+### 技术模式
+
+| 模式 | 描述 | 适用场景 |
+|------|------|----------|
+| {{PATTERN_1}} | {{PATTERN_DESC_1}} | {{PATTERN_USE_CASE_1}} |
+| {{PATTERN_2}} | {{PATTERN_DESC_2}} | {{PATTERN_USE_CASE_2}} |
+
+### 流程模式
+
+| 模式 | 描述 | 适用场景 |
+|------|------|----------|
+| {{PROCESS_PATTERN_1}} | {{PROCESS_DESC_1}} | {{PROCESS_USE_CASE_1}} |
+| {{PROCESS_PATTERN_2}} | {{PROCESS_DESC_2}} | {{PROCESS_USE_CASE_2}} |
+
+### 代码模式
+
+```{{LANGUAGE}}
+{{CODE_PATTERN}}
+```
+
+**使用场景**: {{CODE_PATTERN_USE_CASE}}
+
+## Key Decisions
+
+### 决策 1: {{DECISION_TITLE_1}}
+
+| 字段 | 值 |
+|------|-----|
+| 决策 | {{DECISION_1}} |
+| 替代方案 | {{ALTERNATIVE_1}} |
+| 选择理由 | {{RATIONALE_1}} |
+| 结果 | {{OUTCOME_1}} |
+
+**反思**:
+{{DECISION_REFLECTION_1}}
+
+### 决策 2: {{DECISION_TITLE_2}}
+
+| 字段 | 值 |
+|------|-----|
+| 决策 | {{DECISION_2}} |
+| 替代方案 | {{ALTERNATIVE_2}} |
+| 选择理由 | {{RATIONALE_2}} |
+| 结果 | {{OUTCOME_2}} |
+
+**反思**:
+{{DECISION_REFLECTION_2}}
+
+## 统计数据
+
+| 指标 | 值 |
+|------|-----|
+| 任务完成数 | {{TASKS_COMPLETED}} |
+| 缺陷数 | {{DEFECTS}} |
+| 重做任务数 | {{REWORK}} |
+| 总工时 | {{TOTAL_HOURS}} |
+
+## 建议
+
+### 给团队
+
+{{TEAM_RECOMMENDATIONS}}
+
+### 给未来项目
+
+{{FUTURE_PROJECT_RECOMMENDATIONS}}
+
+### 给流程
+
+{{PROCESS_RECOMMENDATIONS}}
+
+## 相关文档
+
+| 文档 | 路径 |
+|------|------|
+| {{RELATED_DOC_1}} | {{RELATED_DOC_PATH_1}} |
+| {{RELATED_DOC_2}} | {{RELATED_DOC_PATH_2}} |
+
+--- END flow-kit/templates/LESSONS.md.template ---
