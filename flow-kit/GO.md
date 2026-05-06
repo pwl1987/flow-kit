@@ -29,6 +29,21 @@
 | `/flow-kit:update-context` | `@flow-kit/commands/update-context.md` |
 | `/flow-kit:sync-config` | `@flow-kit/commands/sync-team-config.md` |
 | `/flow-kit:archive` | `@flow-kit/archive/archive-change.md` |
+| `/flow-kit:skill:[name]` | `@flow-kit/skills/[name].md` |
+
+## Skill Routing（按 Phase 上下文）
+
+| Phase | 触发场景 | 推荐技能 |
+|-------|----------|----------|
+| Phase 1 | 需求模糊/不完整 | `@flow-kit/skills/requirement-clarify.md` |
+| Phase 2 | 任务拆解 | `@flow-kit/skills/task-master.md` |
+| Phase 3+ | 并行任务分发 | `@flow-kit/skills/subagent-execution.md` + `@flow-kit/skills/parallel-dispatch.md` |
+| Phase 4-5 | 交付前验证 | `@flow-kit/skills/verification.md` |
+| Phase 6 | 代码审查 | `@flow-kit/skills/code-review.md` |
+| Any | Bug 诊断 | `@flow-kit/skills/debugging.md` |
+
+**直接调用**：`@flow-kit/skills/[skill-name].md`
+**模糊路由**：`/flow-kit:skill:requirement-clarify` → 匹配 `@flow-kit/skills/requirement-clarify.md`
 
 ## Routing Logic
 
