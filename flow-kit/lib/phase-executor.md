@@ -111,6 +111,44 @@ After Phase 7 (Integration) complete:
   3. Output PR description for review
 ```
 
+### 5. Context Expiry Detection (check-expiry.md)
+
+**启动时检查**：
+```
+On phase-executor load:
+  1. Call check-expiry.md logic silently (non-blocking)
+  2. If warning condition (15-30 days): display warning non-blocking
+  3. If archive condition (30+ days): prompt user before auto-archiving
+```
+
+**check-expiry 行为**：
+- 扫描 `.planning/phases/` 下 .md 文件的最后修改时间
+- 15 天警告：输出 `[WARNING] Context will expire in {N} days`
+- 30 天阻止：输出 `[BLOCK] Context expired, run recovery or archive`
+
+### 6. Token Estimation (estimate-tokens.md)
+
+**Phase 加载时执行**：
+```
+On each phase load:
+  1. Call estimate-tokens.md to count LOC in .planning/phases/*/
+  2. Calculate: estimated_tokens = total_LOC * 1.5
+  3. Compare against budget (default 100,000 tokens)
+  4. Output warnings at threshold
+```
+
+**Budget 阈值处理**：
+| 状态 | 阈值 | 行为 |
+|------|------|------|
+| HEALTHY | < 80% | 静默，继续执行 |
+| WARNING | >= 80% | 输出 `[WARNING] Approaching token budget ({pct}%)` |
+| BLOCK | >= 100% | 输出 `[BLOCK] Token budget exhausted` 并阻止继续 |
+
+**集成点**：
+- Phase executor 加载时：静默检查，仅警告时输出
+- Phase 切换时：完整报告输出
+- 命令触发：`/flow-kit:estimate-tokens` 完整输出
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：
@@ -169,4 +207,7 @@ function checkConstitutionSafety(change) {
 **关联文件**：
 - `@flow-kit/commands/offline-mode.md` (离线模式)
 - `@flow-kit/commands/minimal-mode.md` (最小模式)
+- `@flow-kit/commands/p0-approval.md` (P0 审批)
+- `@flow-kit/commands/check-expiry.md` (上下文过期检测)
+- `@flow-kit/commands/estimate-tokens.md` (Token 估算)
 - `@flow-kit/config/constitution.md` (安全规则)
