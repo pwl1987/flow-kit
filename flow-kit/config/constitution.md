@@ -49,6 +49,18 @@ These rules CANNOT be overridden by user-config or any other configuration. Viol
 | GIT-04 | Never amend commits that have been pushed | git |
 | GIT-05 | Always provide meaningful commit messages | git |
 
+### Technology Stack
+
+| Rule | Description | Category |
+|------|-------------|----------|
+| TECH-01 | Technology stack constraints defined in external reference | tech |
+| TECH-02 | Role definitions for architect/reviewer/ops in external reference | team |
+
+### External References
+
+- `flow-kit/config/tech-constraints.md` — Language, framework, and toolchain constraints
+- `flow-kit/config/team-roles.md` — Architect/Reviewer/Ops role definitions
+
 ## Priority Statement
 
 Constitution rules CANNOT be overridden by:
