@@ -1,5 +1,5 @@
 ---
-status: completed_with_gaps
+status: completed
 phase: "06-P1-supplement"
 source:
   - ".planning/phases/06-P1-supplement/06-01-SUMMARY.md"
@@ -25,7 +25,7 @@ result: pass
 expected: |
   如果 .flow-kit/project-type 不存在，
   phases 文件应触发检测逻辑（检查 package.json、git remote、LOC 等信号）
-result: issue
+result: pass
 
 ### 3. GO.md 启动输出 — project-type 检测摘要
 expected: |
@@ -108,6 +108,8 @@ feature: phases 文件混合模式检测触发
 issue: "无标记文件时的检测触发逻辑缺失"
 severity: major
 root_cause: "phases 文件仅实现了 .flow-kit/project-type 存在时的读取逻辑，缺少不存在时的检测触发逻辑"
+status: resolved
+resolution: "检测触发逻辑已添加至所有 phases 文件"
 missing:
   - "检测触发逻辑（当 .flow-kit/project-type 不存在时）"
   - "检测信号实现（package.json、git remote、LOC）"
@@ -118,6 +120,8 @@ feature: GO.md 启动输出 project-type 检测摘要
 issue: "GO.md 缺少 [Project Type Detection] 输出区块"
 severity: major
 root_cause: "GO.md 增强了 project-type 命令路由，但缺少启动时自动显示检测摘要的逻辑"
+status: resolved
+resolution: "[Project Type Detection] 区块已添加到 GO.md"
 missing:
   - "GO.md 启动时自动检测并显示摘要"
   - "[Project Type Detection] 区块（含 Type/Confidence/Recommended Actions）"
