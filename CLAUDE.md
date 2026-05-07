@@ -2,21 +2,21 @@
 
 ## 项目概述
 
-flow-kit v1.7 — 面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、技能包、模板和工程参考材料。
+flow-kit v1.9 — 面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、技能包、模板和工程参考材料。
 
 **当前阶段：** v1.7
 
 ## 工作流配置
 
-| 配置项 | 值 |
-|--------|-----|
-| Mode | YOLO（自动批准） |
-| Granularity | Coarse（3-5 phases） |
-| Parallelization | 并行执行 |
-| Git Tracking | 启用 |
-| Research | 每个 phase 前研究 |
-| Plan Check | 启用 |
-| Verifier | 启用 |
+| 配置项          | 值                   |
+| --------------- | -------------------- |
+| Mode            | YOLO（自动批准）     |
+| Granularity     | Coarse（3-5 phases） |
+| Parallelization | 并行执行             |
+| Git Tracking    | 启用                 |
+| Research        | 每个 phase 前研究    |
+| Plan Check      | 启用                 |
+| Verifier        | 启用                 |
 
 ## 下一阶段
 
@@ -46,9 +46,11 @@ flow-kit v1.6+ 支持原生斜杠命令。若未检测到命令注册，启动�
 ```
 
 手动注册命令：
+
 ```
 /flow-kit:register-commands
 ```
 
 ---
-*Generated: 2026-05-06*
+
+_Generated: 2026-05-06_

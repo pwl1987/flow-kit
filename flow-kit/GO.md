@@ -22,6 +22,11 @@
    - 80% budget：输出警告
    - 100% budget：阻止继续
 
+3. **hooks 安装状态检测**
+   - 检测 `.claude/settings.json` 是否包含 flow-kit hooks 配置
+   - 已安装 → 输出 `[flow-kit] hooks 已就绪（5/5）`
+   - 未安装 → 输出 `[flow-kit] 检测到 hooks 未安装，运行 /flow-kit:hooks install 完成一键安装`
+
 ## 渐进披露规则（进入任何阶段前必读）
 
 flow-kit 的文件按加载策略分三类：
@@ -36,7 +41,7 @@ flow-kit 的文件按加载策略分三类：
 
 ### 执行计划三要素声明（进入阶段前必输出）
 
-> v1.7 新增：AI 必须显式声明执行计划
+> v1.9 新增：AI 必须显式声明执行计划
 
 ```
 ✅ 已加载：列出所有已加载文件，含起止行
@@ -109,52 +114,52 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 
 ## Available Commands
 
-| 命令 | 目标文件 |
-|------|----------|
-| `/flow-kit:careful` | `@flow-kit/commands/careful.md` |
-| `/flow-kit:freeze` | `@flow-kit/commands/careful.md --mode freeze` |
-| `/flow-kit:guard` | `@flow-kit/commands/careful.md --mode guard` |
-| `/flow-kit:unfreeze` | 解除 freeze 限制 |
-| `/flow-kit:scale` | `@flow-kit/commands/scale-level.md` |
-| `/flow-kit:offline` | `@flow-kit/commands/offline-mode.md` |
-| `/flow-kit:minimal` | `@flow-kit/commands/minimal-mode.md` |
-| `/flow-kit:online` | `@flow-kit/commands/offline-mode.md` |
-| `/flow-kit:health` | `@flow-kit/commands/M-health.md` |
-| `/flow-kit:scan` | `@flow-kit/commands/I-intel-scan.md` |
-| `/flow-kit:update-context` | `@flow-kit/commands/update-context.md` |
-| `/flow-kit:sync-config` | `@flow-kit/commands/sync-team-config.md` |
-| `/flow-kit:check-expiry` | `@flow-kit/commands/check-expiry.md` |
-| `/flow-kit:estimate-tokens` | `@flow-kit/commands/estimate-tokens.md` |
-| `/flow-kit:project-type` | `@flow-kit/commands/project-type.md` |
-| `/flow-kit:recovery` | `@flow-kit/commands/check-expiry.md` |
-| `/flow-kit:pr-description` | `@flow-kit/commands/pr-description.md` |
-| `/flow-kit:cost-report` | `@flow-kit/commands/cost-report.md` |
-| `/flow-kit:p0` | `@flow-kit/commands/p0-approval.md` |
-| `/flow-kit:archive` | `@flow-kit/archive/archive-change.md` |
-| `/flow-kit:skill:[name]` | `@flow-kit/skills/[name].md` |
-| `/flow-kit:strategy` | `@flow-kit/commands/strategy-first.md` |
-| `/flow-kit:skill-audit` | `@flow-kit/commands/skill-audit.md` |
-| `/flow-kit:team` | `@flow-kit/commands/team-roles.md` |
-| `/flow-kit:dispatch` | `@flow-kit/skills/team-dispatch.md` |
-| `/flow-kit:register-commands` | `@flow-kit/commands/register-commands.md` |
-| `/flow-kit:generate-commands` | `@flow-kit/commands/generate-commands.md` |
-| `/flow-kit:tmux-init` | `@flow-kit/commands/tmux-orchestrator.md` |
-| `/flow-kit:tmux-run` | `@flow-kit/commands/tmux-orchestrator.md` |
-| `/flow-kit:tmux-aggregate` | `@flow-kit/commands/tmux-orchestrator.md` |
-| `/flow-kit:lock` | `@flow-kit/commands/careful.md` |
-| `/flow-kit:unlock` | `@flow-kit/commands/careful.md` |
-| `/flow-kit:hooks` | `@flow-kit/commands/hooks-guide.md` |
+| 命令                          | 目标文件                                      |
+| ----------------------------- | --------------------------------------------- |
+| `/flow-kit:careful`           | `@flow-kit/commands/careful.md`               |
+| `/flow-kit:freeze`            | `@flow-kit/commands/careful.md --mode freeze` |
+| `/flow-kit:guard`             | `@flow-kit/commands/careful.md --mode guard`  |
+| `/flow-kit:unfreeze`          | 解除 freeze 限制                              |
+| `/flow-kit:scale`             | `@flow-kit/commands/scale-level.md`           |
+| `/flow-kit:offline`           | `@flow-kit/commands/offline-mode.md`          |
+| `/flow-kit:minimal`           | `@flow-kit/commands/minimal-mode.md`          |
+| `/flow-kit:online`            | `@flow-kit/commands/offline-mode.md`          |
+| `/flow-kit:health`            | `@flow-kit/commands/M-health.md`              |
+| `/flow-kit:scan`              | `@flow-kit/commands/I-intel-scan.md`          |
+| `/flow-kit:update-context`    | `@flow-kit/commands/update-context.md`        |
+| `/flow-kit:sync-config`       | `@flow-kit/commands/sync-team-config.md`      |
+| `/flow-kit:check-expiry`      | `@flow-kit/commands/check-expiry.md`          |
+| `/flow-kit:estimate-tokens`   | `@flow-kit/commands/estimate-tokens.md`       |
+| `/flow-kit:project-type`      | `@flow-kit/commands/project-type.md`          |
+| `/flow-kit:recovery`          | `@flow-kit/commands/check-expiry.md`          |
+| `/flow-kit:pr-description`    | `@flow-kit/commands/pr-description.md`        |
+| `/flow-kit:cost-report`       | `@flow-kit/commands/cost-report.md`           |
+| `/flow-kit:p0`                | `@flow-kit/commands/p0-approval.md`           |
+| `/flow-kit:archive`           | `@flow-kit/archive/archive-change.md`         |
+| `/flow-kit:skill:[name]`      | `@flow-kit/skills/[name].md`                  |
+| `/flow-kit:strategy`          | `@flow-kit/commands/strategy-first.md`        |
+| `/flow-kit:skill-audit`       | `@flow-kit/commands/skill-audit.md`           |
+| `/flow-kit:team`              | `@flow-kit/commands/team-roles.md`            |
+| `/flow-kit:dispatch`          | `@flow-kit/skills/team-dispatch.md`           |
+| `/flow-kit:register-commands` | `@flow-kit/commands/register-commands.md`     |
+| `/flow-kit:generate-commands` | `@flow-kit/commands/generate-commands.md`     |
+| `/flow-kit:tmux-init`         | `@flow-kit/commands/tmux-orchestrator.md`     |
+| `/flow-kit:tmux-run`          | `@flow-kit/commands/tmux-orchestrator.md`     |
+| `/flow-kit:tmux-aggregate`    | `@flow-kit/commands/tmux-orchestrator.md`     |
+| `/flow-kit:lock`              | `@flow-kit/commands/careful.md`               |
+| `/flow-kit:unlock`            | `@flow-kit/commands/careful.md`               |
+| `/flow-kit:hooks`             | `@flow-kit/commands/hooks-guide.md`           |
 
 ## Skill Routing（按 Phase 上下文）
 
-| Phase | 触发场景 | 推荐技能 |
-|-------|----------|----------|
-| Phase 1 | 需求模糊/不完整 | `@flow-kit/skills/requirement-clarify.md` |
-| Phase 2 | 任务拆解 | `@flow-kit/skills/task-master.md` |
-| Phase 3+ | 并行任务分发 | `@flow-kit/skills/subagent-execution.md` + `@flow-kit/skills/parallel-dispatch.md` |
-| Phase 4-5 | 交付前验证 | `@flow-kit/skills/verification.md` |
-| Phase 6 | 代码审查 | `@flow-kit/skills/code-review.md` |
-| Any | Bug 诊断 | `@flow-kit/skills/debugging.md` |
+| Phase     | 触发场景        | 推荐技能                                                                           |
+| --------- | --------------- | ---------------------------------------------------------------------------------- |
+| Phase 1   | 需求模糊/不完整 | `@flow-kit/skills/requirement-clarify.md`                                          |
+| Phase 2   | 任务拆解        | `@flow-kit/skills/task-master.md`                                                  |
+| Phase 3+  | 并行任务分发    | `@flow-kit/skills/subagent-execution.md` + `@flow-kit/skills/parallel-dispatch.md` |
+| Phase 4-5 | 交付前验证      | `@flow-kit/skills/verification.md`                                                 |
+| Phase 6   | 代码审查        | `@flow-kit/skills/code-review.md`                                                  |
+| Any       | Bug 诊断        | `@flow-kit/skills/debugging.md`                                                    |
 
 **直接调用**：`@flow-kit/skills/[skill-name].md`
 **模糊路由**：`/flow-kit:skill:requirement-clarify` → 匹配 `@flow-kit/skills/requirement-clarify.md`
@@ -179,7 +184,8 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 
 ```javascript
 function levenshtein(a, b) {
-  const matrix = Array(b.length + 1).fill(null)
+  const matrix = Array(b.length + 1)
+    .fill(null)
     .map(() => Array(a.length + 1).fill(null));
   for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
   for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
@@ -189,7 +195,7 @@ function levenshtein(a, b) {
       matrix[j][i] = Math.min(
         matrix[j][i - 1] + 1,
         matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + cost
+        matrix[j - 1][i - 1] + cost,
       );
     }
   }
@@ -215,9 +221,11 @@ function findClosestCommand(input, commands) {
 ## Confirmation Prompt
 
 When Levenshtein distance <= 2:
+
 ```
 Did you mean `/flow-kit:health`? [y/n]
 ```
+
 - `y` or `yes`: route to suggested command
 - `n` or `no`: show available commands
 

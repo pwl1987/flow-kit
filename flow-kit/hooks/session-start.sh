@@ -9,8 +9,9 @@ CLAUDE_PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 if [ -f "$CLAUDE_PROJECT_DIR/scripts/generate-commands.sh" ]; then
     cd "$CLAUDE_PROJECT_DIR"
     ./scripts/generate-commands.sh --dry-run 2>/dev/null || true
-fi
-
 echo "[flow-kit] hooks 已就绪"
 
 exit 0
+
+## 参考来源
+- [Claude Code Hooks 官方文档](https://docs.anthropic.com/en/docs/claude-code/hooks)

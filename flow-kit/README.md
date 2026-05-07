@@ -1,4 +1,5 @@
 <!-- HEADER -->
+
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 >
 > 本文件为 flow-kit 的入口文档。所有 flow-kit 操作从本文档开始。
@@ -32,14 +33,14 @@
 
 ## 特性
 
-| 特性 | 描述 |
-|------|------|
-| **8 阶段工作流** | 从需求到集成的完整开发流程 |
-| **棕地护栏** | B1-B6 六大护栏，保护现有代码库 |
-| **元技能包** | 7 个可复用技能模块 |
-| **多语言支持** | TypeScript、Python、Java、Go、Rust、PHP |
-| **工程规范** | 前端/后端硬规则、TDD 标准、ADR 模板 |
-| **团队协作** | 角色定义、P0 审批、成本报告 |
+| 特性             | 描述                                    |
+| ---------------- | --------------------------------------- |
+| **8 阶段工作流** | 从需求到集成的完整开发流程              |
+| **棕地护栏**     | B1-B6 六大护栏，保护现有代码库          |
+| **元技能包**     | 7 个可复用技能模块                      |
+| **多语言支持**   | TypeScript、Python、Java、Go、Rust、PHP |
+| **工程规范**     | 前端/后端硬规则、TDD 标准、ADR 模板     |
+| **团队协作**     | 角色定义、P0 审批、成本报告             |
 
 ---
 
@@ -90,12 +91,12 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 
 ### 场景决策
 
-| 场景 | 推荐流程 |
-|------|---------|
+| 场景                 | 推荐流程                |
+| -------------------- | ----------------------- |
 | 简单变更（1-3 文件） | 极简模式，跳过测试/审查 |
-| 中等复杂度（新功能） | 标准 8 阶段 |
-| 复杂架构变更 | 完整流程 + 设计评审 |
-| 棕地项目迭代 | 启用 B1-B6 护栏 |
+| 中等复杂度（新功能） | 标准 8 阶段             |
+| 复杂架构变更         | 完整流程 + 设计评审     |
+| 棕地项目迭代         | 启用 B1-B6 护栏         |
 
 ---
 
@@ -114,31 +115,31 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 
 ### 阶段说明
 
-| 阶段 | 文件 | 描述 |
-|------|------|------|
-| 0 | [0-change.md](./phases/0-change/0-change.md) | 变更立项、生成 change-id |
-| 1 | [1-requirement.md](./phases/1-requirement/1-requirement.md) | 需求澄清、验收标准 |
-| 2 | [2-design.md](./phases/2-design/2-design.md) | 架构设计、技术选型 |
-| 3 | [3-task.md](./phases/3-task/3-task.md) | 任务拆解、并行检测 |
-| 4 | [4-dev.md](./phases/4-dev/4-dev.md) | 开发执行、TDD 驱动 |
-| 5 | [5-test.md](./phases/5-test/5-test.md) | 测试验证、覆盖率报告 |
-| 6 | [6-review.md](./phases/6-review/6-review.md) | 代码审查、三轮评审 |
-| 7 | [7-integration.md](./phases/7-integration/7-integration.md) | 集成归档、经验沉淀 |
-| 8 | [8-rollback.md](./phases/8-rollback/8-rollback.md) | 变更回滚、事故记录 |
+| 阶段 | 文件                                                        | 描述                     |
+| ---- | ----------------------------------------------------------- | ------------------------ |
+| 0    | [0-change.md](./phases/0-change/0-change.md)                | 变更立项、生成 change-id |
+| 1    | [1-requirement.md](./phases/1-requirement/1-requirement.md) | 需求澄清、验收标准       |
+| 2    | [2-design.md](./phases/2-design/2-design.md)                | 架构设计、技术选型       |
+| 3    | [3-task.md](./phases/3-task/3-task.md)                      | 任务拆解、并行检测       |
+| 4    | [4-dev.md](./phases/4-dev/4-dev.md)                         | 开发执行、TDD 驱动       |
+| 5    | [5-test.md](./phases/5-test/5-test.md)                      | 测试验证、覆盖率报告     |
+| 6    | [6-review.md](./phases/6-review/6-review.md)                | 代码审查、三轮评审       |
+| 7    | [7-integration.md](./phases/7-integration/7-integration.md) | 集成归档、经验沉淀       |
+| 8    | [8-rollback.md](./phases/8-rollback/8-rollback.md)          | 变更回滚、事故记录       |
 
 ---
 
 ## 命令参考
 
-| 命令 | 描述 |
-|------|------|
-| `/flow-kit:health` | 代码健康度扫描 |
-| `/flow-kit:scan` | 技术债务扫描（TODO/FIXME） |
-| `/flow-kit:update-context` | 更新项目上下文 |
-| `/flow-kit:sync-config` | 同步团队配置 |
-| `/flow-kit:archive` | 归档完成变更 |
-| `/flow-kit:minimal` | 启用极简模式 |
-| `/flow-kit:offline` | 启用离线模式 |
+| 命令                       | 描述                       |
+| -------------------------- | -------------------------- |
+| `/flow-kit:health`         | 代码健康度扫描             |
+| `/flow-kit:scan`           | 技术债务扫描（TODO/FIXME） |
+| `/flow-kit:update-context` | 更新项目上下文             |
+| `/flow-kit:sync-config`    | 同步团队配置               |
+| `/flow-kit:archive`        | 归档完成变更               |
+| `/flow-kit:minimal`        | 启用极简模式               |
+| `/flow-kit:offline`        | 启用离线模式               |
 
 详细命令文档请参阅 [GO.md](./GO.md)。
 
@@ -212,6 +213,35 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-*Generated with flow-kit v1.0.0*
+_Generated with flow-kit v1.9_
+
+---
+
+## Changelog
+
+### v1.9 (2026-05-08)
+
+- GO.md: +/flow-kit:hooks 路由 + hooks 启动检测 + 整链路预算 + 三路线选择
+- CLAUDE.md: 版本号更新为 v1.9
+- hooks/\*.sh: +参考来源段落
+- templates/LESSONS.md.template: +提名条件与复核剪枝机制
+- skills/team-dispatch.md: +一键启动说明
+- commands/register-commands.md: +/flow-kit:map-codebase 子命令
+
+### v1.8 (2026-05-08)
+
+- config/system-rules.md: +R4.5 Schema变更必伴随迁移文件 +R4.6 破坏性变更高门槛
+- flow-kit/hooks/: 5个hook脚本（pre-tool-guard/post-edit-format/stop-quality-gate/session-start/notification）
+- commands/hooks-guide.md: hooks完整使用指南
+- .claude/settings.json: 注册5个hooks配置
+
+### v1.7 (2026-05-08)
+
+- skills/subagent-execution.md: +进度恢复四段模板
+- GO.md: +执行计划三要素声明
+- commands/strategy-first.md: +三路线成本对比
+- phases/6-review.md: +两阶段独立审查（防信息污染）
+- phases/5-test.md: +测试金字塔裁剪路由
+- templates/PROGRESS.md.template: 新增进度文件模板
 
 --- END flow-kit/README.md ---

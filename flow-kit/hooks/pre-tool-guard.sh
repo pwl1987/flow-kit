@@ -25,3 +25,6 @@ if [ "$TOOL" = "Edit" ] || [ "$TOOL" = "Write" ]; then
 fi
 
 exit 0
+
+## 参考来源
+- [Claude Code Hooks 官方文档](https://docs.anthropic.com/en/docs/claude-code/hooks)

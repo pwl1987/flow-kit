@@ -69,8 +69,31 @@ timestamp: "{{TIMESTAMP}}"
 
 ---
 
+## 提名条件（满足任一即入库）
+
+- 调试耗时 > 30 分钟
+- 非微细节（涉及架构/设计模式/流程）
+- 6 个月内可能重试
+- 丢失则存在重复踩坑风险
+
+**禁止入库**：
+- 一次性笔误
+- 业务独有规则（应入 CONTEXT.md）
+- 已在 ADR 中详述的架构权衡
+
+---
+
+## 复核剪枝机制
+
+- **栈变更检查**：技术栈升级时，复核相关 TIL 是否仍然有效
+- **superseded 标记**：若新方案完全替代旧方案，标记旧 TIL 为 superseded
+- **季度剪枝**：每季度清理已superseded或过时的TIL
+
+---
+
 ## 参考来源
 
+- [rihebty/flow-kit](https://github.com/rihebty/flow-kit) — LESSONS 提名条件与复核剪枝机制
 - [bytedance/deer-flow](https://github.com/bytedance/deer-flow) — 结构化记忆 TIL 格式
 
 --- END flow-kit/templates/LESSONS.md.template ---

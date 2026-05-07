@@ -12,10 +12,10 @@
 
 ## 参数
 
-| 参数 | 说明 |
-|------|------|
-| `--force` | 强制覆盖已存在的命令文件 |
-| `--list` | 列出当前注册状态（不生成文件） |
+| 参数      | 说明                           |
+| --------- | ------------------------------ |
+| `--force` | 强制覆盖已存在的命令文件       |
+| `--list`  | 列出当前注册状态（不生成文件） |
 
 ## 功能说明
 
@@ -25,6 +25,7 @@
 
 **来源A：GO.md 命令路由表**
 解析 `flow-kit/GO.md` 中 `Available Commands` 表格，包含：
+
 - `/flow-kit:careful` → `@flow-kit/commands/careful.md`
 - `/flow-kit:freeze` → `@flow-kit/commands/careful.md --mode freeze`
 - `/flow-kit:guard` → `@flow-kit/commands/careful.md --mode guard`
@@ -70,6 +71,7 @@ reference: [原始文件路径]
 ```
 
 **入口文件命名规则**
+
 - 命令：`/flow-kit:careful` → `.claude/commands/flow-kit-careful.md`
 - 命令：`/flow-kit:freeze` → `.claude/commands/flow-kit-freeze.md`
 - 技能路由：`/flow-kit:skill:xxx` → `.claude/commands/flow-kit-skill-xxx.md`
@@ -100,6 +102,7 @@ reference: [原始文件路径]
 覆盖已存在的入口文件，重新生成内容。
 
 **无参数模式**
+
 - 若入口文件已存在且未使用 `--force`，则跳过（不覆盖）
 - 生成所有待注册命令的入口文件
 
@@ -139,14 +142,43 @@ reference: [原始文件路径]
 
 ## 错误处理
 
-| 错误类型 | 处理方式 |
-|----------|----------|
-| GO.md 不存在 | 输出错误并退出 |
-| commands/ 目录不存在 | 仅使用 GO.md 路由表 |
-| 目标文件不存在 | 在报告中标记为 "引用缺失" |
-| 写入权限不足 | 输出错误并列出失败文件 |
+| 错误类型             | 处理方式                  |
+| -------------------- | ------------------------- |
+| GO.md 不存在         | 输出错误并退出            |
+| commands/ 目录不存在 | 仅使用 GO.md 路由表       |
+| 目标文件不存在       | 在报告中标记为 "引用缺失" |
+| 写入权限不足         | 输出错误并列出失败文件    |
 
 ## 示例
+
+### /flow-kit:map-codebase 子命令
+
+> v1.9 新增：存量代码索引快速入口
+
+扫描现有代码库，生成技术栈摘要和 CONTEXT.md 骨架：
+
+```
+/flow-kit:map-codebase [--output DIR] [--types ts,js,py]
+```
+
+功能：
+
+1. 扫描项目源码，识别语言/框架/依赖
+2. 生成技术栈摘要（语言分布、关键模块、架构约定）
+3. 输出 `CONTEXT.md` 骨架，供 B1 入场扫描使用
+
+```bash
+# 完整扫描
+/flow-kit:map-codebase
+
+# 指定输出目录
+/flow-kit:map-codebase --output .planning
+
+# 只扫描特定类型
+/flow-kit:map-codebase --types ts,tsx
+```
+
+---
 
 ```bash
 # 列出当前注册状态
@@ -162,6 +194,7 @@ reference: [原始文件路径]
 ---
 
 **参考来源：**
+
 - 命令路由定义：`flow-kit/GO.md` (Available Commands 表格)
 - 命令实现文件：`flow-kit/commands/*.md`
 - 技能路由：`flow-kit/skills/*.md`
