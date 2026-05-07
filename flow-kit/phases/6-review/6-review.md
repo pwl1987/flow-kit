@@ -92,4 +92,39 @@ echo "brownfield" > .flow-kit/project-type
 - 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
 - 绿地项目：提示 `建议使用标准开发流程`
 
+## 【强制】多角色审查（Multi-Role Review）
+
+> 【CLAUDE CODE INSTRUCTION 强制约束·多角色审查】
+> 1. 对高风险变更（涉及安全/数据库/公共API），自动激活 @flow-kit/commands/team-roles.md。
+> 2. 按角色顺序执行审查：Reviewer → Security（若涉及安全）→ Designer（若涉及UI）。
+> 3. 每个角色输出独立审查段，问题汇总到 REVIEW.md 按 P0-P3 分级。
+> 4. 角色切换遵守 R3.4（清窗后切换）。
+
+### 高风险变更判定
+满足任一条件即触发多角色审查：
+- 涉及数据库 schema 变更
+- 涉及公共 API 接口
+- 涉及安全敏感操作（认证/授权/支付）
+- 涉及 3 个以上文件变更
+
+### 审查角色顺序
+1. **Reviewer**：代码审查 + 生产 bug 发现
+2. **Security**：OWASP + STRIDE 审计（高风险变更时）
+3. **Designer**：UI 变更时激活（色彩/排版/布局）
+
+### 输出格式
+每个角色输出独立段：
+```markdown
+## Reviewer 审查
+[检查结果]
+
+## Security 审查
+[检查结果]
+
+## Designer 审查
+[检查结果]
+```
+
+问题汇总到 REVIEW.md 按 P0-P3 分级。
+
 --- END flow-kit/phases/6-review/6-review.md ---

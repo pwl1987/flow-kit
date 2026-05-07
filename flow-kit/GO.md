@@ -50,6 +50,15 @@ L0 直接进入极简模式，跳过 Phase 2-3。
     - /flow-kit:project-type greenfield  (手动设为绿地)
 ```
 
+### 多 IDE 检测
+
+> 若非 Claude Code 环境，输出："检测到非 Claude Code 环境，请参考 @flow-kit/reference/multi-ide-guide.md 完成适配。"
+
+检测方式：
+- Windsurf: 检查 `.windsurfrules` 文件存在
+- Cursor: 检查 `.cursorrules` 文件存在
+- Copilot: 检查 `copilot.` 相关配置
+
 ---
 
 ## 命令路由规则
@@ -90,6 +99,10 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 | `/flow-kit:p0` | `@flow-kit/commands/p0-approval.md` |
 | `/flow-kit:archive` | `@flow-kit/archive/archive-change.md` |
 | `/flow-kit:skill:[name]` | `@flow-kit/skills/[name].md` |
+| `/flow-kit:strategy` | `@flow-kit/commands/strategy-first.md` |
+| `/flow-kit:skill-audit` | `@flow-kit/commands/skill-audit.md` |
+| `/flow-kit:team` | `@flow-kit/commands/team-roles.md` |
+| `/flow-kit:dispatch` | `@flow-kit/skills/team-dispatch.md` |
 
 ## Skill Routing（按 Phase 上下文）
 

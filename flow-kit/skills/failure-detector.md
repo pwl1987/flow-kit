@@ -64,6 +64,55 @@ Fix surface problem then stop, no verification, no extension, waiting for next u
 
 ---
 
+## 质量评分机制（PASSING_SCORE）
+
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 每个任务完成后自动评分，基于 verify 通过数、覆盖率、lint 通过数。
+
+### 评分公式
+
+```
+PASSING_SCORE = (verify_pass_rate * 0.5) + (coverage_rate * 0.3) + (lint_pass_rate * 0.2)
+```
+
+- **verify_pass_rate**: verify 命令通过比例（0-100%）
+- **coverage_rate**: 测试覆盖率（0-100%）
+- **lint_pass_rate**: lint 通过比例（0-100%）
+
+### 默认阈值
+
+- **PASSING_SCORE 默认值**: 80 分
+- 用户可在 `config/user-config.md` 中设置 `passing_score: {n}`
+
+### 自动迭代
+
+若分数 < PASSING_SCORE（默认 80）：
+- 自动触发 L1 结构化引导
+- 提供调试清单（检查依赖/类型/边界条件）
+- 修复后重新评分
+- 若连续 2 次 < 80，触发 L3 人机协同
+
+### 输出格式
+
+```markdown
+## 质量评分
+
+| 指标 | 值 | 权重 | 加权分 |
+|------|------|------|--------|
+| verify | 3/4 = 75% | 0.5 | 37.5 |
+| coverage | 85% | 0.3 | 25.5 |
+| lint | 100% | 0.2 | 20 |
+| **总分** | **83** | — | **83** |
+
+结论：✅ 通过（83 >= 80）
+```
+
+### 参考来源
+
+- [smallnest/autoresearch](https://github.com/smallnest/autoresearch) — PASSING_SCORE 评分驱动自动迭代
+
+---
+
 ## 参考来源
 
 - [tanweai/pua](https://github.com/tanweai/pua) — AI 五大懒惰模式识别 + 7 点强制排查清单 + L0-L4 五级压力升级机制

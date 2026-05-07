@@ -17,6 +17,25 @@
 ## 核心行为
 {{CORE_BEHAVIOR}}
 
+### 【可选】策略先行（Strategy First）
+
+> 【CLAUDE CODE INSTRUCTION 强制约束·策略先行】
+> 1. 若用户未明确跳过策略阶段，先调用 @flow-kit/commands/strategy-first.md。
+> 2. 生成 STRATEGY.md 后，以其为锚点反问用户确认：目标问题、方法、用户画像、关键指标、非目标。
+> 3. 确认后进入标准 grill-with-docs 流程。
+> 4. 若用户选择跳过，直接进入标准流程。
+
+### 何时激活
+- 复杂功能（涉及多个模块/系统）
+- 高风险变更（涉及数据库/安全/公共 API）
+- 用户显式调用 /flow-kit:strategy
+
+### STRATEGY.md 锚点作用
+STRATEGY.md 生成后：
+- 1-requirement 阶段以 STRATEGY.md 的「目标问题」为输入
+- 2-design 阶段以 STRATEGY.md 的「方法」为锚点
+- 所有后续阶段可读取 STRATEGY.md 作为上下文
+
 ### Alignment Check（对齐检查）
 **目的**: 确保对目标、范围、约束的理解一致
 
