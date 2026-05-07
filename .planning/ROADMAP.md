@@ -8,7 +8,7 @@
 |---|-------|------|--------|
 | 1-4 | v1.0 MVP | Core skeleton, guardrails, reference materials, integration | ✅ Complete |
 | 5-7 | v1.1 Enhancement | P0 bugfix, P1 supplement, P2 experience | ✅ Complete |
-| 8-11 | v1.2 Enhancement | 需求质量与结构化增强 | 🔄 Active |
+| 8-11 | v1.2 Enhancement | 需求质量与结构化增强 | ✅ Complete |
 | 12+ | TBD | Rollback workflow + enhancements | 📋 Planned |
 
 ---
@@ -17,7 +17,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-05-06)
 - ✅ **v1.1 Enhancement** — Phases 5-7 (shipped 2026-05-07)
-- 🔄 **v1.2 Enhancement** — Phases 8-11 (in progress 2026-05-07)
+- ✅ **v1.2 Enhancement** — Phases 8-11 (shipped 2026-05-07)
 - 📋 **v2.0** — Phase 12+ (planned)
 
 ---
@@ -72,7 +72,7 @@
 
 ### Phase 8: Constitution 四原则
 **Goal:** 将 Karpathy 四原则融入 `config/constitution.md`，作为最高行为约束
-**Status:** 🔄 Planning
+**Status:** ✅ Complete
 **Requirements:** CONST-01
 **Success Criteria:**
 1. `config/constitution.md` 包含 `BEHAVIORAL PRINCIPLES` 段落（Think Before Coding、Simplicity First、Surgical Changes、Goal-Driven Execution）
@@ -82,7 +82,7 @@
 
 ### Phase 9: Skills 质量升级
 **Goal:** 重写 `requirement-clarify.md`（一次一问 + grill-with-docs + 术语冲突检测），新增 `ubiquitous-language.md`
-**Status:** 🔄 Planning
+**Status:** ✅ Complete
 **Requirements:** SKILL-01, SKILL-02
 **Success Criteria:**
 1. `skills/requirement-clarify.md` 包含三个 Phase：Alignment Check、Deep Dive（一次一问）、Verification & Documentation
@@ -94,11 +94,11 @@
 
 ### Phase 10: Core 流程增强
 **Goal:** `core/1-requirement.md` 增加术语对齐前置和历史教训检索，`core/4-dev.md` 强化 Goal-Driven Execution
-**Status:** ✅ Planned
+**Status:** ✅ Complete
 **Requirements:** CORE-01, CORE-02
 **Plans:** 1 plan
 **Plan list:**
-- [ ] 10-01-PLAN.md — CORE-01/CORE-02 术语对齐+历史教训检索+TDD硬阻断
+- [x] 10-01-PLAN.md — CORE-01/CORE-02 术语对齐+历史教训检索+TDD硬阻断
 **Success Criteria:**
 1. `core/1-requirement.md` 激活 `skills/ubiquitous-language.md` 并在开始时输出术语表状态
 2. `core/1-requirement.md` 加载 `.specs/LESSONS.md` 并在需求文件顶部列出匹配教训
@@ -108,13 +108,13 @@
 
 ### Phase 11: Templates + Commands
 **Goal:** 新增 `templates/GLOSSARY.md.template` 和 `commands/cross-session-search.md`
-**Status:** 🔄 Planning
+**Status:** ✅ Complete
 **Requirements:** TPL-01, CMD-01
 **Success Criteria:**
-1. `templates/GLOSSARY.md.template` 存在且包含完整模板结构
-2. `templates/GLOSSARY.md.template` 包含 Usage Rules
-3. `commands/cross-session-search.md` 实现 `/flow-kit:search-lessons` 命令
-4. `commands/cross-session-search.md` 支持按关键词检索 LESSONS.md
+1. `templates/GLOSSARY.md.template` 存在且包含完整模板结构 ✅
+2. `templates/GLOSSARY.md.template` 包含 Usage Rules ✅
+3. `commands/cross-session-search.md` 实现 `/flow-kit:search-lessons` 命令 ✅
+4. `commands/cross-session-search.md` 支持按关键词检索 LESSONS.md ✅
 
 ---
 
