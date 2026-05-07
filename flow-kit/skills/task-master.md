@@ -17,6 +17,45 @@
 
 ## HOW_TO_USE
 
+### D-23 任务依赖关系图
+
+#### 自动识别依赖
+```javascript
+// 从 task 输入输出自动推断依赖
+function inferDependencies(tasks) {
+  const graph = new DirectedGraph();
+  for (const task of tasks) {
+    for (const dep of task.dependencies) {
+      graph.addEdge(dep, task.id);
+    }
+  }
+  return graph;
+}
+```
+
+#### 依赖图输出格式
+```markdown
+## Task Dependency Graph
+
+```
+[T1.1] ──→ [T2.1] ──→ [T3.1]
+  │            │
+  ↓            ↓
+[T1.2]      [T2.2] ──→ [T3.2]
+                │
+                ↓
+             [T3.3] (blocked: waiting T2.2)
+```
+```
+
+#### 用户手动调整
+- 命令：`/flow-kit:task-graph adjust [task-id] --after [dep-id]`
+- 调整后自动验证无循环依赖
+
+#### 与 subagent-execution 联动
+依赖图生成后，自动调用 `/flow-kit:skill:subagent-execution` 进行调度。
+```
+
 ### 两步法：parse_prd → expand_task
 
 #### Step 1: parse_prd（解析需求文档）
@@ -50,13 +89,26 @@
 ```markdown
 ### [TASK-ID] Task Name
 - **Phase**: X
+- **Status**: todo | in-progress | done | blocked
 - **Entities**: entity1, entity2
 - **Actions**: action1, action2
 - **Input**: source file or entity
 - **Output**: target file or state
 - **Dependencies**: [TASK-ID], [TASK-ID]
 - **Verification**: how to verify completion
+
+## Dependency Graph
+```{mermaid}
+graph LR
+  T1.1 --> T2.1
+  T2.1 --> T3.1
 ```
+```
+
+**D-25 checkpoint 同步**：
+- 任务状态变更自动同步到 `.flow-kit/checkpoint-state.json`
+- blocked 状态触发断点续跑提示
+- 命令：`/flow-kit:checkpoint status` 查看当前任务状态
 
 ## EXAMPLE
 
@@ -119,6 +171,17 @@ constraints:
 1. **不跨 phase 边界**：Phase 3 任务不能依赖 Phase 4 的输出
 2. **单向依赖**：依赖链只能向前，不能循环
 3. **接口先行**：跨任务接口应在依赖任务中定义
+
+### D-24 可选看板视图
+不强制默认开启。通过命令启用：
+- `/flow-kit:kanban show` — 显示看板
+- `/flow-kit:kanban hide` — 隐藏看板
+
+看板格式：
+| To Do | In Progress | Done | Blocked |
+|-------|-------------|------|---------|
+| T1.3 | T2.1 | T1.1 | T3.3 |
+| | T2.2 | T1.2 | |
 
 ### 常见问题
 

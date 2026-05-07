@@ -17,6 +17,29 @@
 
 ## HOW_TO_USE
 
+### D-27 任务分组策略
+
+**分组原则**：同一类型任务分发到同一子代理，减少上下文切换。
+
+| 分组 | 任务类型 | 示例 |
+|------|----------|------|
+| frontend | UI/组件/样式 | React组件、CSS、图标 |
+| backend | API/服务/业务逻辑 | Controller、Service、Model |
+| test | 测试/质量 | Unit tests、Integration tests |
+| infra | 配置/部署/脚本 | Docker、CI/CD、脚本 |
+
+**分组算法**：
+```javascript
+function groupTasks(tasks) {
+  const groups = { frontend: [], backend: [], test: [], infra: [] };
+  for (const task of tasks) {
+    const type = inferTaskType(task);
+    groups[type].push(task);
+  }
+  return groups;
+}
+```
+
 ### Conflict Detection Algorithm
 
 **输入**: 任务列表（每个任务有 target files）
@@ -148,6 +171,31 @@ const resourceManager = {
 };
 ```
 
+### D-28 优先级调度
+
+**优先级规则**：
+| 优先级 | 条件 | 说明 |
+|--------|------|------|
+| P0 | BREAKING-CHANGE、数据库迁移 | 必须优先处理 |
+| P1 | 核心业务逻辑 | 高优先级 |
+| P2 | 辅助功能 | 正常优先级 |
+
+**插队规则**：
+- 仅对依赖已完成的任务允许插队
+- P0 任务可打断 P1/P2 任务
+- P1 任务不可打断 P0 任务
+
+**调度算法**：
+```javascript
+function schedule(tasks) {
+  const ready = tasks.filter(t =>
+    t.dependencies.every(d => d.status === 'done')
+  );
+  const sorted = ready.sort((a, b) => b.priority - a.priority);
+  return sorted[0];  // 返回最高优先级任务
+}
+```
+
 ### 常见问题
 
 | 问题 | 解决 |
@@ -156,6 +204,27 @@ const resourceManager = {
 | 循环依赖 | 重新设计任务边界 |
 | 资源耗尽 | 限制并行数 + 连接池管理 |
 | 结果不一致 | 使用分布式锁或序列化写入 |
+
+### D-29 轻量监控仪表盘
+
+**激活命令**：`/flow-kit:dispatch:monitor show`
+
+**显示格式**：
+```markdown
+## Task Dispatch Monitor
+
+| Task | Status | Token Used | ETA | Agent |
+|------|--------|------------|-----|-------|
+| T2.1 | running | 45,000 | 5min | subagent-1 |
+| T2.2 | queued | - | - | - |
+| T2.3 | blocked | - | - | - |
+| T1.1 | done | 30,000 | - | subagent-2 |
+
+**Budget**: 62% used (62,000 / 100,000 tokens)
+**Parallelism**: 2 active agents
+```
+
+**隐藏命令**：`/flow-kit:dispatch:monitor hide`
 
 ### 验证检查
 

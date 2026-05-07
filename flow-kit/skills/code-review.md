@@ -17,6 +17,41 @@
 
 ## HOW_TO_USE
 
+### 标准化执行流程（D-14）
+
+```
+前置自动化检查 → 人工三层审查 → 补充自动化检查 → 输出分级报告
+```
+
+### 三种 Review 深度模板（D-15）
+
+| 模板 | 适用场景 | 审查深度 | Token 消耗 |
+|------|----------|----------|------------|
+| **简化模板** | P2/单文件修改 | CEO 层快速检查 | 低 |
+| **标准模板** | P1/模块级变更 | CEO + Engineering | 中 |
+| **深度模板** | P0/微服务级变更 | CEO + Design + Engineering + 额外检查 | 高 |
+
+**P0 强制使用深度模板**。
+
+### 棕地专用模板（D-16）
+- 额外检查项：历史逻辑兼容性、依赖风险分析
+- 激活条件：`.flow-kit/project-type` 为 `brownfield`
+- 输出：在标准报告末尾附加 "Brownfield Risk Assessment" 小节
+
+### 自动化检查命令（D-13）
+
+| 检查项 | 命令 | 类型 | 适用模板 |
+|--------|------|------|----------|
+| Lint | `npm run lint` | 阻断 | 全部 |
+| Typecheck | `npm run typecheck` | 阻断 | 全部 |
+| Build | `npm run build` | 阻断 | 标准+深度 |
+| Unit Tests | `npm run test` | 阻断 | 标准+深度 |
+| Security Scan | `/flow-kit:health` | 阻断 | 深度 |
+| 依赖检查 | `npm audit` | 警告 | 深度 |
+
+**阻断项**：必须通过，否则拒绝合并
+**警告项**：仅提示，不阻止合并
+
 ### 三层审查模型
 
 按顺序执行，从业务层到工程层。上一层失败则停止。
@@ -107,7 +142,22 @@ Engineering Review:
   ✓ 测试覆盖率 85%
   → PASS
 
-Overall: APPROVED
+Overall: APPROVED WITH CONDITIONS
+```
+
+### 棕地项目 Review 示例
+
+**场景**：棕地项目修改订单模块
+
+```
+[Brownfield Risk Assessment]
+  历史逻辑兼容性：✓ 通过（保留原有折扣计算逻辑）
+  依赖风险分析：
+    - OrderService → PaymentService（高风险，新接口）
+    - OrderService → UserService（低风险，接口未变）
+  建议：单独测试 Order → Payment 集成
+
+Overall: APPROVED WITH CONDITIONS
 ```
 
 ## NOTES
@@ -130,6 +180,23 @@ CEO → Design → Engineering
 | **安全** | API 缺少 rate limiting | High |
 | **性能** | N+1 查询问题 | Medium |
 | **可维护** | 缺少错误边界 | Low |
+
+### Token 预算预警（D-17）
+深度模板消耗更多 token。使用前自动检测：
+- 若 >= 80% 预算：提示用户归档旧 phase 文件
+- 若 >= 90% 预算：建议降级到标准模板
+- 命令：`/flow-kit:estimate-tokens` 查看详情
+
+### PR 描述自动填充（D-18）
+Review 完成后，结果自动填充到 PR 描述的审查结果部分。
+格式：
+```markdown
+## Review Results
+- CEO Review: ✓ PASS
+- Design Review: ✓ PASS
+- Engineering Review: ✓ PASS (3 findings, all resolved)
+- Brownfield Risk: LOW
+```
 
 ### 审查输出
 

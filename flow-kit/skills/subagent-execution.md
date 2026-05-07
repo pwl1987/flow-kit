@@ -22,17 +22,15 @@
 ```javascript
 Task({
   description: "Task description",
-  isolation: "worktree",  // 关键：隔离执行
+  isolation: "worktree",
   workingDirectory: "/path/to/repo",
-  input: {
-    // 任务输入：明确的合约
+  concurrency: {
+    auto: true,
+    maxParallel: 4
   },
-  output: {
-    // 任务输出：明确的合约
-  },
-  onResult: (result) => {
-    // 结果处理策略
-  }
+  input: { /* 任务输入 */ },
+  output: { /* 任务输出 */ },
+  onResult: (result) => { /* 结果处理 */ }
 })
 ```
 
@@ -44,6 +42,52 @@ Task({
 | **maxParallel** | `4` | 最多同时运行 4 个 subagent |
 | **mergeStrategy** | `sequential` | 按顺序合并结果，避免冲突 |
 | **contextPass** | `essential-only` | 只传递必要上下文，减少 token |
+
+### D-26 动态并发控制
+
+**预算感知调度**：
+| Token 预算 | 并发数 | 说明 |
+|------------|--------|------|
+| < 80% | maxParallel（默认 4） | 正常并发 |
+| >= 80% | 1 | 降级为单并发，避免预算耗尽 |
+| >= 90% | 串行 | 强制串行，逐任务完成 |
+
+**配置**：
+```javascript
+Task({
+  // ...
+  concurrency: {
+    auto: true,  // 启用动态调整
+    maxParallel: 4,
+    degradeAt: 0.8,   // 80% 降级
+    serialAt: 0.9     // 90% 串行
+  }
+})
+```
+
+### D-26 执行日志
+
+**日志格式**：
+```json
+{
+  "timestamp": "2026-05-07T10:30:00Z",
+  "taskId": "T2.1",
+  "agent": "subagent-1",
+  "status": "completed",
+  "duration": 120000,
+  "tokensUsed": 50000,
+  "output": { "files": ["user.ts"], "errors": [] }
+}
+```
+
+**归档**：
+- 执行日志归档到 `.planning/archive/execution-{date}.json`
+- 命令：`/flow-kit:cost-report` 导入成本报告
+
+**资源限制**：
+- 并发数配置：`maxParallel: N`
+- 预算动态调整：自动根据 token 预算调整
+```
 
 ### 任务拆分策略
 
