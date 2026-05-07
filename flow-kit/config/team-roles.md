@@ -5,45 +5,46 @@
 
 # Team Roles
 
-## 角色定义
+## TEAM-01: Role Definitions
 
-### admin
+### Architect
 
-| 权限 | 说明 |
-|------|------|
-| 命令执行 | 全部 flow-kit 命令 |
-| 配置管理 | 可修改团队配置 |
-| 配置同步 | 可同步分发团队配置 |
-| 限制 | 不得覆盖 Constitution 安全规则 |
+- **Purpose**: Technology decisions and architecture
+- **Capabilities**:
+  - Approve P0 changes
+  - Define tech stack constraints
+  - Review architecture decisions
+  - Add or modify TEAM-01 technology constraints
+- **Constraints**:
+  - Cannot override Constitution safety rules (SEC/DATA/DEPLOY/GIT)
+  - All decisions subject to reviewer concurrence for P1+
 
-### reviewer
+### Reviewer
 
-| 权限 | 说明 |
-|------|------|
-| 命令执行 | 审查相关命令 |
-| 审批操作 | 可批准/拒绝变更 |
-| 限制 | 不得修改核心配置 |
-| 约束 | 必须遵守 Constitution 安全规则 |
+- **Purpose**: Code and design review
+- **Capabilities**:
+  - Approve P0 changes
+  - Review all changes
+  - Approve deployments
+  - Request changes before approval
+- **Constraints**:
+  - Cannot override Constitution safety rules
+  - Must maintain review documentation
 
-### developer
+### Ops
 
-| 权限 | 说明 |
-|------|------|
-| 命令执行 | 开发流程命令 |
-| 版本控制 | 在限定范围内提交和推送 |
-| 限制 | 不得修改团队配置 |
-| 约束 | 必须遵守 Constitution 安全规则 |
+- **Purpose**: Operations and deployment
+- **Capabilities**:
+  - Execute deployments
+  - Manage configurations
+  - Monitor health
+  - Approve toolchain changes
+  - Manage CI/CD pipeline
+- **Constraints**:
+  - Cannot deploy without reviewer approval
+  - Cannot override Constitution safety rules
 
-### viewer
-
-| 权限 | 说明 |
-|------|------|
-| 命令执行 | 无（只读） |
-| 查看内容 | 可查看阶段摘要和状态 |
-| 限制 | 不得执行工作流命令 |
-| 约束 | 不得修改任何配置 |
-
-## 权限边界声明
+## Permission Boundary Statement
 
 ```
 Constitution.md remains the immutable safety floor.
@@ -51,13 +52,13 @@ Roles define workflow permissions only.
 No role can override SEC/DATA/DEPLOY/GIT rules.
 ```
 
-## 角色验证规则
+## Role Validation Rules
 
-1. **未知角色拒绝**：加载配置时识别未知角色并拒绝
-2. **默认回退**：未指定角色时默认使用 `viewer`
-3. **角色列表**：`admin`, `reviewer`, `developer`, `viewer`
+1. **Unknown role rejection**: Config loading识别未知角色并拒绝
+2. **Default fallback**: 未指定角色时默认使用 `viewer`
+3. **Role list**: `architect`, `reviewer`, `ops`, `viewer`
 
-## Constitution 引用
+## Constitution Reference
 
 Constitution.md 作为安全基础：
 - SEC/DATA/DEPLOY/GIT 规则不可绕过
@@ -68,4 +69,4 @@ Constitution.md 作为安全基础：
 
 **关联文件**：
 - `@flow-kit/config/constitution.md` (安全基础)
-- `@flow-kit/commands/sync-team-config.md` (配置同步)
+- `@flow-kit/config/tech-constraints.md` (技术栈约束)
