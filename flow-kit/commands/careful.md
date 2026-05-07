@@ -95,4 +95,40 @@ production_safety:
 
 ## 参考来源
 
-- [garrytan/gstack](https://github.com/garrytan/gstack) — /careful + /freeze + /guard 三级安全护栏
+- [garrytan/gstack](https://github.com/garrytan/gstack) — /careful + /freeze + /guard 三级安全护栏 + 并发锁检测
+- [agent-of-empires](https://github.com/agent-of-empires/agent-of-empires) — tmux 并行开发环境检测
+
+---
+
+## 并发文件锁（并行模式）
+
+> v1.6 新增：tmux 并行环境下自动启用
+
+### 并发检测
+
+检测到 tmux 并行环境时（`$TMUX` 环境变量存在），`/careful` 自动升级为全局锁模式：
+- 任何破坏性命令需额外确认
+- 检测到多 Agent 试图同时修改同一文件时，输出严重告警
+
+```
+🚨 [CONCURRENT FILE LOCK DETECTED]
+File: {path}
+Agents: [{agent_1}, {agent_2}]
+Recommendation: Use write_files mutex lock to serialize access
+```
+
+### 手动锁管理
+
+- **`/flow-kit:lock {filepath}`**：锁定文件，防止并发修改
+- **`/flow-kit:unlock {filepath}`**：解锁文件
+- **`/flow-kit:lock-status`**：显示当前锁状态
+
+### 锁实现
+
+```yaml
+# .flow-kit/locks.yaml
+locks:
+  - file: path/to/file.md
+    locked_by: agent-name
+    timestamp: "2026-05-08T12:00:00Z"
+```

@@ -121,6 +121,13 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 | `/flow-kit:skill-audit` | `@flow-kit/commands/skill-audit.md` |
 | `/flow-kit:team` | `@flow-kit/commands/team-roles.md` |
 | `/flow-kit:dispatch` | `@flow-kit/skills/team-dispatch.md` |
+| `/flow-kit:register-commands` | `@flow-kit/commands/register-commands.md` |
+| `/flow-kit:generate-commands` | `@flow-kit/commands/generate-commands.md` |
+| `/flow-kit:tmux-init` | `@flow-kit/commands/tmux-orchestrator.md` |
+| `/flow-kit:tmux-run` | `@flow-kit/commands/tmux-orchestrator.md` |
+| `/flow-kit:tmux-aggregate` | `@flow-kit/commands/tmux-orchestrator.md` |
+| `/flow-kit:lock` | `@flow-kit/commands/careful.md` |
+| `/flow-kit:unlock` | `@flow-kit/commands/careful.md` |
 
 ## Skill Routing（按 Phase 上下文）
 

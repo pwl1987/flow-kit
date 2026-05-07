@@ -36,5 +36,19 @@ flow-kit 是一个面向 Claude Code 的结构化开发流程工具包，提供 
 @flow-kit/GO.md
 ```
 
+## 首次使用引导
+
+flow-kit v1.6+ 支持原生斜杠命令。若未检测到命令注册，启动时会提示：
+
+```
+[flow-kit] 检测到斜杠命令未注册
+运行 /flow-kit:register-commands 完成一键注册
+```
+
+手动注册命令：
+```
+/flow-kit:register-commands
+```
+
 ---
 *Generated: 2026-05-06*
