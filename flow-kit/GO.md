@@ -21,6 +21,33 @@
    - 80% budget：输出警告
    - 100% budget：阻止继续
 
+## 项目类型检测（启动时自动执行）
+
+### 检测逻辑
+读取 `.flow-kit/project-type` 文件，若不存在则提示：
+  [INFO] 项目类型未检测，运行 `/flow-kit:project-type detect` 进行检测
+
+### 检测结果输出格式
+当检测到项目类型后，显示：
+
+```
+[Project Type Detection]
+  Type: {brownfield|greenfield|light-brownfield}
+  Confidence: {high|medium|low}
+  
+  Recommended Actions:
+    - /flow-kit:guardrails  (棕地项目启用护栏)
+    - /flow-kit:skill:code-review  (P0 变更使用深度模板)
+    - /flow-kit:skill:verification  (Phase 4-5 使用全量验证)
+  
+  Quick Commands:
+    - /flow-kit:project-type detect  (重新检测)
+    - /flow-kit:project-type brownfield  (手动设为棕地)
+    - /flow-kit:project-type greenfield  (手动设为绿地)
+```
+
+---
+
 ## 命令路由规则
 
 当用户输入 `/flow-kit:xxx` 格式命令时，按以下顺序匹配：
@@ -47,6 +74,7 @@
 | `/flow-kit:sync-config` | `@flow-kit/commands/sync-team-config.md` |
 | `/flow-kit:check-expiry` | `@flow-kit/commands/check-expiry.md` |
 | `/flow-kit:estimate-tokens` | `@flow-kit/commands/estimate-tokens.md` |
+| `/flow-kit:project-type` | `@flow-kit/commands/project-type.md` |
 | `/flow-kit:recovery` | `@flow-kit/commands/check-expiry.md` |
 | `/flow-kit:pr-description` | `@flow-kit/commands/pr-description.md` |
 | `/flow-kit:cost-report` | `@flow-kit/commands/cost-report.md` |
