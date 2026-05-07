@@ -53,16 +53,47 @@ Sync team configuration across team members. Merge team conventions, shared sett
 
 ## Execution
 
-### 1. Fetch Team Config
+### 0. Backup Before Merge
 
-For git source:
+Before writing any config:
 ```bash
-git fetch origin
-git checkout origin/team-config -- .flow-kit/
-git checkout origin/team-config -- flow-kit/config/
+# Create backup directory with timestamp
+BACKUP_DIR=".flow-kit/backup/$(date -u +'%Y%m%d_%H%M%S')"
+mkdir -p "${BACKUP_DIR}"
+
+# Backup existing configs
+[ -f ".flow-kit/user-config.md" ] && cp .flow-kit/user-config.md "${BACKUP_DIR}/"
+[ -f ".flow-kit/conventions.md" ] && cp .flow-kit/conventions.md "${BACKUP_DIR}/"
+[ -f ".flow-kit/style.md" ] && cp .flow-kit/style.md "${BACKUP_DIR}/"
+[ -f ".flow-kit/review.md" ] && cp .flow-kit/review.md "${BACKUP_DIR}/"
+[ -f ".flow-kit/decisions.md" ] && cp .flow-kit/decisions.md "${BACKUP_DIR}/"
+
+# Log backup location
+echo "Backup created at: ${BACKUP_DIR}"
 ```
 
-For local path:
+### 1. Fetch Team Config
+
+**Git source (clone if not exists):**
+```bash
+TEMP_DIR="/tmp/team-config-sync"
+
+# Clone if not exists
+if [ ! -d "${TEMP_DIR}" ]; then
+  git clone {git_url} "${TEMP_DIR}"
+else
+  # Fetch if exists
+  cd "${TEMP_DIR}"
+  git fetch origin
+  git checkout origin/team-config
+fi
+
+# Copy to local
+cp -r "${TEMP_DIR}/.flow-kit/" .flow-kit/
+cp -r "${TEMP_DIR}/flow-kit/config/" flow-kit/config/
+```
+
+**Local path source:**
 ```bash
 cp -r /path/to/team-config/.flow-kit/* .flow-kit/
 cp -r /path/to/team-config/flow-kit/config/* flow-kit/config/
@@ -79,6 +110,32 @@ For each config file:
 3. Reject unknown roles
 4. Read local user config
 5. Merge with role priority
+
+**Role Validation Schema:**
+| Role | Access Level | P0 Approval | Deploy | Notes |
+|------|--------------|-------------|--------|-------|
+| admin | Full access | Yes | Yes | All permissions |
+| reviewer | Review access | Yes | No | Can approve P0 |
+| developer | Read/write | No | No | No P0 or deploy |
+| viewer | Read-only | No | No | No modifications |
+
+### 3. Conflict Resolution Logic
+
+| Config | Team Wins | User Wins | Notes |
+|--------|-----------|-----------|-------|
+| constitution.md | Yes | No | Immutable safety floor |
+| team-roles.md | Yes | No | Role definitions immutable |
+| user-config.md | No | Yes | User preferences win |
+| conventions.md | Default | Override | Team default, user can override |
+| style.md | Merge | Keep strictest | Both styles preserved |
+| review.md | Yes | No | Team standard process |
+
+| Conflict Type | Resolution |
+|--------------|------------|
+| Personal preference vs team standard | User preference wins |
+| Code style (tabs vs spaces) | Merge, keep strictest |
+| Review process steps | Team standard |
+| Tool configuration | Merge, keep both if compatible |
 
 ### 3. Validation Checks
 
