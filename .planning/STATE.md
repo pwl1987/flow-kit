@@ -33,7 +33,7 @@
 | Phase 8: Constitution 四原则 | ✅ 已完成 | 08-01-PLAN.md | CONST-01, GUARD-01 |
 
 | Phase 9: Skills 质量升级 | ✅ 已完成 | 09-01-PLAN.md, SUMMARY.md | SKILL-01, SKILL-02 |
-| Phase 10: Core 流程增强 | 🔄 Discuss 完成 | 10-CONTEXT.md, 10-DISCUSSION-LOG.md | CORE-01, CORE-02 |
+| Phase 10: Core 流程增强 | 🔄 Planned | 10-01-PLAN.md | CORE-01, CORE-02 |
 
 ## v1.2 范围
 

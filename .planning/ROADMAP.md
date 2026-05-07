@@ -94,8 +94,11 @@
 
 ### Phase 10: Core 流程增强
 **Goal:** `core/1-requirement.md` 增加术语对齐前置和历史教训检索，`core/4-dev.md` 强化 Goal-Driven Execution
-**Status:** 🔄 Planning
+**Status:** ✅ Planned
 **Requirements:** CORE-01, CORE-02
+**Plans:** 1 plan
+**Plan list:**
+- [ ] 10-01-PLAN.md — CORE-01/CORE-02 术语对齐+历史教训检索+TDD硬阻断
 **Success Criteria:**
 1. `core/1-requirement.md` 激活 `skills/ubiquitous-language.md` 并在开始时输出术语表状态
 2. `core/1-requirement.md` 加载 `.specs/LESSONS.md` 并在需求文件顶部列出匹配教训
