@@ -44,4 +44,23 @@
 - **技术债务清单**：识别的待处理债务
 - **后续 Phase 入口确认**：明确进入 5-test 的条件
 
+## 项目类型检测（Phase 6 增强）
+
+### 混合模式检测逻辑
+1. 检查 `.flow-kit/project-type` 是否存在
+2. 若存在：直接读取项目类型
+3. 若不存在：使用以下检测信号判断
+
+### 检测信号（D-07）
+| 信号 | 棕地指标 | 绿地指标 |
+|------|----------|----------|
+| 文件指纹 | package.json + lock 文件存在 | 缺少锁文件 |
+| Git Remote | 关联 GitHub/GitLab | 无 remote |
+| 业务代码行数 | src/ 目录存在且 > 5000 LOC | LOC < 5000 |
+| 历史 | 有 git history | 新项目 |
+
+### Guardrails 联动
+- 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
+- 绿地项目：提示 `建议使用标准开发流程`
+
 --- END flow-kit/phases/4-dev/4-dev.md ---
