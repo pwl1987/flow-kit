@@ -1,0 +1,132 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。使用 {{PLACEHOLDER}} 格式标记变量。
+
+--- BEGIN flow-kit/templates/GLOSSARY.md.template ---
+
+# 术语表 - {{GLOSSARY_NAME}}
+
+## 文档信息
+
+| 字段 | 值 |
+|------|-----|
+| 术语表名称 | {{GLOSSARY_NAME}} |
+| 版本 | {{VERSION}} |
+| 创建日期 | {{DATE}} |
+| 维护人 | {{OWNER}} |
+
+## 分类标签体系
+
+| 标签 | 说明 |
+|------|------|
+| `{{BUSINESS_TERM_LABEL}}` | 业务术语 — 跨模块通用业务概念 |
+| `{{TECH_TERM_LABEL}}` | 技术术语 — 架构/开发/运维技术概念 |
+| `{{MODULE_TERM_LABEL}}` | 模块专属术语 — 仅限特定模块使用 |
+
+## 使用说明
+
+1. 每个术语必须包含 6 个强制字段：Term / Definition / Usage Rules / Category / Example / See Also
+2. Usage Rules 为约束性字段，必须明确适用场景、禁用场景和边界条件
+3. Category 支持多级分类，格式：`主分类 / 子分类`
+4. See Also 字段用于关联相关术语，支持双向链接
+
+---
+
+## 术语条目
+
+### 术语 1: {{TERM_1}}
+
+| 字段 | 内容 |
+|------|------|
+| **Term（术语）** | {{TERM_1}} |
+| **Definition（定义）** | {{DEFINITION_1}} |
+| **Category（分类）** | {{CATEGORY_1}} |
+
+**Usage Rules（使用规则）**:
+- **适用**: {{USAGE_APPLICABLE_1}}
+- **禁用**: {{USAGE_FORBIDDEN_1}}
+- **边界**: {{USAGE_BOUNDARY_1}}
+
+**Example（示例）**:
+```
+{{EXAMPLE_1}}
+```
+
+**See Also（相关术语）**:
+- {{RELATED_TERM_1}}
+- {{RELATED_TERM_2}}
+
+---
+
+### 术语 2: {{TERM_2}}
+
+| 字段 | 内容 |
+|------|------|
+| **Term（术语）** | {{TERM_2}} |
+| **Definition（定义）** | {{DEFINITION_2}} |
+| **Category（分类）** | {{CATEGORY_2}} |
+
+**Usage Rules（使用规则）**:
+- **适用**: {{USAGE_APPLICABLE_2}}
+- **禁用**: {{USAGE_FORBIDDEN_2}}
+- **边界**: {{USAGE_BOUNDARY_2}}
+
+**Example（示例）**:
+```
+{{EXAMPLE_2}}
+```
+
+**See Also（相关术语）**:
+- {{RELATED_TERM_3}}
+- {{RELATED_TERM_4}}
+
+---
+
+### 术语 3: {{TERM_3}}
+
+| 字段 | 内容 |
+|------|------|
+| **Term（术语）** | {{TERM_3}} |
+| **Definition（定义）** | {{DEFINITION_3}} |
+| **Category（分类）** | {{CATEGORY_3}} |
+
+**Usage Rules（使用规则）**:
+- **适用**: {{USAGE_APPLICABLE_3}}
+- **禁用**: {{USAGE_FORBIDDEN_3}}
+- **边界**: {{USAGE_BOUNDARY_3}}
+
+**Example（示例）**:
+```
+{{EXAMPLE_3}}
+```
+
+**See Also（相关术语）**:
+- {{RELATED_TERM_5}}
+- {{RELATED_TERM_6}}
+
+---
+
+## 可选字段
+
+### Version & History（版本历史）
+
+| 版本 | 日期 | 修改内容 | 修改人 |
+|------|------|----------|--------|
+| {{VERSION}} | {{DATE}} | {{CHANGE_DESC}} | {{EDITOR}} |
+
+### Owner（负责人）
+
+| 角色 | 姓名 | 职责 |
+|------|------|------|
+| 主维护人 | {{PRIMARY_OWNER}} | {{PRIMARY_RESPONSIBILITY}} |
+| 审阅人 | {{REVIEWER}} | {{REVIEW_RESPONSIBILITY}} |
+
+---
+
+## 相关文档
+
+| 文档 | 路径 |
+|------|------|
+| {{RELATED_DOC_1}} | {{RELATED_DOC_PATH_1}} |
+| {{RELATED_DOC_2}} | {{RELATED_DOC_PATH_2}} |
+
+--- END flow-kit/templates/GLOSSARY.md.template ---
