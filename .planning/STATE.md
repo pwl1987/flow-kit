@@ -32,7 +32,7 @@
 | Phase 7: P2 体验增强 | ✅ 已完成 | 5 plans, 10/10 UAT passed | REQ-010~015 |
 | Phase 8: Constitution 四原则 | ✅ 已完成 | 08-01-PLAN.md | CONST-01, GUARD-01 |
 
-| Phase 9: Skills 质量升级 | 🔄 讨论完成 | Context gathered, ready for planning | SKILL-01, SKILL-02 |
+| Phase 9: Skills 质量升级 | ✅ 已完成 | 09-01-PLAN.md, SUMMARY.md | SKILL-01, SKILL-02 |
 ## v1.2 范围
 
 **P0 — 立即修复：**
