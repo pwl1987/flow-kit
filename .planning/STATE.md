@@ -7,7 +7,7 @@
 **核心价值：** 为 Claude Code 提供全面的开发结构护栏，在不增加不必要复杂性的情况下实现一致的、高质量的 AI 辅助开发。
 
 **当前里程碑：** v1.2 🔄 (2026-05-07)
-**当前阶段：** Phase 8 — Constitution 四原则（执行完成）
+**当前阶段：** Phase 10 — Core 流程增强（Discuss 完成）
 
 ## 当前里程碑
 
@@ -33,6 +33,8 @@
 | Phase 8: Constitution 四原则 | ✅ 已完成 | 08-01-PLAN.md | CONST-01, GUARD-01 |
 
 | Phase 9: Skills 质量升级 | ✅ 已完成 | 09-01-PLAN.md, SUMMARY.md | SKILL-01, SKILL-02 |
+| Phase 10: Core 流程增强 | 🔄 Discuss 完成 | 10-CONTEXT.md, 10-DISCUSSION-LOG.md | CORE-01, CORE-02 |
+
 ## v1.2 范围
 
 **P0 — 立即修复：**
