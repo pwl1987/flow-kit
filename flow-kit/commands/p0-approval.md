@@ -72,6 +72,16 @@ Reason: {original_p0_reason}
 Decision: APPROVED
 ```
 
+### 5. Auto-generate Approval File
+
+Upon decision:
+1. Create `.flow-kit/approvals/` directory if not exists
+2. Generate `{YYYYMMDD-HHMMSS}-P0-{change_id}.md` from template
+3. Fill in all fields automatically
+4. Log generation in output
+
+Approval file format: see `flow-kit/templates/approval/approval-template.md`
+
 ## 权限要求
 
 只有以下角色可以审批 P0：
