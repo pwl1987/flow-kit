@@ -8,8 +8,8 @@
 |---|-------|------|--------|
 | 1-4 | v1.0 MVP | Core skeleton, guardrails, reference materials, integration | ✅ Complete |
 | 5-7 | v1.1 Enhancement | P0 bugfix, P1 supplement, P2 experience | ✅ Complete |
-| 8-11 | v1.2 Enhancement | 需求质量与结构化增强 | ✅ Complete |
-| 12+ | TBD | Rollback workflow + enhancements | 📋 Planned |
+| 8-12 | v1.2 Enhancement | 需求质量与结构化增强 | ✅ Complete |
+| 12 | Rollback Workflow | ✅ Complete | 12-01-PLAN.md |
 
 ---
 
@@ -17,8 +17,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-4 (shipped 2026-05-06)
 - ✅ **v1.1 Enhancement** — Phases 5-7 (shipped 2026-05-07)
-- ✅ **v1.2 Enhancement** — Phases 8-11 (shipped 2026-05-07)
-- 📋 **v2.0** — Phase 12+ (planned)
+- ✅ **v1.2 Enhancement** — Phases 8-12 (shipped 2026-05-07)
 
 ---
 
@@ -118,13 +117,13 @@
 
 ---
 
-### Phase 12: Rollback Workflow (Planned)
+### Phase 12: Rollback Workflow
 **Goal:** Rollback workflow for reverting executed phases
-**Status:** 📋 In Progress
+**Status:** ✅ Complete (2026-05-07)
 **Requirements:** RB-01~RB-06
 **Plans:** 1 plan
 **Plan list:**
-- [ ] 12-01-PLAN.md — 回滚命令 + 阶段定义 + executor 集成点
+- [x] 12-01-PLAN.md — 回滚命令 + 阶段定义 + executor 集成点
 
 
 ## Phase Map
