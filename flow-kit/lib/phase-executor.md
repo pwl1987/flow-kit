@@ -207,6 +207,86 @@ On cleanup trigger (100% budget):
 - `/flow-kit:cleanup` — 手动触发清理
 - `/flow-kit:cleanup --force` — 强制清理（包括未完成 phase）
 
+### 9. Rollback Trigger（回滚触发）
+
+**Phase 执行完成时触发**：
+1. 调用 `markStablePoint(phase, "auto")`
+2. 创建 `.planning/checkpoints/{phase}-stable.json`
+3. 标记文件包含：
+   - phase 名
+   - 标记时间
+   - commit hash
+   - 生成文件列表
+   - canRollback: true
+
+**手动调整命令**：
+- `/flow-kit:rollback --promote {phase}` — 提升 phase 到稳定点
+- `/flow-kit:rollback --demote {phase}` — 降级 phase（禁用回滚）
+- `/flow-kit:rollback --remove {phase}` — 移除稳定点标记
+
+**`markStablePoint()` 函数实现**：
+```javascript
+function markStablePoint(phase, reason = "auto") {
+  const checkpointDir = '.planning/checkpoints';
+  const markerPath = `${checkpointDir}/${phase}-stable.json`;
+
+  // 确保目录存在
+  if (!fs.existsSync(checkpointDir)) {
+    fs.mkdirSync(checkpointDir, { recursive: true });
+  }
+
+  fs.writeFileSync(markerPath, JSON.stringify({
+    phase,
+    markedAt: new Date().toISOString(),
+    reason,  // "auto" or "manual"
+    canRollback: true,
+    commit: getCurrentCommitHash(),
+    files: getGeneratedFiles(phase)
+  }, null, 2));
+}
+```
+
+**`adjustStablePoint(phase, level)` 函数实现**：
+```javascript
+function adjustStablePoint(phase, level) {
+  // level: "promote" | "demote" | "remove"
+  const checkpointDir = '.planning/checkpoints';
+  const markerPath = `${checkpointDir}/${phase}-stable.json`;
+
+  if (level === "remove") {
+    if (fs.existsSync(markerPath)) {
+      fs.unlinkSync(markerPath);
+      console.log(`[StablePoint] Phase ${phase} stable point removed`);
+    }
+    return;
+  }
+
+  if (!fs.existsSync(markerPath)) {
+    if (level === "promote") {
+      markStablePoint(phase, "manual");
+      console.log(`[StablePoint] Phase ${phase} promoted to stable point`);
+    }
+    return;
+  }
+
+  const marker = JSON.parse(fs.readFileSync(markerPath, 'utf-8'));
+
+  if (level === "demote") {
+    marker.canRollback = false;
+    marker.demotedAt = new Date().toISOString();
+    marker.demotedReason = "manual";
+    console.log(`[StablePoint] Phase ${phase} demoted (rollback disabled)`);
+  } else if (level === "promote") {
+    marker.canRollback = true;
+    marker.promotedAt = new Date().toISOString();
+    marker.promotedReason = "manual";
+    console.log(`[StablePoint] Phase ${phase} promoted to stable point`);
+  }
+
+  fs.writeFileSync(markerPath, JSON.stringify(marker, null, 2));
+}
+```
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：
