@@ -23,7 +23,6 @@
 
 ## 项目类型检测（启动时自动执行）
 
-### 检测逻辑
 读取 `.flow-kit/project-type` 文件，若不存在则提示：
   [INFO] 项目类型未检测，运行 `/flow-kit:project-type detect` 进行检测
 
