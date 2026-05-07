@@ -6,8 +6,8 @@
 
 **核心价值：** 为 Claude Code 提供全面的开发结构护栏，在不增加不必要复杂性的情况下实现一致的、高质量的 AI 辅助开发。
 
-**当前里程碑：** v1.2 🔄 (2026-05-07)
-**当前阶段：** Phase 12 — Rollback Workflow（已完成）
+**当前里程碑：** v1.3 🔄 (2026-05-07)
+**当前阶段：** v1.3 Enhancement（已完成）
 
 ## 当前里程碑
 
@@ -21,21 +21,23 @@
 - 11 plans, 全部交付
 - REQ-001~015 全部完成
 
-**v1.2** 🔄 进行中 (2026-05-07)
-- Phase 8+ 规划中
-- 8 项增量升级（详见 PROJECT.md）
+**v1.2** ✅ 完成 (2026-05-07)
+- Phase 8~12 全部完成
+- 8 项增量升级全部交付
+- Constitution 四原则、Skills 质量升级、Core 流程增强、Templates+Commands、Rollback Workflow
+
+**v1.3** 🔄 进行中 (2026-05-07)
+- 6 个新增文件：R1-R8 系统规则、caveman 压缩、failure-detector、DAG 解析、careful 护栏、scale-level
+- 5 个修改文件：constitution、3-task、4-dev、executor、GO.md
 
 | 阶段 | 状态 | 进度 |
 |------|------|------|
-| Phase 5: P0 缺陷修复 | ✅ 已完成 | 4 plans complete | REQ-001~004 |
-| Phase 6: P1 功能补充 | ✅ 已完成 | REQ-005~009 |
-| Phase 7: P2 体验增强 | ✅ 已完成 | 5 plans, 10/10 UAT passed | REQ-010~015 |
-| Phase 8: Constitution 四原则 | ✅ 已完成 | 08-01-PLAN.md | CONST-01, GUARD-01 |
-
-| Phase 9: Skills 质量升级 | ✅ 已完成 | 09-01-PLAN.md, SUMMARY.md | SKILL-01, SKILL-02 |
-| Phase 10: Core 流程增强 | ✅ 已完成 | 10-01-PLAN.md | CORE-01, CORE-02 |
-| Phase 11: Templates + Commands | ✅ 已完成 | 11-01-PLAN.md | TPL-01, CMD-01 |
-| Phase 12: Rollback Workflow | ✅ 已完成 | 12-01-PLAN.md | RB-01~RB-06 |
+| Phase 8: Constitution 四原则 | ✅ 已完成 | CONST-01, GUARD-01 |
+| Phase 9: Skills 质量升级 | ✅ 已完成 | SKILL-01, SKILL-02 |
+| Phase 10: Core 流程增强 | ✅ 已完成 | CORE-01, CORE-02 |
+| Phase 11: Templates + Commands | ✅ 已完成 | TPL-01, CMD-01 |
+| Phase 12: Rollback Workflow | ✅ 已完成 | RB-01~RB-06 |
+| v1.3: System Enhancement | ✅ 已完成 | R1-R8, caveman, failure-detector, DAG, careful, scale |
 
 ## v1.2 范围
 
@@ -68,7 +70,7 @@
 
 | Change ID | 描述 | 阶段 |
 |-----------|------|------|
-| — | 暂无活动变更 | — |
+| v1.3-enhancement | R1-R8 系统规则、caveman、failure-detector、DAG、careful、scale | ✅ 已完成 |
 
 ---
-*最后更新：2026-05-07 — Phase 12 执行完成，v1.2 全部阶段完成
+*最后更新：2026-05-07 — v1.3 Enhancement 完成
