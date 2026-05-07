@@ -310,6 +310,24 @@ grep -E "({files}|{action_keywords})" .specs/LESSONS.md
 - 在执行计划里显式声明与每条命中的差异
 - 若新方案与某条 active 条目完全相同 → 触发 R1.6 禁止直接重试
 
+### 11. 文件加载策略检查（v1.5 渐进披露）
+
+**执行前检查**：
+```
+Before loading reference files in any phase:
+  1. Check if loaded REFERENCE lines > 150
+  2. If exceeded: warn "REFERENCE budget exceeded: {used}/150 lines. Use grep or read offset."
+  3. For large REFERENCE files (>150 lines): use grep or read with offset/limit
+  4. For SPEC files (<200 lines): full read OK
+  5. For PROMPT/TEMPLATE files (<150 lines): full read OK
+```
+
+**输出格式**：
+```
+[Phase Executor] REFERENCE budget: {used}/150 lines
+[Phase Executor] Large REFERENCE detected: {filename} ({lines} lines). Use grep or offset read.
+```
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：

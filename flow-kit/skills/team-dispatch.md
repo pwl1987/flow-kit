@@ -69,13 +69,49 @@ Team Dispatch 将 DAG 解析结果转换为角色-任务分配表，每个角色
 - Reviewer: 只加载 Reviewer 相关的 R2/R4 规则
 - 减少上下文占用，提高效率
 
-### 5. 执行顺序
+### 6. 并行执行协调协议
+
+> 来源：garrytan/gstack 并行 session 聚合
+
+当多个子代理并行执行时：
+
+#### 聚合规则
+
+- **结果收集**：并行任务完成后，结果汇总到 CEO
+- **冲突检测**：若两个子代理对同一文件有修改，以最后一个完成的为准
+- **依赖验证**：所有并行任务的输出必须满足串行任务的输入要求
+
+#### 冲突检测算法
+
+```
+对于每个并行组：
+1. 记录每个子代理修改的文件列表
+2. 若同一文件被多个子代理修改：
+   - 标记为"冲突文件"
+   - 等待所有相关子代理完成后
+   - 由 CEO 根据 timestamp 裁定最终版本
+3. 若无冲突，合并所有输出
+```
+
+#### 并行组执行顺序
+
+```
+Group A (并行) → Group B (并行) → 汇总 → CEO 审查
+                ↑                   ↑
+                └───────────────────┘ (依赖反馈)
+```
+
+---
+
+### 7. 执行顺序
 
 1. 读取 DAG 依赖图
 2. 分析任务类型
 3. 路由到对应角色
 4. 生成角色-任务分配表
 5. 按顺序执行（遵循依赖关系）
+6. 并行组内并发执行
+7. 汇总结果并检测冲突
 
 ---
 
@@ -83,3 +119,4 @@ Team Dispatch 将 DAG 解析结果转换为角色-任务分配表，每个角色
 
 - [Yeachan-Heo/oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) — Team 模式任务分发
 - [jnMetaCode/agency-orchestrator](https://github.com/jnMetaCode/agency-orchestrator) — DAG 并行检测
+- [garrytan/gstack](https://github.com/garrytan/gstack) — 并行 session 聚合

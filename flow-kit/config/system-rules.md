@@ -14,12 +14,24 @@
 - **R1.6** 反重复检查（读取 PROGRESS.md "excluded approaches"，确认新方案不同）
 - **R1.7** 任务过大早期信号检测
 - **R1.8** 跨任务失败检查（任何 DEV 任务实现前先 grep LESSONS.md）
+- **R1.9** 渐进披露规则（进入任何阶段前必读三类文件加载策略）
+- **R1.10** 文件加载策略表（REFERENCE 禁止默认整读，只 grep/read offset）
 
 ---
 
 # R2 阶段关卡
 
-- **R2.1** 无 CHANGE.md → 不得进入 REQUIREMENT 阶段
+flow-kit 文件按加载策略分三类：
+
+| 类型 | 路径示例 | 典型长度 | 加载方式 |
+|------|---------|---------|---------|
+| SPEC（项目产物） | .specs/{change-id}/*.md | < 200 行 | 整读OK |
+| REFERENCE（查阅型） | flow-kit/reference/*.md | 75~470 行 | **禁止默认整读，只 grep / read offset** |
+| PROMPT/TEMPLATE | flow-kit/phases/*.md, templates/*.md | < 150 行 | 整读OK |
+
+首轮消息约束：进入任何阶段时，首轮加载的 REFERENCE 总行数 ≤ 150 行。超过 → 拆到后面按需拉。
+
+**R2.1** 无 CHANGE.md → 不得进入 REQUIREMENT 阶段
 - **R2.2** 无 REQUIREMENT.md → 不得进入 DESIGN 阶段
 - **R2.3** 无 TASK.md → 不得编写代码
 - **R2.4** Verify 通过后才能标记任务完成
@@ -80,4 +92,8 @@
 
 ## 参考来源
 
-- [rihebty/flow-kit](https://github.com/rihebty/flow-kit/blob/main/RULES.md) — R1-R8 系统级硬规则体系（R1.1 Token 预算与重启协议、R2 阶段门、R3 角色红线、R6 反幻觉、R7 范围控制）
+- [rihebty/flow-kit](https://github.com/rihebty/flow-kit/blob/main/RULES.md) — R1-R10 系统级硬规则体系（R1.1 Token 预算与重启协议、R1.9 渐进披露、R1.10 文件加载策略表、R2 阶段门、R3 角色红线、R6 反幻觉、R7 范围控制）
+- [alchaincyf/huashu-design](https://github.com/alchaincyf/huashu-design) — 5 维设计哲学 + OKLCH 色彩空间
+- [smallnest/autoresearch](https://github.com/smallnest/autoresearch) — PASSING_SCORE 自动迭代循环
+- [bytedance/deer-flow](https://github.com/bytedance/deer-flow) — YAML TIL 结构化格式
+- [garrytan/gstack](https://github.com/garrytan/gstack) — 并行执行协调协议

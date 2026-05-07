@@ -22,6 +22,24 @@
    - 80% budget：输出警告
    - 100% budget：阻止继续
 
+## 渐进披露规则（进入任何阶段前必读）
+
+flow-kit 的文件按加载策略分三类：
+
+| 类型 | 路径示例 | 典型长度 | 加载方式 |
+|------|---------|---------|---------|
+| SPEC（项目产物） | .specs/{change-id}/*.md | < 200 行 | 整读OK |
+| REFERENCE（查阅型） | flow-kit/reference/*.md | 75~470 行 | **禁止默认整读，只 grep / read offset** |
+| PROMPT/TEMPLATE | flow-kit/phases/*.md, templates/*.md | < 150 行 | 整读OK |
+
+首轮消息约束：进入任何阶段时，首轮加载的 REFERENCE 总行数 ≤ 150 行。超过 → 拆到后面按需拉。
+
+违规示例（AI常犯）：
+❌ 进入2-design后直接read_file 467行的reference/tech-stacks.md
+✅ 正确：grep_search查"适用矩阵"，或read_file offset=xxx limit=80只读一节
+❌ 同时加载两个大型reference全文
+✅ 正确：先读一个，用户确认后再读第二个
+
 ## 项目类型检测（启动时自动执行）
 
 读取 `.flow-kit/project-type` 文件，若不存在则提示：
