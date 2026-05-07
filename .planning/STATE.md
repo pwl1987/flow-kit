@@ -6,8 +6,8 @@
 
 **核心价值：** 为 Claude Code 提供全面的开发结构护栏，在不增加不必要复杂性的情况下实现一致的、高质量的 AI 辅助开发。
 
-**当前里程碑：** v1.1 ✅ 完成 (2026-05-07)
-**当前阶段：** Phase 7 — P2 体验增强 ✅ (v1.1 全部完成)
+**当前里程碑：** v1.2 🔄 (2026-05-07)
+**当前阶段：** Not started — Defining requirements
 
 ## 当前里程碑
 
@@ -21,13 +21,17 @@
 - 11 plans, 全部交付
 - REQ-001~015 全部完成
 
+**v1.2** 🔄 进行中 (2026-05-07)
+- Phase 8+ 规划中
+- 8 项增量升级（详见 PROJECT.md）
+
 | 阶段 | 状态 | 进度 |
 |------|------|------|
 | Phase 5: P0 缺陷修复 | ✅ 已完成 | 4 plans complete | REQ-001~004 |
 | Phase 6: P1 功能补充 | ✅ 已完成 | REQ-005~009 |
 | Phase 7: P2 体验增强 | ✅ 已完成 | 5 plans, 10/10 UAT passed | REQ-010~015 |
 
-## v1.1 范围
+## v1.2 范围
 
 **P0 — 立即修复：**
 - REQ-001: phases 棕地/绿地分支检测
@@ -41,6 +45,19 @@
 **P2 — 后续迭代：**
 - REQ-010~015: 技术栈约束、审批流、破坏性变更检测、扫描规则
 
+## v1.2 升级清单
+
+| 编号 | 模块 | 操作 |
+|------|------|------|
+| 1 | constitution.md | 融入 Karpathy 四原则 |
+| 2 | requirement-clarify.md | 重写：一次一问 + grill-with-docs + 术语冲突检测 |
+| 3 | ubiquitous-language.md | **新增**：领域语言统一技能 |
+| 4 | brownfield-guardrails.md | B1 增加依赖关系表 |
+| 5 | core/1-requirement.md | 术语对齐前置 + LESSONS 检索 |
+| 6 | core/4-dev.md | 强化 Goal-Driven Execution |
+| 7 | GLOSSARY.md.template | **新增**：术语表模板 |
+| 8 | cross-session-search.md | **新增**：跨会话经验搜索 |
+
 ## 变更追踪
 
 | Change ID | 描述 | 阶段 |
@@ -48,4 +65,4 @@
 | — | 暂无活动变更 | — |
 
 ---
-*最后更新：2026-05-07 Phase 7 UAT 完成 — 5 plans, 10/10 tests passed, v1.1 milestone 全部完成*
+*最后更新：2026-05-07 — v1.2 milestone started*

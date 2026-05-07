@@ -12,8 +12,8 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 
 ## Current State
 
-**Shipped Version:** v1.1 (2026-05-07)
-**Milestones:** v1.0 ✅ (Phases 1-4), v1.1 ✅ (Phases 5-7)
+**Shipped Version:** v1.2 (planned)
+**Milestones:** v1.0 ✅ (Phases 1-4), v1.1 ✅ (Phases 5-7), v1.2 🔄 (Phases 8+)
 
 ### What's Delivered (v1.1)
 
@@ -27,27 +27,39 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 
 ---
 
-## Next Milestone Goals
+## Current Milestone: v1.2 增量升级 — 需求质量与结构化增强
 
-**v2.0 — Rollback Workflow + Enhancements**
+**Goal:** 吸收 5 库精华（Karpathy 行为约束、mattpocock 领域语言与 grill-docs 机制、graphify 依赖图导航），补齐 v1.1 在需求澄清质量、术语一致性、老项目上下文结构化上的短板。
 
-- Phase 8: Rollback workflow for reverting executed phases
-- Context expiry and token estimation improvements
-- Team collaboration enhancements
-- Additional language specs and scan rules
+**Target features:**
+- Karpathy 四原则融入 constitution.md（行为约束最高优先级）
+- requirement-clarify.md 重写：一次一问 + grill-with-docs + 术语冲突检测
+- 新增 ubiquitous-language.md：全流程术语检查
+- brownfield-guardrails.md B1 增加依赖关系表生成
+- 1-requirement.md 增加术语对齐前置 + LESSONS.md 检索
+- 4-dev.md 强化 Goal-Driven Execution（TDD 先写验证再实现）
+- 新增 GLOSSARY.md.template 术语表模板
+- 新增 cross-session-search.md 跨会话经验搜索
 
-### In Scope for v2.0
+**Key context:** 零破坏性修改，所有变更均为增量
 
-- Rollback workflow (phase-executor rollback, state revert)
-- Approval flow enhancements
-- Team config sync improvements
-- Extended health scan coverage
+### In Scope for v1.2
+
+- constitution.md 融入 Karpathy 四原则（BEHAVIORAL PRINCIPLES）
+- requirement-clarify.md 整合 grill-with-docs，一次一问，术语冲突检测
+- 新增 ubiquitous-language.md 领域语言统一技能
+- brownfield-guardrails.md B1 增加 dependency-map.md 生成
+- core/1-requirement.md 增加术语对齐前置 + 历史教训自动检索
+- core/4-dev.md 强化 Goal-Driven Execution
+- 新增 templates/GLOSSARY.md.template
+- 新增 commands/cross-session-search.md
 
 ### Out of Scope
 
 - Runtime execution engine — flow-kit is markdown files, not executable code
 - Web UI / CLI interface — files are designed for Claude Code consumption
 - Language-specific framework bindings — all content is framework-agnostic guidance
+- v2.0 路线图内容（rollback workflow、team collaboration 增强）
 
 ---
 
@@ -117,5 +129,24 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 
 ---
 
-*Last updated: 2026-05-07 after v1.1 milestone completion*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+
+*Last updated: 2026-05-07 — v1.2 milestone started*
 *Archived: milestones/v1.0-ROADMAP.md, milestones/v1.1-ROADMAP.md, milestones/v1.0-REQUIREMENTS.md, milestones/v1.1-REQUIREMENTS.md*
