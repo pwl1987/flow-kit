@@ -145,10 +145,10 @@
 
 **Plans:**
 - [x] 07-01-PLAN.md — Constitution TECH-01 技术栈约束 + 角色定义
-- [ ] 07-02-PLAN.md — P0-approval 自动生成 + APPROVAL.md.template
-- [ ] 07-03-PLAN.md — 多语言规格破坏性变更检测模式
-- [ ] 07-04-PLAN.md — M-health / I-intel-scan 扫描规则充实
-- [ ] 07-05-PLAN.md — sync-team-config.md 实现
+-[x] 07-02-PLAN.md — P0-approval 自动生成 + APPROVAL.md.template
+-[x] 07-03-PLAN.md — 多语言规格破坏性变更检测模式
+-[x] 07-04-PLAN.md — M-health / I-intel-scan 扫描规则充实
+-[x] 07-05-PLAN.md — sync-team-config.md 实现
 
 ---
 
