@@ -55,11 +55,32 @@ These rules CANNOT be overridden by user-config or any other configuration. Viol
 |------|-------------|----------|
 | TECH-01 | Technology stack constraints defined in external reference | tech |
 | TECH-02 | Role definitions for architect/reviewer/ops in external reference | team |
+| ROLE-01 | Role definitions for architect/reviewer/ops in external reference | team |
+
+> **All role-based approvals must respect the BEHAVIORAL PRINCIPLES** — if a design violates "Simplicity First", the architect must reject it.
 
 ### External References
 
 - `flow-kit/config/tech-constraints.md` — Language, framework, and toolchain constraints
 - `flow-kit/config/team-roles.md` — Architect/Reviewer/Ops role definitions
+
+## BEHAVIORAL PRINCIPLES（最高优先级）
+
+> **Unoverridable** — 本章节优先级高于其他所有规则
+
+All agents, sub‑agents, and review processes MUST adhere to the following four principles at all times. No other rule, instruction, or optimization may override them.
+
+### BP-01: Think Before Coding
+首先理解问题域，再探索方案，最后才实现
+
+### BP-02: Simplicity First
+每增加一个抽象必须证明其必要性，只记录必要的依赖信息
+
+### BP-03: Surgical Changes
+最小变更集，只改必要的，零顺手修改
+
+### BP-04: Goal-Driven Execution
+结果导向而非活动导向，不是任务列表走完，是目标达成
 
 ## Priority Statement
 
