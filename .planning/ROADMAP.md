@@ -113,12 +113,19 @@
 
 **Requirements:** REQ-005, REQ-006, REQ-007, REQ-008, REQ-009
 
+**Plans:**
+- [ ] 06-01-PLAN.md — Area A+C: phases 棕地/绿地混合模式 + GO.md 智能路由
+- [ ] 06-02-PLAN.md — Area B: phase-executor 自动清窗 + Area D 部分: debugging + verification
+- [ ] 06-03-PLAN.md — Area D 剩余: code-review + task-master + subagent-execution + parallel-dispatch + requirement-clarify
+
 **Success Criteria:**
 1. phases 文件包含完整的环境检测、依赖检测、项目历史分析
 2. phase-executor 实现自动清窗，超 80% token 预算时触发压缩
 3. GO.md 实现智能路由，向用户展示检测结果并支持手动覆盖
 4. skills 内容根据实战验证结果更新优化
 5. 全链路棕地/绿地自动路由完成
+
+**Status:** Planning Complete (2026-05-07)
 
 ---
 
@@ -143,4 +150,4 @@
 See: .planning/STATE.md
 
 ---
-*Last updated: 2026-05-07 after Phase 5 planning*
+*Last updated: 2026-05-07 after Phase 6 planning*
