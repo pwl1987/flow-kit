@@ -143,6 +143,7 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 | `/flow-kit:tmux-aggregate` | `@flow-kit/commands/tmux-orchestrator.md` |
 | `/flow-kit:lock` | `@flow-kit/commands/careful.md` |
 | `/flow-kit:unlock` | `@flow-kit/commands/careful.md` |
+| `/flow-kit:hooks` | `@flow-kit/commands/hooks-guide.md` |
 
 ## Skill Routing（按 Phase 上下文）
 

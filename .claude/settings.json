@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash|Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/pre-tool-guard.sh"
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/post-edit-format.sh"
+      }]
+    }],
+    "Stop": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/stop-quality-gate.sh"
+      }]
+    }],
+    "SessionStart": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/session-start.sh"
+      }]
+    }],
+    "Notification": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/notification.sh"
+      }]
+    }]
+  }
+}
