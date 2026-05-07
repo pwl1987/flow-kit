@@ -213,11 +213,18 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.9_
+_Generated with flow-kit v1.10_
 
 ---
 
 ## Changelog
+
+### v1.10 (2026-05-08)
+
+- config/system-rules.md: +R1.7 任务过大早期信号检测 + v1.10补充恢复后第一动作规范
+- skills/agent-pipeline.md: +三阶段Agent交接验证门（含Handler覆盖矩阵）
+- skills/team-dispatch.md: +Task-PRD对齐检查 + 追责链机制
+- GO.md: +执行模式自动检测（L0极简/L1标准/L2-L3团队并行）
 
 ### v1.9 (2026-05-08)
 

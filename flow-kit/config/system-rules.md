@@ -12,8 +12,10 @@
 - **R1.4** 禁止"I remember we said..."式对话依赖
 - **R1.5** 重启协议：窗口清理前写入 PROGRESS.md，更新 STATE interruption 字段，输出重启指令
 - **R1.6** 反重复检查（读取 PROGRESS.md "excluded approaches"，确认新方案不同）
-- **R1.7** 任务过大早期信号检测
 - **R1.8** 跨任务失败检查（任何 DEV 任务实现前先 grep LESSONS.md）
+
+> v1.10 补充：任务过大时，恢复后第一动作不是继续干，而是把它在 TASK.md 里就地拆为 ≥2 个子任务（编号沿用 -1/-2），然后从最近一个未完成子任务起步。
+
 - **R1.9** 渐进披露规则（进入任何阶段前必读三类文件加载策略）
 - **R1.10** 文件加载策略表（REFERENCE 禁止默认整读，只 grep/read offset）
 
@@ -23,15 +25,16 @@
 
 flow-kit 文件按加载策略分三类：
 
-| 类型 | 路径示例 | 典型长度 | 加载方式 |
-|------|---------|---------|---------|
-| SPEC（项目产物） | .specs/{change-id}/*.md | < 200 行 | 整读OK |
-| REFERENCE（查阅型） | flow-kit/reference/*.md | 75~470 行 | **禁止默认整读，只 grep / read offset** |
-| PROMPT/TEMPLATE | flow-kit/phases/*.md, templates/*.md | < 150 行 | 整读OK |
+| 类型                | 路径示例                             | 典型长度  | 加载方式                                |
+| ------------------- | ------------------------------------ | --------- | --------------------------------------- |
+| SPEC（项目产物）    | .specs/{change-id}/\*.md             | < 200 行  | 整读OK                                  |
+| REFERENCE（查阅型） | flow-kit/reference/\*.md             | 75~470 行 | **禁止默认整读，只 grep / read offset** |
+| PROMPT/TEMPLATE     | flow-kit/phases/_.md, templates/_.md | < 150 行  | 整读OK                                  |
 
 首轮消息约束：进入任何阶段时，首轮加载的 REFERENCE 总行数 ≤ 150 行。超过 → 拆到后面按需拉。
 
 **R2.1** 无 CHANGE.md → 不得进入 REQUIREMENT 阶段
+
 - **R2.2** 无 REQUIREMENT.md → 不得进入 DESIGN 阶段
 - **R2.3** 无 TASK.md → 不得编写代码
 - **R2.4** Verify 通过后才能标记任务完成
