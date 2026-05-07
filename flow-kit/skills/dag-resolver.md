@@ -345,3 +345,10 @@ files:
 2. **隐式依赖**：仅检测文件级别的依赖，不跟踪函数调用
 3. **[P] 标记优先级**：用户 [P] 标记仅作建议，DAG 检测为最终依据
 4. **性能**：对于 100+ 任务的文件，图构建复杂度为 O(n²)，可考虑空间换时间的优化
+
+---
+
+## 参考来源
+
+- [jnMetaCode/agency-orchestrator](https://github.com/jnMetaCode/agency-orchestrator) — DAG 自动检测 + 拓扑排序
+- [eyaltoledano/claude-task-master](https://github.com/eyaltoledano/claude-task-master) — Task Dependencies 机制

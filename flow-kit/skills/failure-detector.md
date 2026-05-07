@@ -61,3 +61,9 @@ Fix surface problem then stop, no verification, no extension, waiting for next u
 | **L2 外部知识注入** | 第 3 次失败或 AI 跳过 verify | 搜索 LESSONS.md 中相似问题的修复方案，强制 AI 阅读后重试 |
 | **L3 人机协同** | 第 4 次失败或 2 次跳过 verify | 暂停流程，向用户报告"AI 在任务 X 上反复失败"，等待人工介入 |
 | **L4 放弃后果蒙太奇** | AI 主动放弃或提议"换个方案" | 输出"你确定要放弃吗？放弃意味着以下功能将缺失：... 你有能力解决这个问题，让我们重新分析根本原因。" |
+
+---
+
+## 参考来源
+
+- [tanweai/pua](https://github.com/tanweai/pua) — AI 五大懒惰模式识别 + 7 点强制排查清单 + L0-L4 五级压力升级机制

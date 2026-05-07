@@ -90,3 +90,9 @@ production_safety:
 | HIGH | 系统级修改 | `git reset --hard`、`dd if=` |
 | MEDIUM | 配置级修改 | `git push --force` |
 | LOW | 潜在危险重定向 | `> /dev/null` |
+
+---
+
+## 参考来源
+
+- [garrytan/gstack](https://github.com/garrytan/gstack) — /careful + /freeze + /guard 三级安全护栏

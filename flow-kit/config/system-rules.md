@@ -75,3 +75,9 @@
 - **R8.1** 代码标识符使用项目既定语言
 - **R8.2** 文档和注释使用与用户对话相同的语言
 - **R8.3** 术语必须与 GLOSSARY.md 对齐
+
+---
+
+## 参考来源
+
+- [rihebty/flow-kit](https://github.com/rihebty/flow-kit/blob/main/RULES.md) — R1-R8 系统级硬规则体系（R1.1 Token 预算与重启协议、R2 阶段门、R3 角色红线、R6 反幻觉、R7 范围控制）

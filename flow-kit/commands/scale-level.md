@@ -86,3 +86,9 @@
 | L1 | 标准流程 | 无 |
 | L2 | 标准流程 + 架构评审 | 无 |
 | L3 | 完整流程 + Phase 0 | 无 |
+
+---
+
+## 参考来源
+
+- [bmad-code-org/BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD) — Scale-Adaptive Intelligence Level 0-4

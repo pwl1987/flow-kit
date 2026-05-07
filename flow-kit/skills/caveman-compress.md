@@ -139,3 +139,9 @@ npm run test -- --update
 [MEDIUM] 考虑将大型配置对象外部化
   位置：src/config/largeConfig.ts
 ```
+
+---
+
+## 参考来源
+
+- [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman) — 精确后处理层，75% Token 节省，不碰代码块，Lite/Full/Ultra/文言文 四级体系
