@@ -120,9 +120,12 @@
 
 ### Phase 12: Rollback Workflow (Planned)
 **Goal:** Rollback workflow for reverting executed phases
-**Status:** 📋 Planned
+**Status:** 📋 In Progress
+**Requirements:** RB-01~RB-06
+**Plans:** 1 plan
+**Plan list:**
+- [ ] 12-01-PLAN.md — 回滚命令 + 阶段定义 + executor 集成点
 
----
 
 ## Phase Map
 
