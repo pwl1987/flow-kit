@@ -96,8 +96,8 @@ result: pass
 ## Summary
 
 total: 15
-passed: 14
-issues: 2
+passed: 15
+issues: 0
 pending: 0
 skipped: 0
 

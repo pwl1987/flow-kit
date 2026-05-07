@@ -17,6 +17,25 @@
 
 ## HOW_TO_USE
 
+### 分阶段验证门控（D-21）
+
+| Phase | 验证级别 | 检查项 |
+|-------|----------|--------|
+| Phase 1-2 | 轻量 | lint, typecheck, build |
+| Phase 3-4 | 基础 | + unit tests, coverage >= 70% |
+| Phase 5-6 | 全量 | + integration tests, security scan, E2E |
+
+### 棕地/绿地差异
+| 项目类型 | 额外检查 |
+|----------|----------|
+| 棕地 | 历史兼容性检查、依赖风险分析 |
+| 绿地 | 标准检查（无历史包袱） |
+
+### Token 预算联动
+- Phase 5-6 全量检查前自动检测 token 预算
+- 若 >= 80%，提示用户：`[HINT] Token budget at {pct}%, consider running /flow-kit:cleanup first`
+- 用户确认后继续或降级到基础检查
+
 ### Self-Check Delivery Checklist
 
 **原则**: Verification is YOUR job, not the user's.
@@ -150,6 +169,22 @@ $ gh pr create --title "feat: order creation" --body "..."
 
 Ready for code review.
 ```
+
+### 验证失败恢复指南
+
+| 失败类型 | 原因 | 修复命令 |
+|----------|------|----------|
+| Lint 失败 | 代码风格问题 | `npm run lint:fix` |
+| Typecheck 失败 | 类型不匹配 | `npm run typecheck:fix` |
+| 测试失败 | 逻辑错误 | `npm run test:debug` |
+| 构建失败 | 编译错误 | `npm run build:debug` |
+| 安全扫描失败 | 漏洞检测 | `/flow-kit:security-fix` |
+
+**一键修复流程**：
+1. 识别失败类型
+2. 执行对应修复命令
+3. 重新运行验证
+4. 若仍失败，调用 `/flow-kit:debug-snapshot` 保存现场
 
 ## NOTES
 

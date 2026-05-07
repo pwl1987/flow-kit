@@ -143,11 +143,24 @@
 5. M-health / I-intel-scan 扫描规则充实，输出结构化报告
 6. sync-team-config.md 从团队仓库拉取配置到 `.flow-kit/`
 
+**Status:** ✅ Complete (2026-05-07)
+
+**Success Criteria:**
+1. constitution.md 包含 TECH-01 技术栈约束和 architect/reviewer/ops 角色定义 ✅
+2. P0 变更触发审批文件自动生成 ✅
+3. APPROVAL.md.template 完整且与 p0-approval 命令集成 ✅
+4. 多语言规格包含破坏性变更检测模式 ✅
+5. M-health / I-intel-scan 扫描规则充实，输出结构化报告 ✅
+6. sync-team-config.md 从团队仓库拉取配置到 `.flow-kit/` ✅
+
 **Plans:**
 - [x] 07-01-PLAN.md — Constitution TECH-01 技术栈约束 + 角色定义
--[x] 07-02-PLAN.md — P0-approval 自动生成 + APPROVAL.md.template
--[x] 07-03-PLAN.md — 多语言规格破坏性变更检测模式
--[x] 07-04-PLAN.md — M-health / I-intel-scan 扫描规则充实
+- [x] 07-02-PLAN.md — P0-approval 自动生成 + APPROVAL.md.template
+- [x] 07-03-PLAN.md — 多语言规格破坏性变更检测模式
+- [x] 07-04-PLAN.md — M-health / I-intel-scan 扫描规则充实
+- [x] 07-05-PLAN.md — sync-team-config.md 实现
+
+**UAT:** 10/10 tests passed ✅l-scan 扫描规则充实
 -[x] 07-05-PLAN.md — sync-team-config.md 实现
 
 ---

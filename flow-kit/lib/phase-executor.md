@@ -176,6 +176,37 @@ On phase-executor start:
 - New phase start (auto-clear previous phase checkpoint)
 - User reset: `/gsd-reset-phase 5` (explicit)
 
+### 8. Auto Cleanup（自动清窗机制）
+
+**D-09 渐进式压缩**：
+| Token 预算 | 行为 | 输出 |
+|------------|------|------|
+| >= 80% | WARNING | `[WARNING] Approaching token budget ({pct}%)` |
+| >= 90% | HINT | `[HINT] Consider running cleanup: /flow-kit:cleanup` |
+| >= 100% | BLOCK + 强制压缩 | `[BLOCK] Token budget exhausted, running cleanup` |
+
+**D-10 清理粒度**：
+- 清理目标：已完成 phase 的 checkpoint 文件和 logs
+- 保留文件：CONTEXT.md, PLAN.md, SUMMARY.md（核心文档）
+- 清理操作：归档到 `.planning/archive/` 而非删除
+- 归档文件名格式：`.planning/archive/{phase}-{timestamp}.json`
+
+**Cleanup 执行逻辑**：
+```
+On cleanup trigger (100% budget):
+  1. Scan .planning/phases/*/ for completed phases
+  2. For each completed phase:
+     - Archive checkpoint files to .planning/archive/
+     - Archive log files to .planning/archive/
+  3. Preserve: CONTEXT.md, PLAN.md, SUMMARY.md
+  4. Log: "Archived {N} files, preserved {M} documents"
+  5. Display: "Cleanup complete. Run /flow-kit:estimate-tokens to verify"
+```
+
+**Cleanup 命令**：
+- `/flow-kit:cleanup` — 手动触发清理
+- `/flow-kit:cleanup --force` — 强制清理（包括未完成 phase）
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：

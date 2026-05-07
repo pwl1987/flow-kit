@@ -204,4 +204,62 @@ for (const item of items) {
 ---
 **关联技能**: code-review.md (SKILL-33) — 修复后审查
 **应用场景**: 任何阶段出现 bug 时
+
+## D-19 增强：错误模式库
+
+### 常见错误模式
+| 错误类型 | 症状 | 联动命令 |
+|----------|------|----------|
+| Phase 文件格式错误 | 解析失败、占位符未替换 | `/flow-kit:validate-phase` |
+| Checkpoint 残留 | 断点续跑提示旧状态 | `/flow-kit:reset-checkpoint` |
+| Context 过期 | 上下文丢失、重复加载 | `/flow-kit:check-expiry` |
+| Token 预算耗尽 | 执行中断、压缩提示 | `/flow-kit:estimate-tokens` |
+| 棕地检测失败 | 错误的护栏激活 | `/flow-kit:project-type detect` |
+
+### /flow-kit:validate-phase 命令
+验证 phase 文件格式：
+- 检查占位符是否已替换
+- 检查必需章节是否存在
+- 检查 YAML frontmatter 格式
+
+### /flow-kit:reset-checkpoint 命令
+强制清理 checkpoint 状态：
+- 删除 `.flow-kit/checkpoint-state.json`
+- 提示用户重新开始或指定起始点
+
+## D-20 增强：debug-snapshot
+
+### /flow-kit:debug-snapshot 命令
+调试前自动保存现场：
+
+```markdown
+# Debug Snapshot Report
+Generated: {timestamp}
+
+## 环境信息
+- OS: {os}
+- Working Directory: {cwd}
+- Git Branch: {branch}
+
+## 项目状态
+- Project Type: {from .flow-kit/project-type}
+- Context Age: {N} days
+- Token Budget: {pct}%
+
+## 最近变更
+{git log -3 --oneline}
+
+## Phase 状态
+{list of phase directories and their states}
+
+## 建议
+基于以上信息，推荐以下调试步骤：
+1. ...
+2. ...
+```
+
+### 棕地项目适配
+- 自动关联数据库状态快照
+- 提示最近的数据库迁移
+- 提供 rollback 建议
 --- END flow-kit/skills/debugging.md ---
