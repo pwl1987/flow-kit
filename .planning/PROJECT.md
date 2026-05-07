@@ -8,6 +8,52 @@ flow-kit is a Claude Code development framework — a comprehensive toolkit prov
 
 Provide comprehensive development structure and guardrails for Claude Code — enabling consistent, high-quality AI-assisted development without adding unnecessary complexity for simple tasks.
 
+---
+
+## Current State
+
+**Shipped Version:** v1.1 (2026-05-07)
+**Milestones:** v1.0 ✅ (Phases 1-4), v1.1 ✅ (Phases 5-7)
+
+### What's Delivered (v1.1)
+
+| Phase | Requirements | Status |
+|-------|--------------|--------|
+| Phase 5: P0 缺陷修复 | REQ-001~004 | ✅ |
+| Phase 6: P1 功能补充 | REQ-005~009 | ✅ |
+| Phase 7: P2 体验增强 | REQ-010~015 | ✅ |
+
+**Total:** 15/15 requirements satisfied. UAT: 10/10 passed.
+
+---
+
+## Next Milestone Goals
+
+**v2.0 — Rollback Workflow + Enhancements**
+
+- Phase 8: Rollback workflow for reverting executed phases
+- Context expiry and token estimation improvements
+- Team collaboration enhancements
+- Additional language specs and scan rules
+
+### In Scope for v2.0
+
+- Rollback workflow (phase-executor rollback, state revert)
+- Approval flow enhancements
+- Team config sync improvements
+- Extended health scan coverage
+
+### Out of Scope
+
+- Runtime execution engine — flow-kit is markdown files, not executable code
+- Web UI / CLI interface — files are designed for Claude Code consumption
+- Language-specific framework bindings — all content is framework-agnostic guidance
+
+---
+
+<details>
+<summary>v1.0 + v1.1 Context (archived 2026-05-07)</summary>
+
 ## Requirements
 
 ### Validated
@@ -28,36 +74,19 @@ Provide comprehensive development structure and guardrails for Claude Code — e
 - offline-mode.md — 离线模式 ✓
 - minimal-mode.md — 最小模式 ✓
 
-### Active
+**v1.1 — 迭代优化（Phase 5-7）✓**
 
-**v1.1 — 迭代优化（Phase 5-7）**
-
-P0 — 立即修复（影响核心能力）:
-- [ ] phases 文件增加棕地/绿地分支检测
-- [ ] phase-executor 增加断点续跑和自动清窗
-- [ ] database-guardrails 增加数据库类型自动检测
-- [ ] skills 文件内容充实 + 实战验证
-
-P1 — 尽快补充（提升生产可用性）:
-- [ ] phases 文件增加棕地/绿地分支
-- [ ] phase-executor 增加断点续跑和自动清窗
-- [ ] database-guardrails 增加数据库类型自动检测
-- [ ] skills 文件内容充实 + 实战验证
-- [ ] GO.md 增加棕地/绿地自动路由
-
-P2 — 后续迭代（体验增强）:
-- [ ] constitution 增加技术栈约束和角色定义
-- [ ] 增加审批文件自动生成
-- [ ] 补充 APPROVAL.md.template
-- [ ] 多语言规格增加破坏性变更检测模式
-- [ ] M-health / I-intel-scan 充实具体扫描规则
-- [ ] sync-team-config.md 实现
-
-### Out of Scope
-
-- Runtime execution engine — flow-kit is markdown files, not executable code
-- Web UI / CLI interface — files are designed for Claude Code consumption
-- Language-specific framework bindings — all content is framework-agnostic guidance
+- [x] phases 文件增加棕地/绿地分支检测
+- [x] phase-executor 增加断点续跑和自动清窗
+- [x] database-guardrails 增加数据库类型自动检测
+- [x] skills 文件内容充实 + 实战验证
+- [x] GO.md 增加棕地/绿地自动路由
+- [x] constitution 增加技术栈约束和角色定义
+- [x] 增加审批文件自动生成
+- [x] 补充 APPROVAL.md.template
+- [x] 多语言规格增加破坏性变更检测模式
+- [x] M-health / I-intel-scan 充实具体扫描规则
+- [x] sync-team-config.md 实现
 
 ## Context
 
@@ -84,6 +113,9 @@ P2 — 后续迭代（体验增强）:
 | Minimal mode for simple changes | Avoids over-engineering small tasks | ✓ Confirmed |
 | v1.1 P0-first approach | Fix production blockers before adding features | ✓ Confirmed |
 
+</details>
+
 ---
 
-*Last updated: 2026-05-06 after v1.0 completion and v1.1 initialization*
+*Last updated: 2026-05-07 after v1.1 milestone completion*
+*Archived: milestones/v1.0-ROADMAP.md, milestones/v1.1-ROADMAP.md, milestones/v1.0-REQUIREMENTS.md, milestones/v1.1-REQUIREMENTS.md*
