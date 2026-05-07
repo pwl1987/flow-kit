@@ -14,3 +14,29 @@
 - Use `jstack <pid>` for thread dumps
 - Enable JPDA: `java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n`
 - IDE debug: IntelliJ/Eclipse remote attach to JVM
+
+## Breaking Change Detection
+
+Reference: `flow-kit/reference/breaking-change-rules.md`
+
+### Java-specific Patterns
+
+| Pattern | Example | Severity |
+|---------|---------|----------|
+| Method signature change | `void foo(int)` -> `void foo(String)` | CRITICAL |
+| Annotation removal | `@Deprecated` removed | HIGH |
+| Class inheritance change | `extends Base` -> `extends Other` | HIGH |
+| Interface implementation removed | `implements Foo` removed | HIGH |
+| Public class removed | `public class Foo` -> `class Foo` | CRITICAL |
+
+### Detection Commands
+
+```bash
+# API signature changes
+mvn compile or gradle compileJava
+
+# Dependency audit
+mvn dependency:tree | grep -E "^\[INFO\]"
+
+# Lock file change detection
+git diff pom.xml or git diff build.gradle
