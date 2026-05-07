@@ -7,7 +7,7 @@
 **核心价值：** 为 Claude Code 提供全面的开发结构护栏，在不增加不必要复杂性的情况下实现一致的、高质量的 AI 辅助开发。
 
 **当前里程碑：** v1.2 🔄 (2026-05-07)
-**当前阶段：** Not started — Defining requirements
+**当前阶段：** Phase 8 — Constitution 四原则（执行完成）
 
 ## 当前里程碑
 
@@ -30,7 +30,9 @@
 | Phase 5: P0 缺陷修复 | ✅ 已完成 | 4 plans complete | REQ-001~004 |
 | Phase 6: P1 功能补充 | ✅ 已完成 | REQ-005~009 |
 | Phase 7: P2 体验增强 | ✅ 已完成 | 5 plans, 10/10 UAT passed | REQ-010~015 |
+| Phase 8: Constitution 四原则 | ✅ 已完成 | 08-01-PLAN.md | CONST-01, GUARD-01 |
 
+| Phase 9: Skills 质量升级 | 🔄 讨论完成 | Context gathered, ready for planning | SKILL-01, SKILL-02 |
 ## v1.2 范围
 
 **P0 — 立即修复：**
@@ -65,4 +67,4 @@
 | — | 暂无活动变更 | — |
 
 ---
-*最后更新：2026-05-07 — v1.2 milestone started*
+*最后更新：2026-05-07 — Phase 8 执行完成，1 plan，2 tasks
