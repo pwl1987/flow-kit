@@ -6,6 +6,25 @@
 
 # Phase 4: Development - 开发执行与 TDD
 
+## v1.3 升级指令
+
+### caveman 压缩集成
+子代理启动时自动加载 @flow-kit/skills/caveman-compress.md（Full 级别），SUMMARY.md 使用 Full 压缩。
+
+### failure-detector 集成
+启用 @flow-kit/skills/failure-detector.md 的自动触发条件监控：
+- 同一命令/方法连续失败 ≥ 2 次 → 触发蛮力重试检测
+- 输出包含推卸责任话术 → 触发推卸责任检测
+- 有搜索能力但不搜索 → 触发工具闲置检测
+
+若出现触发条件立即暂停并执行 7 点排查清单。
+
+### R1.6 反重复检查联动
+每次恢复工作前：
+1. 读 PROGRESS.md 的「已排除方案」段
+2. 确认接下来要尝试的方案不在该清单里
+3. 若新方案与已排除方案相同或近似，必须显式回答差异
+
 ## 触发条件
 {{TRIGGER}}
 

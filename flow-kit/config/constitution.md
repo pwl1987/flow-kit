@@ -64,6 +64,12 @@ These rules CANNOT be overridden by user-config or any other configuration. Viol
 - `flow-kit/config/tech-constraints.md` — Language, framework, and toolchain constraints
 - `flow-kit/config/team-roles.md` — Architect/Reviewer/Ops role definitions
 
+> 【CLAUDE CODE INSTRUCTION 强制约束·规则链】
+> 本文件定义最高原则。所有可执行规则定义在 @flow-kit/config/system-rules.md 中。
+> 两者为互补关系：constitution = 原则（WHAT），system-rules = 规则（HOW）。
+> 任何代理在执行前必须确认已加载 system-rules.md 中的 R1-R8。
+> 若 system-rules.md 中的规则与本文件中的原则冲突，以 system-rules.md 为准（可执行规则优先于原则声明）。
+
 ## BEHAVIORAL PRINCIPLES（最高优先级）
 
 > **Unoverridable** — 本章节优先级高于其他所有规则

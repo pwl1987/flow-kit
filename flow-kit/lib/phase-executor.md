@@ -285,7 +285,30 @@ function adjustStablePoint(phase, level) {
 
   fs.writeFileSync(markerPath, JSON.stringify(marker, null, 2));
 }
+
+### 10. R1.8 跨任务失败检查
+
+**执行前检查**：
 ```
+Before any DEV task implementation:
+  1. Extract files + action keywords from current task
+  2. grep .specs/LESSONS.md with these keywords
+  3. For each L-NNN hit:
+     - If approach matches current plan → declare difference OR mark "still applicable"
+     - If approach is identical to active L-NNN → triggers R1.6, stop and re-analyze
+  4. Document each L-NNN reference in execution plan:
+     - "已查阅 L-NNN，本次方案与之的差异是 X" 或
+     - "已查阅 L-NNN，本次确认仍适用，因此不重试该方案"
+```
+
+**LESSONS.md grep 逻辑**：
+```
+grep -E "({files}|{action_keywords})" .specs/LESSONS.md
+```
+
+**L-NNN 命中处理**：
+- 在执行计划里显式声明与每条命中的差异
+- 若新方案与某条 active 条目完全相同 → 触发 R1.6 禁止直接重试
 
 ## Constitution 安全墙
 

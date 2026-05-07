@@ -5,7 +5,8 @@
 
 1. **立即加载** `@flow-kit/config/constitution.md`（全局最高优先级）
 2. **立即加载** `@flow-kit/config/default-user-config.md`，若存在 `.flow-kit/user-config.md` 则优先加载用户自定义配置
-3. 后续所有逻辑必须遵守这两份配置
+3. **立即加载** `@flow-kit/config/system-rules.md`（R1-R8 系统级硬规则）
+4. 后续所有逻辑必须遵守这三份配置
 
 ## 启动检查（自动执行，非阻塞）
 
@@ -25,6 +26,10 @@
 
 读取 `.flow-kit/project-type` 文件，若不存在则提示：
   [INFO] 项目类型未检测，运行 `/flow-kit:project-type detect` 进行检测
+
+### 规模自动评估
+加载 @flow-kit/commands/scale-level.md，根据改动范围自动评估 L0-L3 级别。
+L0 直接进入极简模式，跳过 Phase 2-3。
 
 ### 检测结果输出格式
 当检测到项目类型后，显示：
@@ -64,6 +69,11 @@
 
 | 命令 | 目标文件 |
 |------|----------|
+| `/flow-kit:careful` | `@flow-kit/commands/careful.md` |
+| `/flow-kit:freeze` | `@flow-kit/commands/careful.md --mode freeze` |
+| `/flow-kit:guard` | `@flow-kit/commands/careful.md --mode guard` |
+| `/flow-kit:unfreeze` | 解除 freeze 限制 |
+| `/flow-kit:scale` | `@flow-kit/commands/scale-level.md` |
 | `/flow-kit:offline` | `@flow-kit/commands/offline-mode.md` |
 | `/flow-kit:minimal` | `@flow-kit/commands/minimal-mode.md` |
 | `/flow-kit:online` | `@flow-kit/commands/offline-mode.md` |
