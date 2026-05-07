@@ -1,0 +1,42 @@
+> 【CLAUDE CODE INSTRUCTION 强制约束】
+> 本文件为 flow-kit 工作流模板。所有变更必须通过 8 阶段工作流管理。
+
+--- BEGIN flow-kit/templates/PROGRESS.md.template ---
+
+# {task-id} 进度文件
+
+> 由子代理在任务中断/完成时写入，主代理据此恢复
+
+## 已完成
+
+- <具体完成的任务和子步骤>
+- ...
+
+## 当前在做
+
+- <执行到哪一步>
+- ...
+
+## 下一步
+
+- <接下来要做什么>
+- ...
+
+## 已排除方案
+
+| 方案 | 失败原因 | 排除时间 |
+|------|---------|---------|
+| <方案描述> | <失败原因> | {timestamp} |
+
+---
+
+## 关联任务
+
+- 父任务：{parent-task-id}
+- 子任务：{child-task-ids}
+
+## 最后更新
+
+{timestamp}
+
+--- END flow-kit/templates/PROGRESS.md.template ---

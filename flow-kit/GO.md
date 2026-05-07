@@ -34,6 +34,21 @@ flow-kit 的文件按加载策略分三类：
 
 首轮消息约束：进入任何阶段时，首轮加载的 REFERENCE 总行数 ≤ 150 行。超过 → 拆到后面按需拉。
 
+### 执行计划三要素声明（进入阶段前必输出）
+
+> v1.7 新增：AI 必须显式声明执行计划
+
+```
+✅ 已加载：列出所有已加载文件，含起止行
+   例："REQUIREMENT.md（全读，98行）""tech-stacks.md（仅查适用矩阵，line 380-405）"
+
+✅ 未加载：列出本阶段不需但后续可能用到的文件，说明何时才拉
+   例："deployment.md（本阶段不需要，Phase 7 才拉）"
+
+✅ 第一动作：具体下一步操作
+   例："按 2-design 步骤 0，列 5 张技术栈卡片"
+```
+
 违规示例（AI常犯）：
 ❌ 进入2-design后直接read_file 467行的reference/tech-stacks.md
 ✅ 正确：grep_search查"适用矩阵"，或read_file offset=xxx limit=80只读一节
