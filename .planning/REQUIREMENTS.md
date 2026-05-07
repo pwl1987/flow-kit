@@ -62,14 +62,14 @@
 
 | REQ-ID | Phase |
 |--------|-------|
-| CONST-01 | |
-| SKILL-01 | |
-| SKILL-02 | |
-| GUARD-01 | |
-| CORE-01 | |
-| CORE-02 | |
-| TPL-01 | |
-| CMD-01 | |
+| CONST-01 | Phase 8 |
+| SKILL-01 | Phase 9 |
+| SKILL-02 | Phase 9 |
+| GUARD-01 | Phase 8 |
+| CORE-01 | Phase 10 |
+| CORE-02 | Phase 10 |
+| TPL-01 | Phase 11 |
+| CMD-01 | Phase 11 |
 
 ---
 
