@@ -28,3 +28,4 @@ exit 0
 
 ## 参考来源
 - [Claude Code Hooks 官方文档](https://docs.anthropic.com/en/docs/claude-code/hooks)
+- [garrytan/gstack](https://github.com/garrytan/gstack) — /careful 破坏性命令警告模式
