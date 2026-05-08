@@ -8,7 +8,7 @@
 #   ./flow-kit.sh hooks install
 #   ./flow-kit.sh mode team
 #
-# v1.12.1 新增：借鉴 OMC CLI 双入口设计
+# v1.12.2 新增：借鉴 OMC CLI 双入口设计
 #==============================================================================
 
 set -e
@@ -32,7 +32,7 @@ check_dependencies() {
 #------------------------------------------------------------------------------
 show_help() {
     cat << 'EOF'
-flow-kit v1.12.1 — 结构化开发流程 CLI
+flow-kit v1.12.2 — 结构化开发流程 CLI
 
 用法:
   flow-kit.sh <command> [args]
@@ -78,7 +78,7 @@ show_status() {
         current_mode=$(cat "$mode_file")
     fi
 
-    echo "flow-kit v1.12.1 — 执行模式状态"
+    echo "flow-kit v1.12.2 — 执行模式状态"
     echo ""
     echo "当前模式: $current_mode"
     echo ""
