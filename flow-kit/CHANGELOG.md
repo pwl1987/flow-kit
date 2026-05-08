@@ -49,6 +49,13 @@ All notable changes to flow-kit will be documented in this file.
 
 ---
 
+## [1.12.6] - 2026-05-08
+
+- dispatch.sh: --execute/--wait/--aggregate 三模式真正并行执行引擎
+- context-budget.sh: 上下文预算管理（token估算/预算检查/自动压缩）
+- validate-phase.sh: Phase 0/1/2 产物 JSON Schema 验证
+- e2e-test-harness.sh: 16项E2E测试覆盖所有v1.12.6功能
+
 ## [1.12.3] - 2026-05-08
 
 - CLAUDE.md: 版本号统一为 v1.12.3
