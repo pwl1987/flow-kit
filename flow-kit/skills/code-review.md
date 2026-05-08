@@ -56,7 +56,7 @@
 
 按顺序执行，从业务层到工程层。上一层失败则停止。
 
-#### Layer 1: CEO Review（业务层）
+#### 第一层：架构师审查（业务层）
 
 **审查者视角**：Product Owner / Business Owner
 
@@ -67,7 +67,7 @@
 | **业务逻辑** | 业务规则是否正确实现？ | 边界条件覆盖 |
 | **用户体验** | 操作流程是否符合用户预期？ | 核心路径无阻碍 |
 
-#### Layer 2: Design Review（设计层）
+#### 第二层：设计审查（设计层）
 
 **审查者视角**：UX Designer / Visual Designer
 
@@ -78,7 +78,7 @@
 | **可访问性** | 是否满足 WCAG 标准？ | AA 级别合规 |
 | **响应式** | 不同设备上表现正确？ | Mobile/Tablet/Desktop |
 
-#### Layer 3: Engineering Review（工程层）
+#### 第三层：工程审查（工程层）
 
 **审查者视角**：Senior Engineer / Tech Lead
 
@@ -89,24 +89,24 @@
 | **可维护性** | 代码是否清晰、可测试？ | 测试覆盖率 >= 80% |
 | **最佳实践** | 是否遵循语言/框架规范？ | Linter 无警告 |
 
-## EXAMPLE
+## 示例
 
 ### 审查 Checklist（每层）
 
 ```markdown
-## CEO Review Checklist
+## 架构师审查 Checklist
 - [ ] 原始需求中的每个用例都有对应实现
 - [ ] 验收标准中的每个度量指标可验证
 - [ ] 边界条件（如空输入、最大值）有处理
 - [ ] 错误场景有合适的用户提示
 
-## Design Review Checklist
+## 设计审查 Checklist
 - [ ] 颜色、字体、间距符合 design system
 - [ ] 按钮状态（hover/active/disabled）正确
 - [ ] 表单验证反馈及时且清晰
 - [ ] 移动端布局正常
 
-## Engineering Review Checklist
+## 工程审查 Checklist
 - [ ] 无硬编码凭证或 secrets
 - [ ] 参数化查询防止 injection
 - [ ] 索引正确，查询性能 < 100ms
@@ -119,45 +119,45 @@
 **PR 场景**：用户订单创建功能
 
 ```
-CEO Review:
+架构师审查:
   ✓ 创建订单流程完整
   ✓ 折扣码验证逻辑正确
   ✓ 超时情况有处理（30s timeout）
-  → PASS
+  → 通过
 
-Design Review:
+设计审查:
   ✓ 表单布局符合现有模式
   ✗ 错误提示使用系统默认样式（应使用 design system）
-  → FAIL → 返回修改
+  → 失败 → 返回修改
 
 [修改后]
-Design Review:
+设计审查:
   ✓ 错误提示使用 design system 组件
   ✓ 移动端布局正常
-  → PASS
+  → 通过
 
-Engineering Review:
+工程审查:
   ✓ 无 SQL injection 风险
   ✓ 事务正确处理
   ✓ 测试覆盖率 85%
-  → PASS
+  → 通过
 
-Overall: APPROVED WITH CONDITIONS
+Overall: 有条件通过
 ```
 
-### 棕地项目 Review 示例
+### 棕地项目审查示例
 
 **场景**：棕地项目修改订单模块
 
 ```
-[Brownfield Risk Assessment]
+[棕地风险评估]
   历史逻辑兼容性：✓ 通过（保留原有折扣计算逻辑）
   依赖风险分析：
     - OrderService → PaymentService（高风险，新接口）
     - OrderService → UserService（低风险，接口未变）
   建议：单独测试 Order → Payment 集成
 
-Overall: APPROVED WITH CONDITIONS
+Overall: 有条件通过
 ```
 
 ## NOTES
@@ -188,37 +188,37 @@ CEO → Design → Engineering
 - 命令：`/flow-kit:estimate-tokens` 查看详情
 
 ### PR 描述自动填充（D-18）
-Review 完成后，结果自动填充到 PR 描述的审查结果部分。
+审查完成后，结果自动填充到 PR 描述的审查结果部分。
 格式：
 ```markdown
-## Review Results
-- CEO Review: ✓ PASS
-- Design Review: ✓ PASS
-- Engineering Review: ✓ PASS (3 findings, all resolved)
-- Brownfield Risk: LOW
+## 审查结果
+- 架构师审查: ✓ 通过
+- 设计审查: ✓ 通过
+- 工程审查: ✓ 通过（3 个问题，均已解决）
+- 棕地风险: 低
 ```
 
 ### 审查输出
 
 ```markdown
-## Code Review Report
+## 代码审查报告
 
 **PR**: #123 - Order creation with discount
-**Reviewers**: [CEO, Design, Engineering]
+**审查者**: [架构师, 设计, 工程]
 
-### Results
+### 结果
 
-| Layer | Status | Findings |
-|-------|--------|----------|
-| CEO | ✓ PASS | 0 |
-| Design | ✓ PASS | 0 |
-| Engineering | ✓ PASS | 0 |
+| 层级 | 状态 | 发现问题 |
+|------|------|---------|
+| 架构师 | ✓ 通过 | 0 |
+| 设计 | ✓ 通过 | 0 |
+| 工程 | ✓ 通过 | 0 |
 
-### Summary
-All layers passed. Ready to merge.
+### 摘要
+所有层级通过。可以合并。
 
-### Comments
-- Consider adding loading state for better UX next iteration
+### 意见
+- 下一次迭代考虑添加加载状态以改善 UX
 ```
 
 ### 验证检查
@@ -229,6 +229,7 @@ All layers passed. Ready to merge.
 - [ ] 上层失败则停止后续审查
 
 ---
+
 **关联技能**: verification.md (SKILL-36) — 审查后验证
 **前置技能**: subagent-execution.md (SKILL-32) — 开发完成后
 --- END flow-kit/skills/code-review.md ---

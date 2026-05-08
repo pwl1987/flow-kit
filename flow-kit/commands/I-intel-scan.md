@@ -9,97 +9,133 @@
 
 ---
 
-# Technology Intel Scan
+# 技术情报扫描
 
-## Command
+## 命令
 
 `/flow-kit:scan`
 
-## Purpose
+## 目的
 
-Scan codebase for technology stack inventory, TODO/FIXME/HACK comments, large files, and architectural issues. Generate categorized intel report.
+扫描代码库以获取技术栈清单、TODO/FIXME/HACK 注释、大文件和架构问题。生成分类的情报报告。
 
-## Execution
+## 执行
 
-### 1. Stack Detection (same as M-health)
+### 1. 技术栈检测（与 M-health 相同）
 
-Detect and report:
-- Languages (by file extension)
-- Frameworks (package.json, go.mod, etc.)
-- Build systems
-- Database/ORM usage
-- API frameworks
+检测并报告：
 
-### 2. Marker Detection
+- 语言（按文件扩展名）
+- 框架（package.json、go.mod 等）
+- 构建系统
+- 数据库/ORM 使用情况
+- API 框架
 
-**Marker Types:**
-| Marker | Meaning | Critical Threshold |
-|--------|---------|-------------------|
-| TODO | Pending task | Age >6 months |
-| FIXME | Known bug | Any |
-| HACK | Workaround | Age >3 months |
-| XXX | Warning flag | Any |
-| NOTE | Important note | Age >6 months |
+### 2. 标记检测
 
-**Age Analysis:**
+**标记类型：**
+| 标记 | 含义 | 严重阈值 |
+|------|------|---------|
+| TODO | 待处理任务 | 超 6 个月 |
+| FIXME | 已知 bug | 任何 |
+| HACK | 变通方案 | 超 3 个月 |
+| XXX | 警告标记 | 任何 |
+| NOTE | 重要备注 | 超 6 个月 |
+
+**年龄分析：**
+
 ```markdown
-| Age Range | Count | Items |
-|-----------|-------|-------|
-| >6 months | 15 | TODO need attention |
-| 3-6 months | 8 | Need scheduling |
-| <1 month | 12 | Recent, OK |
+| 年龄范围 | 数量 | 事项          |
+| -------- | ---- | ------------- |
+| >6 个月  | 15   | TODO 需要关注 |
+| 3-6 个月 | 8    | 需要安排      |
+| <1 个月  | 12   | 最近的，正常  |
 ```
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "markers": {
-    "TODO": { "count": 47, "oldest": "2024-01-15", "newest": "2026-03-20", "critical_age_count": 15 },
-    "FIXME": { "count": 12, "oldest": "2025-06-10", "newest": "2026-04-28", "critical_age_count": 5 },
-    "HACK": { "count": 3, "oldest": "2025-11-02", "newest": "2026-02-14", "critical_age_count": 1 },
-    "XXX": { "count": 8, "oldest": "2024-03-01", "newest": "2026-01-15", "critical_age_count": 2 }
+    "TODO": {
+      "count": 47,
+      "oldest": "2024-01-15",
+      "newest": "2026-03-20",
+      "critical_age_count": 15
+    },
+    "FIXME": {
+      "count": 12,
+      "oldest": "2025-06-10",
+      "newest": "2026-04-28",
+      "critical_age_count": 5
+    },
+    "HACK": {
+      "count": 3,
+      "oldest": "2025-11-02",
+      "newest": "2026-02-14",
+      "critical_age_count": 1
+    },
+    "XXX": {
+      "count": 8,
+      "oldest": "2024-03-01",
+      "newest": "2026-01-15",
+      "critical_age_count": 2
+    }
   },
   "total_critical": 23
 }
 ```
 
-### 3. Large Files Detection
+### 3. 大文件检测
 
-**Thresholds:**
-| Type | Warning | Critical |
-|------|---------|----------|
-| Source | >500 lines | >1000 lines |
-| Config | >300 lines | >500 lines |
-| Test | >1000 lines | >2000 lines |
-| Generated | >2000 lines | >5000 lines |
+**阈值：**
+| 类型 | 警告 | 严重 |
+|------|------|------|
+| 源码 | >500 行 | >1000 行 |
+| 配置 | >300 行 | >500 行 |
+| 测试 | >1000 行 | >2000 行 |
+| 生成 | >2000 行 | >5000 行 |
 
-**Commands:**
-- Find large files: `find . -type f \( -name "*.ts" -o -name "*.js" -o -name "*.py" \) -exec wc -l {} + | sort -rn | head -20`
-- Filter by type using file extension + line count
+**命令：**
 
-**Output Format:**
+- 查找大文件: `find . -type f \( -name "*.ts" -o -name "*.js" -o -name "*.py" \) -exec wc -l {} + | sort -rn | head -20`
+- 按文件扩展名 + 行数过滤类型
+
+**输出格式：**
+
 ```json
 {
   "large_files": [
-    { "file": "src/monolith.ts", "lines": 2847, "type": "source", "status": "CRITICAL" },
-    { "file": "src/core/worker.ts", "lines": 1523, "type": "source", "status": "WARNING" }
+    {
+      "file": "src/monolith.ts",
+      "lines": 2847,
+      "type": "source",
+      "status": "CRITICAL"
+    },
+    {
+      "file": "src/core/worker.ts",
+      "lines": 1523,
+      "type": "source",
+      "status": "WARNING"
+    }
   ],
   "total_critical": 1,
   "total_warning": 3
 }
 ```
 
-### 4. Circular Dependency Detection
+### 4. 循环依赖检测
 
-**Tools by Stack:**
-| Stack | Tool | Command |
-|-------|------|---------|
+**按技术栈的工具：**
+| 技术栈 | 工具 | 命令 |
+|--------|------|------|
 | Node.js | madge | `npx madge --circular` |
 | Python | pydeps | `pydeps --max-depth=3` |
 | Go | go mod graph | `go mod graph \| grep -E '^(.*)->\1'` |
 | Rust | cargo-udeps | `cargo udeps` |
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "cycles": [
@@ -111,11 +147,12 @@ Detect and report:
 }
 ```
 
-**Severity:** 1 cycle = HIGH, 2+ = CRITICAL
+**严重度：** 1 个循环 = 高，2+ = 严重
 
-### 5. Architecture Issues
+### 5. 架构问题
 
-**God Objects (>2000 lines):**
+**上帝对象（>2000 行）：**
+
 ```json
 {
   "god_objects": [
@@ -125,7 +162,8 @@ Detect and report:
 }
 ```
 
-**Deep Nesting (>5 levels):**
+**深层嵌套（>5 层）：**
+
 ```json
 {
   "deep_nesting": [
@@ -135,7 +173,8 @@ Detect and report:
 }
 ```
 
-**Large Modules (>30 exports):**
+**大型模块（>30 个导出）：**
+
 ```json
 {
   "large_modules": [
@@ -145,7 +184,8 @@ Detect and report:
 }
 ```
 
-**Missing Error Handling:**
+**缺少错误处理：**
+
 ```json
 {
   "missing_error_handling": [
@@ -155,9 +195,10 @@ Detect and report:
 }
 ```
 
-### 6. Code Smell Detection
+### 6. 代码气味检测
 
-**Long Parameter List (>5 parameters):**
+**长参数列表（>5 个参数）：**
+
 ```json
 {
   "long_parameters": [
@@ -167,19 +208,23 @@ Detect and report:
 }
 ```
 
-**Feature Envy:**
-- Method uses more data from other class than its own
-- Detect via AST analysis: method calls on external objects > method calls on `this`
+**特性依恋：**
 
-**Inappropriate Intimacy:**
-- Two classes heavily coupled via bidirectional references
-- Detect: class A imports B and B imports A
+- 方法使用其他类的数据多于自己的数据
+- 通过 AST 分析检测：方法调用外部对象 > 方法调用 `this`
 
-**Shotgun Surgery:**
-- One change requires modifying many classes
-- Detect: single function modified by many PRs (requires history analysis)
+**不当亲密：**
 
-**Output Format:**
+- 两个类通过双向引用严重耦合
+- 检测：类 A 导入 B 且 B 导入 A
+
+**霰弹式修改：**
+
+- 一个变更需要修改许多类
+- 检测：单个函数被许多 PR 修改（需要历史分析）
+
+**输出格式：**
+
 ```json
 {
   "code_smells": {
@@ -199,68 +244,69 @@ Detect and report:
 }
 ```
 
-## Output Format
+## 输出格式
 
 ```markdown
-## Intel Scan Report
+## 情报扫描报告
 
-**Scan Time**: 2026-05-07 10:30:00
-**Scope**: src/, tests/, config/
-**Duration**: 32s
+**扫描时间**: 2026-05-07 10:30:00
+**范围**: src/, tests/, config/
+**耗时**: 32s
 
-### Technology Stack
+### 技术栈
 
-| Category | Detected |
-|----------|----------|
-| Languages | TypeScript, Python |
-| Frameworks | React, FastAPI |
-| Build | Vite, Poetry |
-| API | REST |
+| 类别 | 检测到             |
+| ---- | ------------------ |
+| 语言 | TypeScript, Python |
+| 框架 | React, FastAPI     |
+| 构建 | Vite, Poetry       |
+| API  | REST               |
 
-### Marker Summary
+### 标记摘要
 
-| Marker | Count | Age >6mo | Critical |
-|--------|-------|----------|----------|
-| TODO | 47 | 15 | 3 |
-| FIXME | 12 | 4 | 5 |
-| HACK | 3 | 1 | 1 |
+| 标记  | 数量 | 超 6 个月 | 严重 |
+| ----- | ---- | --------- | ---- |
+| TODO  | 47   | 15        | 3    |
+| FIXME | 12   | 4         | 5    |
+| HACK  | 3    | 1         | 1    |
 
-### Large Files
+### 大文件
 
-| File | Lines | Type | Warning |
-|------|-------|------|---------|
-| src/monolith.ts | 2847 | source | CRITICAL |
-| src/core/worker.ts | 1523 | source | WARNING |
+| 文件               | 行数 | 类型 | 警告 |
+| ------------------ | ---- | ---- | ---- |
+| src/monolith.ts    | 2847 | 源码 | 严重 |
+| src/core/worker.ts | 1523 | 源码 | 警告 |
 
-### Circular Dependencies
-
-```
-src/A.ts → src/B.ts → src/A.ts (cycle)
-src/C.ts → src/D.ts → src/C.ts (cycle)
+### 循环依赖
 ```
 
-### Architecture Issues
+src/A.ts → src/B.ts → src/A.ts (循环)
+src/C.ts → src/D.ts → src/C.ts (循环)
 
-1. **God Objects** (3 detected):
-   - src/monolith.ts: 2847 lines
-   - src/core/processor.ts: 1892 lines
+````
 
-2. **Deep Nesting** (12 locations):
-   - src/api/auth.ts:45 (6 levels)
-   - src/utils/helpers.ts:128 (7 levels)
+### 架构问题
 
-3. **Missing Error Handling** (8 locations):
-   - src/api/users.ts:67 (no try-catch)
-   - src/core/worker.ts:112 (no error handler)
+1. **上帝对象**（检测到 3 个）：
+   - src/monolith.ts: 2847 行
+   - src/core/processor.ts: 1892 行
 
-### Recommendations
+2. **深层嵌套**（12 处）：
+   - src/api/auth.ts:45 (6 层)
+   - src/utils/helpers.ts:128 (7 层)
 
-1. [CRITICAL] Address 5 FIXME comments marked critical
-2. [HIGH] Split monolith.ts (2847 lines → target <1000)
-3. [HIGH] Fix 2 circular dependencies
-4. [MEDIUM] Add error handling to 8 locations
+3. **缺少错误处理**（8 处）：
+   - src/api/users.ts:67 (无 try-catch)
+   - src/core/worker.ts:112 (无错误处理)
 
-### JSON Output (for automation)
+### 建议
+
+1. [严重] 处理 5 个标记为严重的 FIXME 注释
+2. [高] 拆分 monolith.ts (2847 行 → 目标 <1000)
+3. [高] 修复 2 个循环依赖
+4. [中] 为 8 处添加错误处理
+
+### JSON 输出（用于自动化）
 
 ```json
 {
@@ -305,19 +351,18 @@ src/C.ts → src/D.ts → src/C.ts (cycle)
     "shotgun_surgery": 0
   },
   "recommendations": [
-    { "priority": "CRITICAL", "action": "Address 5 FIXME comments marked critical" },
-    { "priority": "HIGH", "action": "Split monolith.ts (2847 lines → target <1000)" },
-    { "priority": "HIGH", "action": "Fix 2 circular dependencies" },
-    { "priority": "MEDIUM", "action": "Add error handling to 8 locations" }
+    { "priority": "严重", "action": "处理 5 个标记为严重的 FIXME 注释" },
+    { "priority": "高", "action": "拆分 monolith.ts (2847 行 → 目标 <1000)" },
+    { "priority": "高", "action": "修复 2 个循环依赖" },
+    { "priority": "中", "action": "为 8 处添加错误处理" }
   ],
-  "status": "WARN"
+  "status": "警告"
 }
 ```
 
-## Usage
+## 用法
 
 ```bash
 @flow-kit/commands/I-intel-scan.md
 ```
-
---- END flow-kit/commands/I-intel-scan.md ---
+````

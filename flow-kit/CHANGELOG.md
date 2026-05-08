@@ -1,0 +1,95 @@
+# Changelog
+
+All notable changes to flow-kit will be documented in this file.
+
+## [1.12.4] - 2026-05-08
+
+### P0: 多代理编排引擎
+
+- **dispatch.sh** — 多代理并行编排脚本，支持 N 并行、任务拆分、锁冲突检测
+- **subagent-task.md** — 子代理任务模板（Code Executor/Reviewer/Test Runner 三种角色）
+- **agent-orchestrator.md** — 多代理编排技能，决策树、上下文预算管理、失败处理策略
+- **minimal 命令** — L0 极简模式，跳过 Phase 1-3，最多改 3 文件
+
+### P1: 高危修复
+
+- **pre-tool-guard.sh** — jq 精确提取 JSON，新增 DROP COLUMN/ALTER TABLE RENAME/TRUNCATE TABLE 拦截，放行 COMMENT/SELECT/SHOW/DESCRIBE
+- **post-edit-format.sh** — 去掉异步 `&`，改为同步执行 + timeout 3 保护
+- **flow-kit.sh** — 版本号从 flow-kit/VERSION 动态读取（read_version 函数）
+- **careful.md** — 并发锁改为 mkdir 原子文件锁，含 info.json、过期检测、死锁清理
+
+### P1: 全量中文化
+
+- **config/constitution.md** — SEC/DATA/DEPLOY/GIT 规则表 + BP 原则 + 技术栈规则全量汉化
+- **skills/code-review.md** — 三层审查名称汉化（架构师审查/设计审查/工程审查）
+- **commands/M-health.md** — 代码健康扫描全量汉化
+- **commands/I-intel-scan.md** — 技术情报扫描全量汉化
+
+### P2: 阶段契约验证 + 护栏补全
+
+- **lib/validation/schemas/phase-0-output.schema.json** — 变更分类产物 JSON Schema
+- **lib/validation/schemas/phase-1-output.schema.json** — 需求分析产物 JSON Schema
+- **lib/validation/schemas/phase-2-output.schema.json** — 设计文档产物 JSON Schema
+- **guardrails/performance-guardrails.md** — B5 性能护栏（O(n²)嵌套循环/N+1查询/缺失索引/同步大IO）
+- **guardrails/testing-coverage-gate.md** — B6 测试覆盖率门禁（<60%阻断/60-80%警告/>80%通过）
+
+### P3: 优化项
+
+- **lib/error-handler.sh** — 统一错误处理框架（log_info/log_warn/log_error + 错误码常量）
+- **hooks 遥测** — pre-tool-guard/post-edit-format/notification hooks 执行日志
+- **flow-kit.sh hooks summary** — 查看最近 20 条 hooks 执行记录
+- **skills/caveman-compress.md** — 中文压缩策略（标准/极限两级、虚词省略规则）
+
+### 技术细节
+
+- hooks 参考来源统一为 Anthropic 官方 + garrytan/gstack + smallnest/autoresearch
+- dispatch.sh 生成 .flow-kit/tmp/dispatch-summary.json 和 subagent-\*-prompt.txt
+- mkdir 原子锁路径：.flow-kit/locks/{filepath_hash}.lock/info.json
+- 增量覆盖率要求：新增代码 >= 80%
+
+---
+
+## [1.12.3] - 2026-05-08
+
+- CLAUDE.md: 版本号统一为 v1.12.3
+- hooks/\*.sh: 全部 5 个 hooks 补全参考来源段落
+- flow-kit/VERSION: v1.12.3
+
+## [1.12.2] - 2026-05-08
+
+- skills/output-self-check.md: +动态$CHANGE_ID变量+回退逻辑
+- flow-kit.sh: show_share()自动提取PROJECT_NAME
+- VERSION/CLAUDE.md: v1.12.2
+
+## [1.12.1] - 2026-05-08
+
+- flow-kit.sh: +help/status/share子命令
+- GO.md: /flow-kit:mode切换后确认提示（保存到.flow-kit/mode）
+- skills/output-self-check.md: +6项可执行检查命令示例
+- skills/agent-pipeline.md: +交接验证失败自动修复循环（最多2轮）
+- commands/share-install.md: +团队共享安装命令
+
+## [1.12] - 2026-05-08
+
+- GO.md: +/flow-kit:mode切换后确认提示（保存到.flow-kit/mode）
+- skills/output-self-check.md: +R8.3产物自检清单（6项检查）
+- lib/phase-executor.md: +阶段完成后触发output-self-check自检
+- commands/register-commands.md: +map-codebase返回重索引逻辑
+- flow-kit.sh: +CLI入口脚本（环境检测+命令路由映射）
+
+## [1.11] - 2026-05-08
+
+- commands/hooks-guide.md: 参考来源替换为Anthropic官方+garrytan/gstack+smallnest/autoresearch
+- phases/4-dev.md,5-test.md,6-review.md: +阶段切换交接验证门触发指令
+- GO.md: +/flow-kit:mode显式模式切换命令 (autopilot/team/ralph)
+- skills/output-self-check.md: +R8.3产物自检清单（6项检查）
+- lib/phase-executor.md: +阶段完成后触发output-self-check自检
+- commands/register-commands.md: +map-codebase返回重索引逻辑
+- flow-kit.sh: +CLI入口脚本（环境检测+命令路由映射）
+
+## [1.10] - 2026-05-08
+
+- config/system-rules.md: +R1.7 任务过大早期信号检测 + v1.10补充恢复后第一动作规范
+- skills/agent-pipeline.md: +三阶段Agent交接验证门（含Handler覆盖矩阵）
+- skills/team-dispatch.md: +Task-PRD对齐检查 + 追责链机制
+- GO.md: +执行模式自动检测（L0极简/L1标准/L2-L3团队并行）
