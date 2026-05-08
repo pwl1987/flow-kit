@@ -56,11 +56,15 @@ float_scale() {
 
 # 多模型token估算配置
 # 格式: 模型名:英文系数:中文系数:代码系数
-readonly MODEL_CONFIGS=(
-    "claude:0.25:1.5:0.35"
-    "gpt4:0.25:1.6:0.30"
-    "gemini:0.20:1.4:0.30"
+# v1.12.10 修复：使用关联数组实现 O(1) 查找
+declare -A MODEL_CONFIGS=(
+    ["claude"]="0.25:1.5:0.35"
+    ["gpt4"]="0.25:1.6:0.30"
+    ["gemini"]="0.20:1.4:0.30"
 )
+
+# 模型显示顺序（用于 --list-models 保持有序输出）
+readonly MODEL_ORDER=(claude gpt4 gemini)
 
 # 当前使用的模型（默认claude）
 CURRENT_MODEL="${CONTEXT_BUDGET_MODEL:-claude}"
@@ -70,22 +74,8 @@ CURRENT_MODEL="${CONTEXT_BUDGET_MODEL:-claude}"
 #------------------------------------------------------------------------------
 get_model_params() {
     local model="$1"
-    local config=""
-
-    for c in "${MODEL_CONFIGS[@]}"; do
-        local model_name=$(echo "$c" | cut -d: -f1)
-        if [ "$model_name" = "$model" ]; then
-            config="$c"
-            break
-        fi
-    done
-
-    if [ -z "$config" ]; then
-        # 默认使用claude配置
-        config="claude:0.25:1.5:0.35"
-    fi
-
-    echo "$config"
+    # O(1) 关联数组查找，未命中时回退 claude
+    echo "${MODEL_CONFIGS[$model]:-${MODEL_CONFIGS[claude]}}"
 }
 
 #------------------------------------------------------------------------------
@@ -409,12 +399,12 @@ main() {
             ;;
         --list-models)
             echo "[context-budget] 支持的模型:"
-            for c in "${MODEL_CONFIGS[@]}"; do
-                local model_name=$(echo "$c" | cut -d: -f1)
-                local english_factor=$(echo "$c" | cut -d: -f2)
-                local chinese_factor=$(echo "$c" | cut -d: -f3)
-                local code_factor=$(echo "$c" | cut -d: -f4)
-                echo "  - $model_name (英文: ${english_factor}x, 中文: ${chinese_factor}x, 代码: ${code_factor}x)"
+            for model in "${MODEL_ORDER[@]}"; do
+                local config="${MODEL_CONFIGS[$model]}"
+                local english_factor=$(echo "$config" | cut -d: -f1)
+                local chinese_factor=$(echo "$config" | cut -d: -f2)
+                local code_factor=$(echo "$config" | cut -d: -f3)
+                echo "  - $model (英文: ${english_factor}x, 中文: ${chinese_factor}x, 代码: ${code_factor}x)"
             done
             echo ""
             echo "当前模型: $CURRENT_MODEL"

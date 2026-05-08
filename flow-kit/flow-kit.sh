@@ -175,12 +175,14 @@ show_hooks_summary() {
 declare -A COMMANDS=(
     ["health"]="/flow-kit:health"
     ["hooks"]="/flow-kit:hooks"
-    ["hooks-summary"]="/flow-kit:hooks"
+    ["hooks-summary"]="/flow-kit:hooks-summary"
     ["mode"]="/flow-kit:mode"
     ["dispatch"]="/flow-kit:dispatch"
     ["minimal"]="/flow-kit:minimal"
     ["register"]="/flow-kit:register-commands"
     ["archive"]="/flow-kit:archive"
+    ["status"]="/flow-kit:status"
+    ["uninstall"]="/flow-kit:uninstall"
     ["scan"]="/flow-kit:scan"
     ["cost-report"]="/flow-kit:cost-report"
     ["estimate-tokens"]="/flow-kit:estimate-tokens"
@@ -189,7 +191,7 @@ declare -A COMMANDS=(
     ["pr-description"]="/flow-kit:pr-description"
     ["p0"]="/flow-kit:p0"
     ["share"]="/flow-kit:share-install"
-    ["map-codebase"]="/flow-kit:register-commands"
+    ["map-codebase"]="/flow-kit:scan"
 )
 
 #------------------------------------------------------------------------------
@@ -200,7 +202,7 @@ route_command() {
     shift
 
     case "$cmd" in
-        health|hooks|scan|cost-report|estimate-tokens|check-expiry|update-context|pr-description|p0)
+        health|scan|cost-report|estimate-tokens|check-expiry|update-context|pr-description|p0)
             echo "[flow-kit] 路由到 $cmd..."
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:$cmd"
             ;;
@@ -254,12 +256,28 @@ route_command() {
 
         register)
             echo "[flow-kit] 注册斜杠命令..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:register-commands"
+            local gen_script="$(dirname "$0")/scripts/generate-commands.sh"
+            if [ -f "$gen_script" ]; then
+                bash "$gen_script" --force
+                echo "[flow-kit] ✅ 斜杠命令注册完成"
+            else
+                echo "[flow-kit] ⚠️ generate-commands.sh 不存在，请在 Claude Code 中执行: /flow-kit:register-commands"
+            fi
             ;;
 
         archive)
             echo "[flow-kit] 归档变更..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:archive"
+            local archive_dir=".flow-kit/archive"
+            local phases_dir=".planning/phases"
+            mkdir -p "$archive_dir"
+            if [ -d "$phases_dir" ]; then
+                local archive_name="archive-$(date +%Y%m%d-%H%M%S).tar.gz"
+                tar -czf "$archive_dir/$archive_name" "$phases_dir" 2>/dev/null && \
+                    echo "[flow-kit] ✅ 已归档到 $archive_dir/$archive_name" || \
+                    echo "[flow-kit] ⚠️ 归档失败"
+            else
+                echo "[flow-kit] ℹ️ .planning/phases 不存在，无需要归档的内容"
+            fi
             ;;
 
         status)

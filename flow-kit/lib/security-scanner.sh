@@ -4,11 +4,20 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# v1.12.10 修复：复用统一错误处理框架
+source "$SCRIPT_DIR/error-handler.sh"
+
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 SCAN_DIR="${1:-.}"
 SEVERITY_THRESHOLD="${SEVERITY_THRESHOLD:-medium}"
+
+# 验证 SCAN_DIR
+if [ ! -d "$SCAN_DIR" ]; then
+    die "ERR_INVALID_ARGS" "扫描目录不存在: $SCAN_DIR"
+fi
 
 #------------------------------------------------------------------------------
 # 颜色输出
@@ -18,7 +27,7 @@ YELLOW='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-log_info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
+log_info()  { echo -e "${GREEN}[INFO]${NC} $(basename "$SCAN_DIR"): $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 

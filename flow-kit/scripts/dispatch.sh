@@ -605,30 +605,58 @@ EOF
 
     # 监控并等待所有后台进程完成（带超时控制）
     local timeout_seconds=300
-    local check_interval=5
-    local elapsed=0
     local all_success=true
     local timed_out_agents=()
 
     echo "[dispatch] ⏳ 等待子代理完成..."
 
-    while [ $elapsed -lt $timeout_seconds ]; do
-        local all_done=true
-        local completed=0
-        local running=0
+    local start_epoch=$(date +%s)
+    local remaining_pids=("${pids[@]}")
 
-        for i in "${!pids[@]}"; do
-            local pid=${pids[$i]}
-            local agent_id=${agent_ids[$i]}
+    # v1.12.10 修复：使用 wait -n 替代轮询，减少 CPU 占用
+    while [ ${#remaining_pids[@]} -gt 0 ]; do
+        local now_epoch=$(date +%s)
+        local elapsed=$((now_epoch - start_epoch))
 
-            # 检查进程是否还在运行
-            if kill -0 $pid 2>/dev/null; then
-                all_done=false
-                running=$((running + 1))
-            else
-                # 进程已完成，检查退出码
-                if ! wait $pid 2>/dev/null; then
-                    # 检查是否已经处理过这个agent
+        if [ $elapsed -ge $timeout_seconds ]; then
+            echo "[dispatch] ⏱️ 整体执行超时 (${elapsed}s >= ${timeout_seconds}s)"
+            for pid in "${remaining_pids[@]}"; do
+                kill -TERM $pid 2>/dev/null || true
+            done
+            sleep 1
+            for pid in "${remaining_pids[@]}"; do
+                kill -9 $pid 2>/dev/null || true
+            done
+            all_success=false
+            break
+        fi
+
+        # 等待任意子进程完成（带超时）
+        local waited_pid=-1
+        if [ ${#remaining_pids[@]} -gt 0 ]; then
+            waited_pid=$(wait -n 2>/dev/null && echo "$!" || echo "-1")
+        fi
+
+        if [ "$waited_pid" != "-1" ] && [ "$waited_pid" != "" ]; then
+            # 一个进程完成了，从列表中移除
+            local new_remaining=()
+            for pid in "${remaining_pids[@]}"; do
+                if [ "$pid" != "$waited_pid" ]; then
+                    new_remaining+=("$pid")
+                fi
+            done
+            remaining_pids=("${new_remaining[@]}")
+
+            # 检查退出码 - wait $waited_pid 已返回退出码
+            if ! wait $waited_pid 2>/dev/null; then
+                local agent_id=""
+                for i in "${!pids[@]}"; do
+                    if [ "${pids[$i]}" = "$waited_pid" ]; then
+                        agent_id="${agent_ids[$i]}"
+                        break
+                    fi
+                done
+                if [ -n "$agent_id" ]; then
                     local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
                     if [ ! -f "$result_file" ]; then
                         echo "[dispatch] ❌ $agent_id 执行失败"
@@ -646,41 +674,44 @@ EOF
 EOF
                         all_success=false
                     fi
-                else
-                    completed=$((completed + 1))
                 fi
             fi
-        done
-
-        if [ "$all_done" = true ]; then
-            echo "[dispatch] ✅ 所有子代理已完成"
-            break
+        else
+            # wait -n 不可用（如 bash < 4.3），降级为短间隔轮询
+            local all_done=true
+            for pid in "${remaining_pids[@]}"; do
+                if kill -0 $pid 2>/dev/null; then
+                    all_done=false
+                    # 检查单个进程超时
+                    for i in "${!pids[@]}"; do
+                        if [ "${pids[$i]}" = "$pid" ]; then
+                            local agent_id="${agent_ids[$i]}"
+                            local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
+                            if [ -f "$status_file" ]; then
+                                local started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
+                                if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
+                                    local start_epoch_agent=$(date_to_epoch "$started_at" 2>/dev/null || echo "$start_epoch")
+                                    local agent_elapsed=$((now_epoch - start_epoch_agent))
+                                    if [ $agent_elapsed -gt $timeout_seconds ]; then
+                                        echo "[dispatch] ⏱️ $agent_id 执行超时"
+                                        kill -TERM $pid 2>/dev/null || true
+                                        sleep 1
+                                        kill -9 $pid 2>/dev/null || true
+                                        all_success=false
+                                    fi
+                                fi
+                            fi
+                            break
+                        fi
+                    done
+                fi
+            done
+            if [ "$all_done" = true ]; then
+                break
+            fi
+            sleep 1
         fi
-
-        # 检查是否有超时的子代理
-        for i in "${!pids[@]}"; do
-            local pid=${pids[$i]}
-            local agent_id=${agent_ids[$i]}
-
-            if kill -0 $pid 2>/dev/null; then
-                local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
-                if [ -f "$status_file" ]; then
-                    local started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
-                    if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
-                        local start_epoch=$(date_to_epoch "$started_at")
-                        local now_epoch=$(date +%s)
-                        local agent_elapsed=$((now_epoch - start_epoch))
-
-                        if [ $agent_elapsed -gt $timeout_seconds ]; then
-                            echo "[dispatch] ⏱️ $agent_id 执行超时 (${agent_elapsed}s > ${timeout_seconds}s)"
-                            echo "[dispatch] 🛑 正在终止 $agent_id (PID: $pid)..."
-                            kill -TERM $pid 2>/dev/null || true
-                            sleep 1
-                            kill -9 $pid 2>/dev/null || true
-
-                            # 写入超时结果
-                            cat > "$TMP_DIR/subagent-${agent_id}-result.json" << EOF
-{
+    done
   "id": "$agent_id",
   "role": "unknown",
   "status": "FAILED",
@@ -700,42 +731,7 @@ EOF
             fi
         done
 
-        echo "[dispatch]    进度: 完成 $completed | 运行中 $running | 已用时 ${elapsed}s"
-        sleep $check_interval
-        elapsed=$((elapsed + check_interval))
-    done
-
-    # 如果总超时，终止所有仍在运行的进程
-    if [ $elapsed -ge $timeout_seconds ]; then
-        echo "[dispatch] ⏱️ 总执行超时 (${timeout_seconds}s)"
-        for i in "${!pids[@]}"; do
-            local pid=${pids[$i]}
-            local agent_id=${agent_ids[$i]}
-
-            if kill -0 $pid 2>/dev/null; then
-                echo "[dispatch] 🛑 终止 $agent_id (PID: $pid)..."
-                kill -TERM $pid 2>/dev/null || true
-                sleep 1
-                kill -9 $pid 2>/dev/null || true
-
-                # 写入超时结果
-                cat > "$TMP_DIR/subagent-${agent_id}-result.json" << EOF
-{
-  "id": "$agent_id",
-  "role": "unknown",
-  "status": "FAILED",
-  "summary": "执行超时",
-  "files_modified": [],
-  "issues": ["总执行时间超过 ${timeout_seconds}s 限制"],
-  "context_consumed_pct": "0%",
-  "attempts": 0
-}
-EOF
-                all_success=false
-            fi
-        done
-    fi
-
+    # v1.12.10 fix: 无超时代理时跳过提示
     if [ ${#timed_out_agents[@]} -gt 0 ]; then
         echo "[dispatch] ⚠️ 超时代理: ${timed_out_agents[*]}"
     fi

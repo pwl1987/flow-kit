@@ -178,13 +178,17 @@ validate_number_range() {
             local maximum=$(jq -r ".properties.\"$prop\".maximum // empty" "$schema_file" 2>/dev/null)
 
             if [ -n "$minimum" ]; then
-                if [ "$(echo "$actual_value < $minimum" | bc -l 2>/dev/null)" = "1" ]; then
+                local cmp_result
+                cmp_result=$(jq -n --argjson val "$actual_value" --argjson min "$minimum" 'if $val < $min then "lt" else "ge" end' 2>/dev/null || echo "ge")
+                if [ "$cmp_result" = "lt" ]; then
                     errors+=("字段 $prop: 值 $actual_value 小于最小值 $minimum")
                 fi
             fi
 
             if [ -n "$maximum" ]; then
-                if [ "$(echo "$actual_value > $maximum" | bc -l 2>/dev/null)" = "1" ]; then
+                local cmp_result
+                cmp_result=$(jq -n --argjson val "$actual_value" --argjson max "$maximum" 'if $val > $max then "gt" else "le" end' 2>/dev/null || echo "le")
+                if [ "$cmp_result" = "gt" ]; then
                     errors+=("字段 $prop: 值 $actual_value 超过最大值 $maximum")
                 fi
             fi
@@ -213,7 +217,7 @@ validate_array_items() {
             if [ -n "$items_type" ]; then
                 local array_length=$(jq -r ".\"$prop\" | length" "$json_file" 2>/dev/null)
 
-                for i in $(seq 0 $((array_length - 1))); do
+                for ((i=0; i<array_length; i++)); do
                     local item_type=$(jq -r ".\"$prop\"[$i] | type" "$json_file" 2>/dev/null)
                     local item_value=$(jq -r ".\"$prop\"[$i]" "$json_file" 2>/dev/null)
 
@@ -324,7 +328,7 @@ validate_enum() {
             local enum_count=$(jq -r '.properties."'$prop'".enum | length' "$schema_file" 2>/dev/null)
             local found=false
 
-            for i in $(seq 0 $((enum_count - 1))); do
+            for ((i=0; i<enum_count; i++)); do
                 local enum_val=$(jq -c ".properties.\"$prop\".enum[$i]" "$schema_file" 2>/dev/null)
                 if [ "$actual_value" = "$enum_val" ]; then
                     found=true
