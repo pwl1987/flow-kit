@@ -1,15 +1,22 @@
 #!/bin/bash
 # post-edit-format.sh — PostToolUse hook: 自动格式化代码
-# v1.12.4 P1 修复: 同步执行 + timeout 保护
+# v1.12.5 P2 修复: source 路径基于 CLAUDE_PROJECT_DIR
 # Reference: Claude Code hooks 社区最佳实践
+
+INPUT=$(cat)
+
+# 获取项目目录（基于 INPUT 中的 project_dir）
+PROJECT_DIR=$(echo "$INPUT" | jq -r '.project_dir // empty')
+if [ -z "$PROJECT_DIR" ]; then
+    PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+fi
 
 # 引入统一错误处理框架
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../lib/error-handler.sh"
+source "$PROJECT_DIR/flow-kit/lib/error-handler.sh"
 
 START_TIME=$(date +%s%3N)
 
-INPUT=$(cat)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name')
 
 # 仅处理 Edit 和 Write
@@ -33,8 +40,8 @@ fi
 # hooks 执行遥测
 END_TIME=$(date +%s%3N)
 ELAPSED=$((END_TIME - START_TIME))
-mkdir -p "$SCRIPT_DIR/../../.flow-kit/logs"
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$SCRIPT_DIR/../../.flow-kit/logs/hooks-execution.log" 2>/dev/null || true
+mkdir -p "$PROJECT_DIR/.flow-kit/logs"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$PROJECT_DIR/.flow-kit/logs/hooks-execution.log" 2>/dev/null || true
 
 exit 0
 
