@@ -1,0 +1,111 @@
+#!/bin/bash
+# dispatch-aggregate.sh — 多代理编排聚合报告生成器
+# v1.12.5 P1 新增
+# 读取 dispatch-summary.json 生成聚合报告
+
+set -e
+
+#------------------------------------------------------------------------------
+# 配置
+#------------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
+TMP_DIR=".flow-kit/tmp"
+
+#------------------------------------------------------------------------------
+# 帮助信息
+#------------------------------------------------------------------------------
+show_help() {
+    cat << 'EOF'
+dispatch-aggregate.sh — 多代理编排聚合报告生成器
+
+用法:
+  ./dispatch-aggregate.sh [summary_file]
+
+参数:
+  summary_file  dispatch-summary.json 路径（默认: .flow-kit/tmp/dispatch-summary.json）
+
+输出:
+  格式化聚合报告，包含执行统计、子代理状态、修改文件清单
+EOF
+}
+
+#------------------------------------------------------------------------------
+# 主函数
+#------------------------------------------------------------------------------
+main() {
+    local summary_file="${1:-$TMP_DIR/dispatch-summary.json}"
+
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        show_help
+        exit 0
+    fi
+
+    if [ ! -f "$summary_file" ]; then
+        echo "[dispatch-aggregate] 错误: 文件不存在 $summary_file" >&2
+        echo "[dispatch-aggregate] 提示: 请先运行 ./dispatch.sh --execute" >&2
+        exit 1
+    fi
+
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "多代理编排聚合报告"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "任务ID: $(jq -r '.task_id' "$summary_file")"
+    echo "任务描述: $(jq -r '.task_desc' "$summary_file")"
+    echo "执行时间: $(jq -r '.executed_at // "未执行"' "$summary_file")"
+    echo ""
+
+    local total=$(jq -r '.summary.total // 0' "$summary_file")
+    local successful=$(jq -r '.summary.successful // 0' "$summary_file")
+    local failed=$(jq -r '.summary.failed // 0' "$summary_file")
+    local partial=$(jq -r '.summary.partial // 0' "$summary_file")
+
+    echo "执行统计:"
+    echo "  总代理数: $total"
+    echo "  成功: $successful"
+    echo "  失败: $failed"
+    echo "  部分: $partial"
+    echo ""
+
+    echo "子代理状态:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    local has_agents=false
+    while read -r agent_json; do
+        has_agents=true
+        local id=$(echo "$agent_json" | jq -r '.id')
+        local role=$(echo "$agent_json" | jq -r '.role')
+        local status=$(echo "$agent_json" | jq -r '.status')
+        local status_icon="⚪"
+        case "$status" in
+            SUCCESS) status_icon="✅" ;;
+            FAILED) status_icon="❌" ;;
+            PARTIAL) status_icon="⚠️" ;;
+            QUEUED) status_icon="⏳" ;;
+        esac
+        echo "  $status_icon $id ($role): $status"
+    done < <(jq -c '.agents[]' "$summary_file" 2>/dev/null)
+
+    if [ "$has_agents" != true ]; then
+        echo "  (尚未执行，请使用 --execute 运行)"
+    fi
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    # 收集所有修改的文件
+    echo ""
+    echo "修改文件清单:"
+    local all_files="[]"
+    for result_file in "$TMP_DIR"/subagent-*-result.json; do
+        if [ -f "$result_file" ]; then
+            local files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
+            all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
+        fi
+    done
+    echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
+
+    echo ""
+    echo "⏳ 使用 /flow-kit:dispatch-status 查看最新状态"
+}
+
+main "$@"
