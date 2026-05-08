@@ -1,6 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 # stop-quality-gate.sh — Stop hook: 质量门禁
-# v1.12.5 P1 新增：B6 测试覆盖率联动
+# v1.12.8 P0 修复：除零错误 + set -euo pipefail
 # Reference: smallnest/autoresearch PASSING_SCORE + Claude Code Stop hook
 
 INPUT=$(cat)
@@ -11,7 +12,7 @@ if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
 fi
 
 #------------------------------------------------------------------------------
-# B6 测试覆盖率检测（v1.12.5 新增）
+# B6 测试覆盖率检测（v1.12.5 新增，v1.12.8 修复除零错误）
 #------------------------------------------------------------------------------
 check_test_coverage() {
     local coverage_file=".flow-kit/coverage/lcov.info"
@@ -23,17 +24,21 @@ check_test_coverage() {
     fi
 
     # 提取增量覆盖率
-    local incremental_lines=$(grep "incremental.lines" "$coverage_file" 2>/dev/null | cut -d: -f2 || echo "0")
-    local incremental_covered=$(grep "incremental.covered" "$coverage_file" 2>/dev/null | cut -d: -f2 || echo "0")
+    local incremental_lines
+    incremental_lines=$(grep "incremental.lines" "$coverage_file" 2>/dev/null | cut -d: -f2 || echo "0")
+    local incremental_covered
+    incremental_covered=$(grep "incremental.covered" "$coverage_file" 2>/dev/null | cut -d: -f2 || echo "0")
 
+    # P0 修复：防止除零错误
     if [ "$incremental_lines" -eq 0 ]; then
+        echo "[stop-quality-gate] ⚠️  无新增代码，跳过覆盖率检查"
         return 0
     fi
 
     local coverage_pct=$((incremental_covered * 100 / incremental_lines))
 
     if [ "$coverage_pct" -lt "$threshold" ]; then
-        echo "[B6] 增量覆盖率 $coverage_pct% < $threshold%，未通过质量门禁" >&2
+        echo "[B6] 增量覆盖率 ${coverage_pct}% < ${threshold}%，未通过质量门禁" >&2
         echo "[B6] 请增加测试覆盖后重试" >&2
         exit 2
     fi

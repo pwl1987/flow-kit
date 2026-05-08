@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # error-handler.sh — 统一错误处理框架
 # v1.12.4 P3 新增
+# v1.12.8 P1 修复: POSIX date 回退格式 + set -euo pipefail
 # 提供标准化日志和错误码
 
 #------------------------------------------------------------------------------
@@ -12,6 +14,20 @@ readonly EXIT_GUARD_BLOCK=2
 readonly EXIT_MISSING_DEPS=3
 
 #------------------------------------------------------------------------------
+# 获取 ISO 8601 时间戳（POSIX 兼容）
+#------------------------------------------------------------------------------
+get_timestamp() {
+    # P1 修复：添加 POSIX date 回退格式
+    if date -u +%Y-%m-%dT%H:%M:%SZ >/dev/null 2>&1; then
+        # GNU date (Linux)
+        date -u +%Y-%m-%dT%H:%M:%SZ
+    else
+        # BSD date (macOS) 回退
+        date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u +"%Y-%m-%d %H:%M:%S"
+    fi
+}
+
+#------------------------------------------------------------------------------
 # 日志函数
 #------------------------------------------------------------------------------
 
@@ -19,21 +35,21 @@ readonly EXIT_MISSING_DEPS=3
 log_info() {
     local module="${1:-unknown}"
     local message="${2:-}"
-    echo "[$(date +%Y-%m-%dT%H:%M:%SZ)][INFO][$module] $message"
+    echo "[$(get_timestamp)][INFO][$module] $message"
 }
 
 # 警告日志
 log_warn() {
     local module="${1:-unknown}"
     local message="${2:-}"
-    echo "[$(date +%Y-%m-%dT%H:%M:%SZ)][WARN][$module] $message" >&2
+    echo "[$(get_timestamp)][WARN][$module] $message" >&2
 }
 
 # 错误日志
 log_error() {
     local module="${1:-unknown}"
     local message="${2:-}"
-    echo "[$(date +%Y-%m-%dT%H:%M:%SZ)][ERROR][$module] $message" >&2
+    echo "[$(get_timestamp)][ERROR][$module] $message" >&2
 }
 
 # 调试日志（仅 DEBUG 模式启用）
@@ -41,7 +57,7 @@ log_debug() {
     if [ "${DEBUG:-0}" = "1" ]; then
         local module="${1:-unknown}"
         local message="${2:-}"
-        echo "[$(date +%Y-%m-%dT%H:%M:%SZ)][DEBUG][$module] $message"
+        echo "[$(get_timestamp)][DEBUG][$module] $message"
     fi
 }
 

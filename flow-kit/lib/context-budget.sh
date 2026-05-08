@@ -48,13 +48,28 @@ get_model_params() {
 }
 
 #------------------------------------------------------------------------------
-# 检测文本语言类型
+# 检测文本语言类型（POSIX 兼容，v1.12.8 修复 grep -oP 移植性）
 #------------------------------------------------------------------------------
 detect_language_type() {
     local text="$1"
 
-    # 检测中文字符比例
-    local chinese_count=$(echo "$text" | grep -oP '[\x{4e00}-\x{9fff}]' 2>/dev/null | wc -l || echo 0)
+    # P0 修复：使用 awk 替代 grep -oP（POSIX 兼容）
+    # awk 检测 UTF-8 中文字符范围 [一-龥]
+    local chinese_count
+    chinese_count=$(printf '%s' "$text" | awk '
+    BEGIN { count = 0 }
+    {
+        n = split($0, chars, "")
+        for (i = 1; i <= n; i++) {
+            c = chars[i]
+            if (c >= "\xe4\xb8\x80" && c <= "\xe9\xbe\xbf") {
+                count++
+            }
+        }
+    }
+    END { print count }
+    ' 2>/dev/null || echo "0")
+
     local total_chars=${#text}
 
     if [ "$total_chars" -eq 0 ]; then

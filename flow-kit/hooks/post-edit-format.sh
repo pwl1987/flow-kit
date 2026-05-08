@@ -1,6 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 # post-edit-format.sh — PostToolUse hook: 自动格式化代码
-# v1.12.5 P2 修复: source 路径基于 CLAUDE_PROJECT_DIR
+# v1.12.8 P1 修复: prettier 错误写入日志而非丢弃 + set -euo pipefail
 # Reference: Claude Code hooks 社区最佳实践
 
 INPUT=$(cat)
@@ -30,10 +31,13 @@ if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
     exit 0
 fi
 
-# 尝试用 prettier 格式化（v1.12.4 修复: 同步执行 + timeout 3）
+# P1 修复：prettier 错误写入日志而非丢弃
 if command -v npx &> /dev/null; then
-    if ! timeout 3 npx prettier --write "$FILE_PATH" 2>/dev/null; then
-        echo "[flow-kit] prettier 格式化失败或超时: $FILE_PATH" >&2
+    local prettier_log="$PROJECT_DIR/.flow-kit/logs/prettier-errors.log"
+    mkdir -p "$PROJECT_DIR/.flow-kit/logs"
+
+    if ! timeout 3 npx prettier --write "$FILE_PATH" > "$prettier_log" 2>&1; then
+        log_warn "prettier 格式化失败或超时: $FILE_PATH，详情: $prettier_log"
     fi
 fi
 

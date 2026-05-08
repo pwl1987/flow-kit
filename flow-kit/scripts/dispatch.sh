@@ -1,9 +1,10 @@
 #!/bin/bash
 # dispatch.sh — 多代理并行编排脚本
-# v1.12.4 P0 核心功能
+# v1.12.8 P0 修复：移除 set -e + 添加 trap 清理 + 锁冲突 blocking + result validation
 # 用法: ./dispatch.sh [N] "任务描述"
 
-set -e
+# P0 修复：移除 set -e，改用显式错误处理
+# set -e 与 jq 回退模式冲突，导致不可预测的脚本终止
 
 #------------------------------------------------------------------------------
 # 配置
@@ -13,6 +14,31 @@ FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
 LOCK_DIR=".flow-kit/locks"
 TMP_DIR=".flow-kit/tmp"
 AGENT_NAME="${AGENT_NAME:-agent-main}"
+
+# P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
+declare -a CHILD_PIDS=()
+
+cleanup_children() {
+    local exit_code=$?
+    if [ ${#CHILD_PIDS[@]} -gt 0 ]; then
+        echo "[dispatch] 🛑 清理 ${#CHILD_PIDS[@]} 个子进程..."
+        for pid in "${CHILD_PIDS[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                echo "[dispatch]    终止 PID $pid..."
+                kill -TERM "$pid" 2>/dev/null || true
+            fi
+        done
+        sleep 1
+        for pid in "${CHILD_PIDS[@]}"; do
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -9 "$pid" 2>/dev/null || true
+            fi
+        done
+    fi
+    exit $exit_code
+}
+
+trap cleanup_children EXIT INT TERM
 
 #------------------------------------------------------------------------------
 # 帮助信息
@@ -229,7 +255,7 @@ EOF
 }
 
 #------------------------------------------------------------------------------
-# 锁冲突检测
+# 锁冲突检测（v1.12.8 修复：改为 blocking 等待而非仅警告）
 #------------------------------------------------------------------------------
 check_lock_conflicts() {
     echo "[dispatch] 🔒 检查锁冲突..."
@@ -242,14 +268,28 @@ check_lock_conflicts() {
     echo "[dispatch] 当前活跃锁数: $locks_count"
 
     if [ "$locks_count" -gt 0 ]; then
-        echo "[dispatch] ⚠️ 检测到 $locks_count 个活跃锁，可能存在冲突"
-        find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | while read lock; do
-            if [ -f "$lock/info.json" ]; then
-                local locked_by=$(jq -r '.locked_by' "$lock/info.json" 2>/dev/null || echo "unknown")
-                local file=$(jq -r '.file' "$lock/info.json" 2>/dev/null || echo "unknown")
-                echo "  - $locked_by -> $file"
+        echo "[dispatch] 🚫 检测到 $locks_count 个活跃锁，等待解锁..."
+
+        local wait_timeout=30
+        local wait_elapsed=0
+        local wait_interval=2
+
+        while [ $wait_elapsed -lt $wait_timeout ]; do
+            local current_locks
+            current_locks=$(find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | wc -l)
+
+            if [ "$current_locks" -eq 0 ]; then
+                echo "[dispatch] ✅ 锁已释放，继续执行"
+                return 0
             fi
+
+            echo "[dispatch]    等待中... ($wait_elapsed/$wait_timeout 秒)"
+            sleep $wait_interval
+            wait_elapsed=$((wait_elapsed + wait_interval))
         done
+
+        echo "[dispatch] ❌ 锁冲突超时 (${wait_timeout}s)，终止执行" >&2
+        return 1
     else
         echo "[dispatch] ✅ 无锁冲突"
     fi
@@ -388,6 +428,7 @@ execute_subagents() {
         local pid=$!
         pids+=($pid)
         agent_ids+=("$agent_id")
+        CHILD_PIDS+=($pid)  # P0 修复：跟踪子进程用于 trap 清理
 
         echo "[dispatch]    PID: $pid"
 
@@ -580,11 +621,20 @@ EOF
     for agent_id in "${agent_ids[@]}"; do
         local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
         if [ -f "$result_file" ]; then
-            local status=$(jq -r '.status' "$result_file" 2>/dev/null || echo "FAILED")
+            # P0 修复：验证 result JSON 有效性
+            if ! jq -e '.status' "$result_file" >/dev/null 2>&1; then
+                echo "[dispatch] ❌ result JSON 无效: $result_file"
+                failed=$((failed + 1))
+                continue
+            fi
+
+            local status
+            status=$(jq -r '.status' "$result_file" 2>/dev/null || echo "FAILED")
             case "$status" in
                 SUCCESS) success=$((success + 1)) ;;
                 FAILED) failed=$((failed + 1)) ;;
                 PARTIAL) partial=$((partial + 1)) ;;
+                *) failed=$((failed + 1)) ;;
             esac
         else
             failed=$((failed + 1))

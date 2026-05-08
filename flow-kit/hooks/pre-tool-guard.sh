@@ -1,7 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # pre-tool-guard.sh — PreToolUse hook: 阻止危险命令和敏感文件编辑
 # v1.12.4 P1 修复: jq 精确提取 + DDL 高危检测
-# v1.12.4 P3: hooks 执行遥测
+# v1.12.8 P1 修复: DDL 正则补全 RENAME TO + set -euo pipefail
 # Reference: gstack /careful + Morph Claude Code Hooks
 
 # 引入统一错误处理框架
@@ -19,7 +20,7 @@ if echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
     FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 else
     # 非 JSON 输入，回退到直接使用
-    TOOL=$(echo "$INPUT" | grep -oE '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
+    TOOL=$(echo "$INPUT" | grep -oE '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 || echo "")
     COMMAND=""
     FILE_PATH=""
 fi
@@ -36,8 +37,8 @@ if [ "$TOOL" = "Bash" ]; then
         echo "BLOCKED: 危险命令被 flow-kit 护栏拦截。请确认后重试。" >&2
         exit 2
     fi
-    # DDL 高危操作（v1.12.4 新增）
-    if echo "$COMMAND" | grep -qE 'DROP COLUMN|ALTER TABLE[[:space:]]+[^[:space:]]+[[:space:]]+RENAME TO|TRUNCATE TABLE'; then
+    # P1 修复：DDL 高危操作（补全 RENAME TO 格式）
+    if echo "$COMMAND" | grep -qE 'DROP COLUMN|ALTER TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME TO|RENAME COLUMN)|TRUNCATE TABLE'; then
         echo "BLOCKED: DDL 高危操作被 flow-kit 护栏拦截（DROP COLUMN/ALTER TABLE RENAME/TRUNCATE TABLE）。" >&2
         exit 2
     fi

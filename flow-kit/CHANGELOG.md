@@ -2,6 +2,66 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [1.12.8] - 2026-05-08
+
+### P0: 核心稳定性修复
+
+- **dispatch.sh** — 移除 set -e + 添加 trap 清理 + 锁冲突 blocking + result validation
+  - 移除 set -e 避免与 jq 回退模式冲突
+  - 新增 trap EXIT INT TERM 清理子进程，防止 orphaned 进程
+  - 锁冲突从警告改为 blocking 等待（30秒超时）
+  - 新增 result JSON 有效性验证，避免无效结果导致统计错误
+  - 跟踪 CHILD_PIDS 数组用于 trap 清理
+
+- **stop-quality-gate.sh** — 修复除零错误
+  - 新增 incremental_lines 为零检查
+  - 无新增代码时跳过覆盖率检查并输出提示
+
+- **context-budget.sh** — 修复 grep -oP 移植性问题
+  - 使用 awk 替代 grep -oP 实现 POSIX 兼容
+  - 支持 Linux/macOS/BSD 多平台
+
+### P1: 跨平台兼容性增强
+
+- **post-edit-format.sh** — prettier 错误写入日志而非丢弃
+  - 新增 prettier-errors.log 记录详细错误信息
+  - 使用 log_warn 替代 stderr 直接输出
+
+- **notification.sh** — Windows 实际发送 Toast 通知
+  - 新增 BurntToast 模块支持（如果已安装）
+  - 回退使用 Windows 原生 API 发送 Toast
+  - 最终回退使用 PowerShell 弹窗
+
+- **pre-tool-guard.sh** — DDL 正则补全 RENAME TO 格式
+  - 支持 ALTER TABLE ... RENAME / RENAME TO / RENAME COLUMN
+
+- **health-rotation.sh** — stat 命令 Linux/BSD 兼容
+  - 新增 get_file_size_kb 函数统一处理
+  - 检测 stat --version 区分 GNU/BSD 实现
+
+- **error-handler.sh** — POSIX date 回退格式
+  - 新增 get_timestamp 函数
+  - 支持 GNU date 和 BSD date 两种格式
+
+### P2: 代码规范强化
+
+- **所有 hooks** — 添加 set -euo pipefail
+  - post-edit-format.sh / notification.sh / pre-tool-guard.sh / session-start.sh / error-handler.sh
+
+- **所有 hooks** — 变量引用加引号
+  - 修复所有 $variable 为 "${variable}" 避免空格问题
+
+- **dispatch.sh** — 更新版本头为 v1.12.8
+
+### 技术细节
+
+- trap 清理使用两阶段终止：TERM -> 等待1秒 -> KILL
+- blocking 锁等待使用 2 秒间隔轮询，30 秒超时
+- POSIX 兼容使用 awk 替代 GNU 特有命令
+- 所有错误处理遵循 fail-fast 原则
+
+---
+
 ## [1.12.7] - 2026-05-08
 
 ### P0: 并行执行引擎强化
