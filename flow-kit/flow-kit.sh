@@ -32,12 +32,15 @@ check_dependencies() {
 #------------------------------------------------------------------------------
 show_help() {
     cat << 'EOF'
-flow-kit v1.11 — 结构化开发流程 CLI
+flow-kit v1.12 — 结构化开发流程 CLI
 
 用法:
   flow-kit.sh <command> [args]
 
 命令:
+  help                    显示帮助信息和使用示例
+  status                  显示当前执行模式
+  share                   输出团队共享安装指令
   health                  运行健康扫描
   hooks install           安装 hooks
   hooks status            查看 hooks 状态
@@ -48,15 +51,65 @@ flow-kit v1.11 — 结构化开发流程 CLI
   archive                 归档完成变更
 
 示例:
-  ./flow-kit.sh health
-  ./flow-kit.sh hooks install
-  ./flow-kit.sh mode team
-  ./flow-kit.sh dispatch 3 "实现用户认证模块"
-  ./flow-kit.sh minimal "修复登录 bug"
+  ./flow-kit.sh help                      # 显示帮助
+  ./flow-kit.sh status                    # 显示当前模式
+  ./flow-kit.sh share                     # 输出团队安装指令
+  ./flow-kit.sh health                    # 健康扫描
+  ./flow-kit.sh hooks install             # 安装 hooks
+  ./flow-kit.sh mode team                # 切换到 Team 模式
+  ./flow-kit.sh dispatch 3 "实现用户认证" # 3 并行执行
+  ./flow-kit.sh minimal "修复登录 bug"    # 极简模式
 
 文档:
   参见 @flow-kit/GO.md
 EOF
+}
+
+#------------------------------------------------------------------------------
+# 状态显示
+#------------------------------------------------------------------------------
+show_status() {
+    local mode_file=".flow-kit/mode"
+    local current_mode="autopilot"
+
+    if [ -f "$mode_file" ]; then
+        current_mode=$(cat "$mode_file")
+    fi
+
+    echo "flow-kit v1.12 — 执行模式状态"
+    echo ""
+    echo "当前模式: $current_mode"
+    echo ""
+    echo "可用模式:"
+    echo "  autopilot  — L0-L1 单 Agent 自主执行"
+    echo "  team       — L2-L3 多 Agent 协作"
+    echo "  ralph      — Team + 验证循环"
+    echo ""
+    echo "切换模式: ./flow-kit.sh mode <mode>"
+}
+
+#------------------------------------------------------------------------------
+# 团队共享安装
+#------------------------------------------------------------------------------
+show_share() {
+    echo "flow-kit v1.12 — 团队共享安装指令"
+    echo ""
+    echo "新成员执行以下命令完成安装:"
+    echo ""
+    echo "# 1. 克隆项目"
+    echo "git clone <repo-url> <project-name>"
+    echo "cd <project-name>"
+    echo ""
+    echo "# 2. 安装 hooks（自动注册斜杠命令）"
+    echo "./flow-kit/flow-kit.sh hooks install"
+    echo ""
+    echo "# 3. 在 Claude Code 中注册命令"
+    echo "/flow-kit:register-commands"
+    echo ""
+    echo "已包含:"
+    echo "  • flow-kit/hooks/*.sh          — 5 个保护 hooks"
+    echo "  • .claude/settings.json        — hooks 配置"
+    echo "  • flow-kit/                   — 完整工具包"
 }
 
 #------------------------------------------------------------------------------
@@ -136,6 +189,16 @@ route_command() {
         archive)
             echo "[flow-kit] 归档变更..."
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:archive"
+            ;;
+
+        status)
+            show_status
+            exit 0
+            ;;
+
+        share)
+            show_share
+            exit 0
             ;;
 
         help|--help|-h)

@@ -137,13 +137,19 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 
 ### /flow-kit:mode 显式模式切换
 
-> v1.11 新增：手动指定执行模式
+> v1.11 新增，v1.12 增强：切换后输出确认提示
 
 | 参数                       | 执行模式  | 说明                        |
 | -------------------------- | --------- | --------------------------- |
 | `/flow-kit:mode autopilot` | Autopilot | L0-L1 单 Agent 自主执行     |
 | `/flow-kit:mode team`      | Team      | L2-L3 多 Agent 协作         |
 | `/flow-kit:mode ralph`     | Ralph     | Team + 验证循环（借鉴 OMC） |
+
+**切换后确认**：
+
+```
+✅ 已切换至 {mode} 模式。当前模式保存在 .flow-kit/mode。
+```
 
 ---
 
@@ -184,6 +190,7 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 | `/flow-kit:cost-report`       | `@flow-kit/commands/cost-report.md`           |
 | `/flow-kit:p0`                | `@flow-kit/commands/p0-approval.md`           |
 | `/flow-kit:archive`           | `@flow-kit/archive/archive-change.md`         |
+| `/flow-kit:share-install`     | `@flow-kit/commands/share-install.md`         |
 | `/flow-kit:skill:[name]`      | `@flow-kit/skills/[name].md`                  |
 | `/flow-kit:strategy`          | `@flow-kit/commands/strategy-first.md`        |
 | `/flow-kit:skill-audit`       | `@flow-kit/commands/skill-audit.md`           |

@@ -213,11 +213,20 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.11_
+_Generated with flow-kit v1.12_
 
 ---
 
 ## Changelog
+
+### v1.12 (2026-05-08)
+
+- flow-kit.sh: +help/status/share子命令
+- GO.md: /flow-kit:mode切换后确认提示（保存到.flow-kit/mode）
+- skills/output-self-check.md: +6项可执行检查命令示例
+- skills/agent-pipeline.md: +交接验证失败自动修复循环（最多2轮）
+- commands/share-install.md: +团队共享安装命令
+- VERSION/CLAUDE.md/README.md: v1.12
 
 ### v1.11 (2026-05-08)
 
