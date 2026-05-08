@@ -60,8 +60,9 @@ check_test_coverage
 
 exit 0
 
-## 参考来源
-- [Claude Code Hooks 官方文档](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- [garrytan/gstack](https://github.com/garrytan/gstack) — /careful 破坏性命令警告模式
-- [smallnest/autoresearch](https://github.com/smallnest/autoresearch) — PASSING_SCORE 质量门禁思想
-- [Jest Coverage](https://jestjs.io/docs/coverage) — 测试覆盖率配置
+# v1.12.10 修复：URL 放在 bash 注释中避免被解析
+# 参考来源：
+# - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
+# - garrytan/gstack：https://github.com/garrytan/gstack
+# - smallnest/autoresearch：https://github.com/smallnest/autoresearch
+# - Jest Coverage：https://jestjs.io/docs/coverage
