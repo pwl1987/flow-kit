@@ -72,13 +72,14 @@ test_check_budget() {
     echo "=== test_check_budget ==="
 
     local result
-    result=$(check_budget 50000)
-    assert_equals "OK" "$result" "check_budget 50000 (healthy)"
+    # check_budget 返回多行 JSON，用 jq 提取 status 字段
+    result=$(check_budget 50000 | jq -r '.status' 2>/dev/null || echo "UNKNOWN")
+    assert_equals "HEALTHY" "$result" "check_budget 50000 (healthy)"
 
-    result=$(check_budget 85000)
+    result=$(check_budget 85000 | jq -r '.status' 2>/dev/null || echo "UNKNOWN")
     assert_equals "WARNING" "$result" "check_budget 85000 (warning)"
 
-    result=$(check_budget 110000)
+    result=$(check_budget 110000 | jq -r '.status' 2>/dev/null || echo "UNKNOWN")
     assert_equals "BLOCK" "$result" "check_budget 110000 (block)"
 }
 

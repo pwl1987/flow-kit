@@ -55,7 +55,7 @@ float_scale() {
 }
 
 # 多模型token估算配置
-# 格式: 模型名:英文系数:中文系数:代码系数
+# 格式: "英文系数:中文系数:代码系数"（模型名作为关联数组 key）
 # v1.12.10 修复：使用关联数组实现 O(1) 查找
 declare -A MODEL_CONFIGS=(
     ["claude"]="0.25:1.5:0.35"
@@ -147,9 +147,9 @@ estimate_tokens() {
 
     # 获取当前模型配置
     local config=$(get_model_params "$CURRENT_MODEL")
-    local english_factor=$(echo "$config" | cut -d: -f2)
-    local chinese_factor=$(echo "$config" | cut -d: -f3)
-    local code_factor=$(echo "$config" | cut -d: -f4)
+    local english_factor=$(echo "$config" | cut -d: -f1)
+    local chinese_factor=$(echo "$config" | cut -d: -f2)
+    local code_factor=$(echo "$config" | cut -d: -f3)
 
     # 检测语言和 content 类型
     local lang_type=$(detect_language_type "$text")
@@ -194,7 +194,7 @@ estimate_file_tokens() {
         sh|bash|py|js|ts|jsx|tsx|java|c|cpp|h|go|rs|rb|php)
             local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
             local config=$(get_model_params "$CURRENT_MODEL")
-            local code_factor=$(echo "$config" | cut -d: -f4)
+            local code_factor=$(echo "$config" | cut -d: -f3)
             float_mul "$char_count" "$code_factor"
             ;;
         md|txt|log)

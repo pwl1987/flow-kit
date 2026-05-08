@@ -292,7 +292,7 @@ route_command() {
 
         map-codebase)
             echo "[flow-kit] 代码库扫描..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:register-commands"
+            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:scan"
             ;;
 
         uninstall)
@@ -348,7 +348,7 @@ perform_uninstall() {
         echo "   • .flow-kit/          — 配置和日志"
         echo "   • .claude/           — 斜杠命令"
         echo ""
-        read -p "确认卸载? (输入 'yes' 确认): " confirm
+        read -r -p "确认卸载? (输入 'yes' 确认): " confirm
         if [ "$confirm" != "yes" ]; then
             echo "[flow-kit] 取消卸载"
             exit 0
