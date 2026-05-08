@@ -48,6 +48,19 @@
 - **评审结论**：通过/有条件通过/拒绝
 - **后续 Phase 入口确认**：明确进入 7-integration 的条件
 
+## 【强制】阶段切换交接验证门
+
+> v1.11 新增：6-review → 7-integration 切换时触发 Agent 交接验证门
+
+**切换前检查**：
+1. 触发 `@flow-kit/skills/agent-pipeline.md` 的 Agent 交接验证门
+2. 输出 Handler 覆盖矩阵（验证审查意见 → 代码改动映射）
+3. 执行 Task-PRD 对齐检查（验证审查意见覆盖完整）
+4. 更新追责链（记录审查负责人和完成状态）
+
+**通过条件**：6 项自检全部通过 + 交接验证门通过
+**失败处理**：暂停并等待修复，不进入 7-integration
+
 ## 项目类型检测（Phase 6 增强）
 
 ### 混合模式检测逻辑
@@ -121,33 +134,42 @@ echo "brownfield" > .flow-kit/project-type
 ## 【强制】多角色审查（Multi-Role Review）
 
 > 【CLAUDE CODE INSTRUCTION 强制约束·多角色审查】
+>
 > 1. 对高风险变更（涉及安全/数据库/公共API），自动激活 @flow-kit/commands/team-roles.md。
 > 2. 按角色顺序执行审查：Reviewer → Security（若涉及安全）→ Designer（若涉及UI）。
 > 3. 每个角色输出独立审查段，问题汇总到 REVIEW.md 按 P0-P3 分级。
 > 4. 角色切换遵守 R3.4（清窗后切换）。
 
 ### 高风险变更判定
+
 满足任一条件即触发多角色审查：
+
 - 涉及数据库 schema 变更
 - 涉及公共 API 接口
 - 涉及安全敏感操作（认证/授权/支付）
 - 涉及 3 个以上文件变更
 
 ### 审查角色顺序
+
 1. **Reviewer**：代码审查 + 生产 bug 发现
 2. **Security**：OWASP + STRIDE 审计（高风险变更时）
 3. **Designer**：UI 变更时激活（色彩/排版/布局）
 
 ### 输出格式
+
 每个角色输出独立段：
+
 ```markdown
 ## Reviewer 审查
+
 [检查结果]
 
 ## Security 审查
+
 [检查结果]
 
 ## Designer 审查
+
 [检查结果]
 ```
 

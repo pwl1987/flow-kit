@@ -213,11 +213,22 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.10_
+_Generated with flow-kit v1.11_
 
 ---
 
 ## Changelog
+
+### v1.11 (2026-05-08)
+
+- commands/hooks-guide.md: 参考来源替换为Anthropic官方+garrytan/gstack+smallnest/autoresearch
+- phases/4-dev.md,5-test.md,6-review.md: +阶段切换交接验证门触发指令
+- GO.md: +/flow-kit:mode显式模式切换命令 (autopilot/team/ralph)
+- skills/output-self-check.md: +R8.3产物自检清单（6项检查）
+- lib/phase-executor.md: +阶段完成后触发output-self-check自检
+- commands/register-commands.md: +map-codebase返回重索引逻辑
+- flow-kit.sh: +CLI入口脚本（环境检测+命令路由映射）
+- VERSION/CLAUDE.md/README.md: v1.11
 
 ### v1.10 (2026-05-08)
 

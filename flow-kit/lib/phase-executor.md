@@ -37,6 +37,7 @@ Phase Executor 负责协调 flow-kit 8阶段工作流的执行，处理模式切
 ### 1. Offline Mode 检测 (offline-mode.md)
 
 **执行前检查**：
+
 ```
 Before running external lint tools:
   1. Check isOffline flag (from offline-mode.md)
@@ -48,6 +49,7 @@ Before running external lint tools:
 ```
 
 **自动故障转移**：
+
 ```
 On external tool failure:
   1. Set isOffline = true
@@ -58,6 +60,7 @@ On external tool failure:
 ### 2. Minimal Mode 检测 (minimal-mode.md)
 
 **Phase 5 跳过检查**：
+
 ```
 Before Phase 5 (Test):
   1. Check isMinimal flag (from minimal-mode.md)
@@ -69,6 +72,7 @@ Before Phase 5 (Test):
 ```
 
 **Phase 6 跳过检查**：
+
 ```
 Before Phase 6 (Review):
   1. Check isMinimal flag (from minimal-mode.md)
@@ -82,6 +86,7 @@ Before Phase 6 (Review):
 ### 3. P0 Approval 检测 (p0-approval.md)
 
 **Phase 7 执行前检查**：
+
 ```
 Before Phase 7 (Integration):
   1. Check if P0 flag is set (auto-detected or manual)
@@ -94,6 +99,7 @@ Before Phase 7 (Integration):
 ```
 
 **P0 触发条件**：
+
 - `BREAKING-CHANGE.md` 文件存在
 - `*.sql` 文件（DDL/DML）存在
 - `migration/` 目录存在
@@ -104,6 +110,7 @@ Before Phase 7 (Integration):
 ### 4. PR Description 生成 (pr-description.md)
 
 **Phase 7 完成后**：
+
 ```
 After Phase 7 (Integration) complete:
   1. Call pr-description.md
@@ -114,6 +121,7 @@ After Phase 7 (Integration) complete:
 ### 5. Context Expiry Detection (check-expiry.md)
 
 **启动时检查**：
+
 ```
 On phase-executor load:
   1. Call check-expiry.md logic silently (non-blocking)
@@ -122,6 +130,7 @@ On phase-executor load:
 ```
 
 **check-expiry 行为**：
+
 - 扫描 `.planning/phases/` 下 .md 文件的最后修改时间
 - 15 天警告：输出 `[WARNING] Context will expire in {N} days`
 - 30 天阻止：输出 `[BLOCK] Context expired, run recovery or archive`
@@ -129,6 +138,7 @@ On phase-executor load:
 ### 6. Token Estimation (estimate-tokens.md)
 
 **Phase 加载时执行**：
+
 ```
 On each phase load:
   1. Call estimate-tokens.md to count LOC in .planning/phases/*/
@@ -145,6 +155,7 @@ On each phase load:
 | BLOCK | >= 100% | 输出 `[BLOCK] Token budget exhausted` 并阻止继续 |
 
 **集成点**：
+
 - Phase executor 加载时：静默检查，仅警告时输出
 - Phase 切换时：完整报告输出
 - 命令触发：`/flow-kit:estimate-tokens` 完整输出
@@ -152,6 +163,7 @@ On each phase load:
 ### 7. Checkpoint Resume Detection
 
 **Execution on phase load:**
+
 ```
 On phase-executor start:
   1. Call shouldResume(cwd) from checkpoint.js
@@ -168,10 +180,12 @@ On phase-executor start:
 ```
 
 **Resume entry point:**
+
 - Command: `/gsd-execute-phase 5 --resume`
 - Auto-detect on phase start if .flow-kit/checkpoint-state.json exists
 
 **Cleanup triggers (D-05):**
+
 - Phase complete (all plans done)
 - New phase start (auto-clear previous phase checkpoint)
 - User reset: `/gsd-reset-phase 5` (explicit)
@@ -186,12 +200,14 @@ On phase-executor start:
 | >= 100% | BLOCK + 强制压缩 | `[BLOCK] Token budget exhausted, running cleanup` |
 
 **D-10 清理粒度**：
+
 - 清理目标：已完成 phase 的 checkpoint 文件和 logs
 - 保留文件：CONTEXT.md, PLAN.md, SUMMARY.md（核心文档）
 - 清理操作：归档到 `.planning/archive/` 而非删除
 - 归档文件名格式：`.planning/archive/{phase}-{timestamp}.json`
 
 **Cleanup 执行逻辑**：
+
 ```
 On cleanup trigger (100% budget):
   1. Scan .planning/phases/*/ for completed phases
@@ -204,12 +220,14 @@ On cleanup trigger (100% budget):
 ```
 
 **Cleanup 命令**：
+
 - `/flow-kit:cleanup` — 手动触发清理
 - `/flow-kit:cleanup --force` — 强制清理（包括未完成 phase）
 
 ### 9. Rollback Trigger（回滚触发）
 
 **Phase 执行完成时触发**：
+
 1. 调用 `markStablePoint(phase, "auto")`
 2. 创建 `.planning/checkpoints/{phase}-stable.json`
 3. 标记文件包含：
@@ -220,14 +238,16 @@ On cleanup trigger (100% budget):
    - canRollback: true
 
 **手动调整命令**：
+
 - `/flow-kit:rollback --promote {phase}` — 提升 phase 到稳定点
 - `/flow-kit:rollback --demote {phase}` — 降级 phase（禁用回滚）
 - `/flow-kit:rollback --remove {phase}` — 移除稳定点标记
 
 **`markStablePoint()` 函数实现**：
+
 ```javascript
 function markStablePoint(phase, reason = "auto") {
-  const checkpointDir = '.planning/checkpoints';
+  const checkpointDir = ".planning/checkpoints";
   const markerPath = `${checkpointDir}/${phase}-stable.json`;
 
   // 确保目录存在
@@ -235,18 +255,26 @@ function markStablePoint(phase, reason = "auto") {
     fs.mkdirSync(checkpointDir, { recursive: true });
   }
 
-  fs.writeFileSync(markerPath, JSON.stringify({
-    phase,
-    markedAt: new Date().toISOString(),
-    reason,  // "auto" or "manual"
-    canRollback: true,
-    commit: getCurrentCommitHash(),
-    files: getGeneratedFiles(phase)
-  }, null, 2));
+  fs.writeFileSync(
+    markerPath,
+    JSON.stringify(
+      {
+        phase,
+        markedAt: new Date().toISOString(),
+        reason, // "auto" or "manual"
+        canRollback: true,
+        commit: getCurrentCommitHash(),
+        files: getGeneratedFiles(phase),
+      },
+      null,
+      2,
+    ),
+  );
 }
 ```
 
 **`adjustStablePoint(phase, level)` 函数实现**：
+
 ```javascript
 function adjustStablePoint(phase, level) {
   // level: "promote" | "demote" | "remove"
@@ -290,20 +318,25 @@ function adjustStablePoint(phase, level) {
 
 **执行前检查**：
 ```
+
 Before any DEV task implementation:
-  1. Extract files + action keywords from current task
-  2. grep .specs/LESSONS.md with these keywords
-  3. For each L-NNN hit:
-     - If approach matches current plan → declare difference OR mark "still applicable"
-     - If approach is identical to active L-NNN → triggers R1.6, stop and re-analyze
-  4. Document each L-NNN reference in execution plan:
-     - "已查阅 L-NNN，本次方案与之的差异是 X" 或
-     - "已查阅 L-NNN，本次确认仍适用，因此不重试该方案"
+
+1. Extract files + action keywords from current task
+2. grep .specs/LESSONS.md with these keywords
+3. For each L-NNN hit:
+   - If approach matches current plan → declare difference OR mark "still applicable"
+   - If approach is identical to active L-NNN → triggers R1.6, stop and re-analyze
+4. Document each L-NNN reference in execution plan:
+   - "已查阅 L-NNN，本次方案与之的差异是 X" 或
+   - "已查阅 L-NNN，本次确认仍适用，因此不重试该方案"
+
 ```
 
 **LESSONS.md grep 逻辑**：
 ```
+
 grep -E "({files}|{action_keywords})" .specs/LESSONS.md
+
 ```
 
 **L-NNN 命中处理**：
@@ -314,19 +347,50 @@ grep -E "({files}|{action_keywords})" .specs/LESSONS.md
 
 **执行前检查**：
 ```
+
 Before loading reference files in any phase:
-  1. Check if loaded REFERENCE lines > 150
-  2. If exceeded: warn "REFERENCE budget exceeded: {used}/150 lines. Use grep or read offset."
-  3. For large REFERENCE files (>150 lines): use grep or read with offset/limit
-  4. For SPEC files (<200 lines): full read OK
-  5. For PROMPT/TEMPLATE files (<150 lines): full read OK
+
+1. Check if loaded REFERENCE lines > 150
+2. If exceeded: warn "REFERENCE budget exceeded: {used}/150 lines. Use grep or read offset."
+3. For large REFERENCE files (>150 lines): use grep or read with offset/limit
+4. For SPEC files (<200 lines): full read OK
+5. For PROMPT/TEMPLATE files (<150 lines): full read OK
+
 ```
 
 **输出格式**：
 ```
+
 [Phase Executor] REFERENCE budget: {used}/150 lines
 [Phase Executor] Large REFERENCE detected: {filename} ({lines} lines). Use grep or offset read.
+
 ```
+
+### 12. R8.3 产物自检触发（v1.11 新增）
+
+**阶段输出完成后检查**：
+```
+
+After each phase output complete:
+
+1. Call @flow-kit/skills/output-self-check.md
+2. Execute 6-item self-check:
+   - 文件存在性检查
+   - 命名规范检查
+   - 验收标准可勾选性
+   - 依赖声明完整性
+   - 无硬编码默认值
+   - 变更范围无越界
+3. If all 6 items pass:
+   - Update STATE.md, mark phase as complete
+4. If any item fails:
+   - Pause and wait for fix
+   - Re-run self-check after fix
+
+````
+
+**关联文件**：
+- `@flow-kit/skills/output-self-check.md` (R8.3 产物自检清单)
 
 ## Constitution 安全墙
 
@@ -341,9 +405,10 @@ function checkConstitutionSafety(change) {
     }
   }
 }
-```
+````
 
 安全规则类型：
+
 - **SEC**: 安全相关检查（不允许的危险操作）
 - **DATA**: 数据保护检查（敏感信息处理）
 - **DEPLOY**: 部署安全检查
@@ -351,17 +416,17 @@ function checkConstitutionSafety(change) {
 
 ## 正常执行路径
 
-| 阶段 | 说明 | 检查 |
-|------|------|------|
-| Phase 0 | Change Detection | Constitution + Offline check |
-| Phase 1 | Planning | Constitution + Offline check |
-| Phase 2 | Planning | Constitution + Offline check |
-| Phase 3 | Planning | Constitution + Offline check |
-| Phase 4 | Development | Constitution + Offline check |
-| Phase 5 | Test | **Skip if Minimal** + Constitution |
-| Phase 6 | Review | **Skip if Minimal** + Constitution |
-| Phase 7 | Integration | **P0 Gate** + Constitution + All checks |
-| Phase 8 | Rollback | Constitution only |
+| 阶段    | 说明             | 检查                                    |
+| ------- | ---------------- | --------------------------------------- |
+| Phase 0 | Change Detection | Constitution + Offline check            |
+| Phase 1 | Planning         | Constitution + Offline check            |
+| Phase 2 | Planning         | Constitution + Offline check            |
+| Phase 3 | Planning         | Constitution + Offline check            |
+| Phase 4 | Development      | Constitution + Offline check            |
+| Phase 5 | Test             | **Skip if Minimal** + Constitution      |
+| Phase 6 | Review           | **Skip if Minimal** + Constitution      |
+| Phase 7 | Integration      | **P0 Gate** + Constitution + All checks |
+| Phase 8 | Rollback         | Constitution only                       |
 
 ## 日志输出
 
@@ -375,15 +440,16 @@ function checkConstitutionSafety(change) {
 
 ## 错误处理
 
-| 错误类型 | 处理方式 |
-|----------|----------|
-| Constitution violation | Block execution, throw error |
-| External lint timeout | Auto-switch to offline mode |
-| Phase skip | Log and continue to next phase |
+| 错误类型               | 处理方式                       |
+| ---------------------- | ------------------------------ |
+| Constitution violation | Block execution, throw error   |
+| External lint timeout  | Auto-switch to offline mode    |
+| Phase skip             | Log and continue to next phase |
 
 ---
 
 **关联文件**：
+
 - `@flow-kit/commands/offline-mode.md` (离线模式)
 - `@flow-kit/commands/minimal-mode.md` (最小模式)
 - `@flow-kit/commands/p0-approval.md` (P0 审批)

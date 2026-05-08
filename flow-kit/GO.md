@@ -135,6 +135,16 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 /flow-kit:minimal "实现登录功能"        → L0 极简模式
 ```
 
+### /flow-kit:mode 显式模式切换
+
+> v1.11 新增：手动指定执行模式
+
+| 参数                       | 执行模式  | 说明                        |
+| -------------------------- | --------- | --------------------------- |
+| `/flow-kit:mode autopilot` | Autopilot | L0-L1 单 Agent 自主执行     |
+| `/flow-kit:mode team`      | Team      | L2-L3 多 Agent 协作         |
+| `/flow-kit:mode ralph`     | Ralph     | Team + 验证循环（借鉴 OMC） |
+
 ---
 
 ## 命令路由规则
@@ -187,6 +197,7 @@ L0 直接进入极简模式，跳过 Phase 2-3。
 | `/flow-kit:lock`              | `@flow-kit/commands/careful.md`               |
 | `/flow-kit:unlock`            | `@flow-kit/commands/careful.md`               |
 | `/flow-kit:hooks`             | `@flow-kit/commands/hooks-guide.md`           |
+| `/flow-kit:mode`              | 显式切换执行模式 (autopilot/team/ralph)       |
 
 ## Skill Routing（按 Phase 上下文）
 

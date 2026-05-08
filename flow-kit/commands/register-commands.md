@@ -153,12 +153,12 @@ reference: [原始文件路径]
 
 ### /flow-kit:map-codebase 子命令
 
-> v1.9 新增：存量代码索引快速入口
+> v1.9 新增，v1.11 增强：返回重索引逻辑
 
 扫描现有代码库，生成技术栈摘要和 CONTEXT.md 骨架：
 
 ```
-/flow-kit:map-codebase [--output DIR] [--types ts,js,py]
+/flow-kit:map-codebase [--output DIR] [--types ts,js,py] [--reindex]
 ```
 
 功能：
@@ -167,9 +167,26 @@ reference: [原始文件路径]
 2. 生成技术栈摘要（语言分布、关键模块、架构约定）
 3. 输出 `CONTEXT.md` 骨架，供 B1 入场扫描使用
 
+**返回重索引逻辑（v1.11 新增）**：
+
+> 借鉴 GSD /gsd-map-codebase：增量更新而不全量重扫
+
+```
+/flow-kit:map-codebase --reindex
+```
+
+- 检测已存在的索引文件（.planning/tech-stacks.json）
+- 仅扫描变更的文件（git diff --name-only）
+- 更新索引中的变更部分
+- 保留未变更部分的索引数据
+- 输出增量扫描报告
+
 ```bash
 # 完整扫描
 /flow-kit:map-codebase
+
+# 增量重索引（仅扫描变更文件）
+/flow-kit:map-codebase --reindex
 
 # 指定输出目录
 /flow-kit:map-codebase --output .planning

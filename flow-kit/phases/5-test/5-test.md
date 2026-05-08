@@ -54,6 +54,19 @@
 - **质量门确认**：各指标达标状态
 - **后续 Phase 入口确认**：明确进入 6-review 的条件
 
+## 【强制】阶段切换交接验证门
+
+> v1.11 新增：5-test → 6-review 切换时触发 Agent 交接验证门
+
+**切换前检查**：
+1. 触发 `@flow-kit/skills/agent-pipeline.md` 的 Agent 交接验证门
+2. 输出 Handler 覆盖矩阵（验证测试用例 → API handler 映射）
+3. 执行 Task-PRD 对齐检查（验证测试覆盖功能点）
+4. 更新追责链（记录测试负责人和完成状态）
+
+**通过条件**：6 项自检全部通过 + 交接验证门通过
+**失败处理**：暂停并等待修复，不进入 6-review
+
 ## 项目类型检测（Phase 6 增强）
 
 ### 混合模式检测逻辑
@@ -98,4 +111,6 @@ echo "brownfield" > .flow-kit/project-type
 - 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
 - 绿地项目：提示 `建议使用标准开发流程`
 
---- END flow-kit/phases/5-test/5-test.md ---
+---
+
+END flow-kit/phases/5-test/5-test.md ---

@@ -54,9 +54,10 @@
 
 **Goal-Driven Execution（目标驱动执行）**
 
-*核心理念：任务完成 = 完成标志达成，不是任务列表走完。*
+_核心理念：任务完成 = 完成标志达成，不是任务列表走完。_
 
 **规则：**
+
 1. **完成标志要求**：每个 TASK.md 任务必须包含 `完成标志: [验收标准]` 字段
 2. **客观验证**：完成标志必须是可客观衡量的（test passes / 验收标准 / 里程碑）
    - 禁止：主观描述（"完成"、"处理好"、"差不多了"）
@@ -65,11 +66,13 @@
 4. **模板更新**：新任务模板由 executor 创建时更新，不追溯修改现有 TASK.md
 
 **完成标志格式：**
+
 ```
 完成标志: [test passes | 验收标准描述 | 里程碑描述]
 ```
 
 **示例：**
+
 - `完成标志: 所有新增单元测试通过（jest --passing）`
 - `完成标志: API 端点 /users 返回 200 且响应结构符合 schema`
 - `完成标志: src/auth.ts 文件已创建并导出 AuthService 类`
@@ -90,6 +93,7 @@
 6. **进度追踪**：监控任务完成率和阻塞点
 
 ## 边界情况
+
 {{BOUNDARY_CASES}}
 
 - **测试失败**：测试不通过时，优先修复测试或代码
@@ -99,6 +103,7 @@
 - **合并冲突**：多人协作时处理合并冲突
 
 ## 输出物
+
 {{OUTPUTS}}
 
 - **可运行代码**：通过基本测试的功能代码
@@ -107,22 +112,39 @@
 - **技术债务清单**：识别的待处理债务
 - **后续 Phase 入口确认**：明确进入 5-test 的条件
 
+## 【强制】阶段切换交接验证门
+
+> v1.11 新增：4-dev → 5-test 切换时触发 Agent 交接验证门
+
+**切换前检查**：
+
+1. 触发 `@flow-kit/skills/agent-pipeline.md` 的 Agent 交接验证门
+2. 输出 Handler 覆盖矩阵（验证 API endpoint → handler 函数映射）
+3. 执行 Task-PRD 对齐检查（验证功能点覆盖）
+4. 更新追责链（记录任务负责人和完成状态）
+
+**通过条件**：6 项自检全部通过 + 交接验证门通过
+**失败处理**：暂停并等待修复，不进入 5-test
+
 ## 项目类型检测（Phase 6 增强）
 
 ### 混合模式检测逻辑
+
 1. 检查 `.flow-kit/project-type` 是否存在
 2. 若存在：直接读取项目类型
 3. 若不存在：使用以下检测信号判断
 
 ### 检测信号（D-07）
-| 信号 | 棕地指标 | 绿地指标 |
-|------|----------|----------|
-| 文件指纹 | package.json + lock 文件存在 | 缺少锁文件 |
-| Git Remote | 关联 GitHub/GitLab | 无 remote |
-| 业务代码行数 | src/ 目录存在且 > 5000 LOC | LOC < 5000 |
-| 历史 | 有 git history | 新项目 |
+
+| 信号         | 棕地指标                     | 绿地指标   |
+| ------------ | ---------------------------- | ---------- |
+| 文件指纹     | package.json + lock 文件存在 | 缺少锁文件 |
+| Git Remote   | 关联 GitHub/GitLab           | 无 remote  |
+| 业务代码行数 | src/ 目录存在且 > 5000 LOC   | LOC < 5000 |
+| 历史         | 有 git history               | 新项目     |
 
 ### 检测触发逻辑（当 .flow-kit/project-type 不存在时）
+
 ```bash
 # 检测 1: package.json + lock 文件 → brownfield
 if [ -f "package.json" ] && [ -f "package-lock.json" -o -f "yarn.lock" -o -f "pnpm-lock.yaml" ]; then
@@ -148,6 +170,7 @@ echo "brownfield" > .flow-kit/project-type
 ```
 
 ### Guardrails 联动
+
 - 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
 - 绿地项目：提示 `建议使用标准开发流程`
 
