@@ -8,7 +8,7 @@
 #   ./flow-kit.sh hooks install
 #   ./flow-kit.sh mode team
 #
-# v1.11 新增：借鉴 OMC CLI 双入口设计
+# v1.12.1 新增：借鉴 OMC CLI 双入口设计
 #==============================================================================
 
 set -e
@@ -32,7 +32,7 @@ check_dependencies() {
 #------------------------------------------------------------------------------
 show_help() {
     cat << 'EOF'
-flow-kit v1.12 — 结构化开发流程 CLI
+flow-kit v1.12.1 — 结构化开发流程 CLI
 
 用法:
   flow-kit.sh <command> [args]
@@ -41,6 +41,7 @@ flow-kit v1.12 — 结构化开发流程 CLI
   help                    显示帮助信息和使用示例
   status                  显示当前执行模式
   share                   输出团队共享安装指令
+  map-codebase           运行存量项目代码库扫描
   health                  运行健康扫描
   hooks install           安装 hooks
   hooks status            查看 hooks 状态
@@ -54,6 +55,7 @@ flow-kit v1.12 — 结构化开发流程 CLI
   ./flow-kit.sh help                      # 显示帮助
   ./flow-kit.sh status                    # 显示当前模式
   ./flow-kit.sh share                     # 输出团队安装指令
+  ./flow-kit.sh map-codebase              # 扫描当前项目
   ./flow-kit.sh health                    # 健康扫描
   ./flow-kit.sh hooks install             # 安装 hooks
   ./flow-kit.sh mode team                # 切换到 Team 模式
@@ -76,7 +78,7 @@ show_status() {
         current_mode=$(cat "$mode_file")
     fi
 
-    echo "flow-kit v1.12 — 执行模式状态"
+    echo "flow-kit v1.12.1 — 执行模式状态"
     echo ""
     echo "当前模式: $current_mode"
     echo ""
@@ -92,7 +94,7 @@ show_status() {
 # 团队共享安装
 #------------------------------------------------------------------------------
 show_share() {
-    echo "flow-kit v1.12 — 团队共享安装指令"
+    echo "flow-kit v1.12.1 — 团队共享安装指令"
     echo ""
     echo "新成员执行以下命令完成安装:"
     echo ""
@@ -126,6 +128,8 @@ declare -A COMMANDS=(
     ["scan"]="/flow-kit:scan"
     ["cost-report"]="/flow-kit:cost-report"
     ["estimate-tokens"]="/flow-kit:estimate-tokens"
+    ["share"]="/flow-kit:share-install"
+    ["map-codebase"]="/flow-kit:register-commands"
 )
 
 #------------------------------------------------------------------------------
@@ -199,6 +203,11 @@ route_command() {
         share)
             show_share
             exit 0
+            ;;
+
+        map-codebase)
+            echo "[flow-kit] 代码库扫描..."
+            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:register-commands"
             ;;
 
         help|--help|-h)

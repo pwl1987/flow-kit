@@ -213,11 +213,18 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.12_
+_Generated with flow-kit v1.12.1_
 
 ---
 
 ## Changelog
+
+### v1.12.1 (2026-05-08)
+
+- phases/7-integration/7-integration.md: +交接验证门+回滚命令提示+占位符说明
+- phases/0-change/0-change.md: change-id格式统一为{slugified-function}-{YYYYMMDD}+占位符说明
+- flow-kit.sh: help示例增加map-codebase和share命令
+- VERSION/CLAUDE.md/README.md: v1.12.1
 
 ### v1.12 (2026-05-08)
 

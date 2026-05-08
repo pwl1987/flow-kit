@@ -3,6 +3,8 @@
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本文件为 flow-kit 工作流系统的核心骨架文件，定义集成与归档的标准流程。
 > 所有 phase 文件必须遵循此模板结构，包含触发条件、核心行为、边界情况、输出物四个标准章节。
+>
+> 占位符说明：本文档中的 {{TRIGGER}}、{{CORE_BEHAVIOR}}、{{BOUNDARY_CASES}}、{{OUTPUTS}} 等占位符由 AI 在阶段启动时根据实际变更上下文自动填充，用户无需手动替换。
 
 # Phase 7: Integration - 集成与归档
 
@@ -23,6 +25,19 @@
 5. **变更归档**：归档本次变更的所有相关文档
 6. **通知发布**：向相关方发布变更完成通知
 
+## 【强制】阶段切换交接验证门
+
+> v1.12.1 新增：6-review → 7-integration 切换时触发 Agent 交接验证门
+
+**切换前检查**：
+1. 触发 `@flow-kit/skills/agent-pipeline.md` 的 Agent 交接验证门
+2. 输出 Handler 覆盖矩阵（验证集成步骤 → 代码改动映射）
+3. 执行 Task-PRD 对齐检查（验证所有功能点已完成集成）
+4. 更新追责链（记录集成负责人和完成状态）
+
+**通过条件**：6 项自检全部通过 + 交接验证门通过
+**失败处理**：暂停并等待修复，不完成归档
+
 ## 边界情况
 {{BOUNDARY_CASES}}
 
@@ -41,4 +56,17 @@
 - **归档包**：完整的变更文档归档
 - **后续 Phase 入口确认**：确认流程结束或进入 8-rollback
 
---- END flow-kit/phases/7-integration/7-integration.md ---
+## 回滚命令提示
+
+> v1.12.1 新增：集成完成后提示回滚命令
+
+变更完成后输出：
+
+```
+✅ 变更已集成归档。如需回滚，执行：
+@flow-kit/GO.md --rollback {change-id}
+```
+
+---
+
+END flow-kit/phases/7-integration/7-integration.md ---
