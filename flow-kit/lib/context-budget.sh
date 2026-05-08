@@ -13,22 +13,124 @@ readonly WARN_THRESHOLD=0.80
 readonly BLOCK_THRESHOLD=1.00
 readonly CAVEMAN_SCRIPT="flow-kit/scripts/caveman-compress.sh"
 
+# 多模型token估算配置
+# 格式: 模型名:英文系数:中文系数:代码系数
+readonly MODEL_CONFIGS=(
+    "claude:0.25:1.5:0.35"
+    "gpt4:0.25:1.6:0.30"
+    "gemini:0.20:1.4:0.30"
+)
+
+# 当前使用的模型（默认claude）
+CURRENT_MODEL="${CONTEXT_BUDGET_MODEL:-claude}"
+
 #------------------------------------------------------------------------------
-# 估算 token（基于字符数/4 的近似计算）
+# 获取当前模型的配置参数
+#------------------------------------------------------------------------------
+get_model_params() {
+    local model="$1"
+    local config=""
+
+    for c in "${MODEL_CONFIGS[@]}"; do
+        local model_name=$(echo "$c" | cut -d: -f1)
+        if [ "$model_name" = "$model" ]; then
+            config="$c"
+            break
+        fi
+    done
+
+    if [ -z "$config" ]; then
+        # 默认使用claude配置
+        config="claude:0.25:1.5:0.35"
+    fi
+
+    echo "$config"
+}
+
+#------------------------------------------------------------------------------
+# 检测文本语言类型
+#------------------------------------------------------------------------------
+detect_language_type() {
+    local text="$1"
+
+    # 检测中文字符比例
+    local chinese_count=$(echo "$text" | grep -oP '[\x{4e00}-\x{9fff}]' 2>/dev/null | wc -l || echo 0)
+    local total_chars=${#text}
+
+    if [ "$total_chars" -eq 0 ]; then
+        echo "mixed"
+        return
+    fi
+
+    # 如果中文字符超过30%，认为是中文为主
+    local chinese_pct=$((chinese_count * 100 / total_chars))
+    if [ "$chinese_pct" -gt 30 ]; then
+        echo "chinese"
+    else
+        echo "english"
+    fi
+}
+
+#------------------------------------------------------------------------------
+# 检测内容类型（代码/文本/注释）
+#------------------------------------------------------------------------------
+detect_content_type() {
+    local text="$1"
+
+    # 检测代码特征
+    if echo "$text" | grep -qE '(function|class|import|export|const|let|var|if|for|while|return)' 2>/dev/null; then
+        echo "code"
+    else
+        echo "text"
+    fi
+}
+
+#------------------------------------------------------------------------------
+# 估算 token（智能估算，基于语言和 content 类型）
 #------------------------------------------------------------------------------
 estimate_tokens() {
     local text="${1:-}"
     if [ -z "$text" ]; then
-        # 从 stdin 读取
         text=$(cat)
     fi
+
     local char_count=${#text}
-    local token_estimate=$((char_count / 4))
+    if [ "$char_count" -eq 0 ]; then
+        echo "0"
+        return
+    fi
+
+    # 获取当前模型配置
+    local config=$(get_model_params "$CURRENT_MODEL")
+    local english_factor=$(echo "$config" | cut -d: -f2)
+    local chinese_factor=$(echo "$config" | cut -d: -f3)
+    local code_factor=$(echo "$config" | cut -d: -f4)
+
+    # 检测语言和 content 类型
+    local lang_type=$(detect_language_type "$text")
+    local content_type=$(detect_content_type "$text")
+
+    # 选择合适的系数
+    local factor
+    if [ "$content_type" = "code" ]; then
+        factor=$code_factor
+    elif [ "$lang_type" = "chinese" ]; then
+        factor=$chinese_factor
+    else
+        factor=$english_factor
+    fi
+
+    # 计算token估算值
+    local token_estimate=$(echo "$char_count * $factor" | bc -l 2>/dev/null | cut -d. -f1)
+    if [ -z "$token_estimate" ]; then
+        token_estimate=$((char_count / 4))
+    fi
+
     echo "$token_estimate"
 }
 
 #------------------------------------------------------------------------------
-# 估算文件 token
+# 估算文件 token（智能估算）
 #------------------------------------------------------------------------------
 estimate_file_tokens() {
     local file="$1"
@@ -36,9 +138,29 @@ estimate_file_tokens() {
         echo "0"
         return
     fi
-    local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
-    local token_estimate=$((char_count / 4))
-    echo "$token_estimate"
+
+    # 获取文件扩展名
+    local ext="${file##*.}"
+
+    # 代码文件使用代码系数
+    case "$ext" in
+        sh|bash|py|js|ts|jsx|tsx|java|c|cpp|h|go|rs|rb|php)
+            local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
+            local config=$(get_model_params "$CURRENT_MODEL")
+            local code_factor=$(echo "$config" | cut -d: -f4)
+            echo "$(echo "$char_count * $code_factor" | bc -l 2>/dev/null | cut -d. -f1)"
+            ;;
+        md|txt|log)
+            # 文本文件，需要检测语言
+            local content=$(cat "$file" 2>/dev/null || echo "")
+            estimate_tokens "$content"
+            ;;
+        *)
+            # 默认估算
+            local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
+            echo "$((char_count / 4))"
+            ;;
+    esac
 }
 
 #------------------------------------------------------------------------------
@@ -179,6 +301,8 @@ context-budget.sh — 上下文预算管理
   context-budget.sh --estimate-file <file> # 估算文件 token
   context-budget.sh --check <used> [total] # 检查预算使用率
   context-budget.sh --compress [reason]   # 触发压缩
+  context-budget.sh --model <model>       # 设置模型 (claude/gpt4/gemini)
+  context-budget.sh --list-models         # 列出支持的模型
 
 示例:
   context-budget.sh --status
@@ -186,6 +310,8 @@ context-budget.sh — 上下文预算管理
   context-budget.sh --estimate-file .planning/PROJECT.md
   context-budget.sh --check 75000 100000
   context-budget.sh --compress "auto-trigger"
+  context-budget.sh --model claude
+  context-budget.sh --list-models
 
 输出格式:
   JSON 格式预算状态报告
@@ -221,6 +347,26 @@ main() {
             ;;
         --compress|-m)
             trigger_compress "${2:-manual}"
+            ;;
+        --model)
+            if [ -z "${2:-}" ]; then
+                echo "[context-budget] 错误: 需要指定模型名称" >&2
+                exit 1
+            fi
+            echo "$2" > .flow-kit/context-budget-model
+            echo "[context-budget] ✅ 模型已设置为: $2"
+            ;;
+        --list-models)
+            echo "[context-budget] 支持的模型:"
+            for c in "${MODEL_CONFIGS[@]}"; do
+                local model_name=$(echo "$c" | cut -d: -f1)
+                local english_factor=$(echo "$c" | cut -d: -f2)
+                local chinese_factor=$(echo "$c" | cut -d: -f3)
+                local code_factor=$(echo "$c" | cut -d: -f4)
+                echo "  - $model_name (英文: ${english_factor}x, 中文: ${chinese_factor}x, 代码: ${code_factor}x)"
+            done
+            echo ""
+            echo "当前模型: $CURRENT_MODEL"
             ;;
         --help|-h)
             show_help

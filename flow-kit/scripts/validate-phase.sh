@@ -115,6 +115,183 @@ validate_types() {
 }
 
 #------------------------------------------------------------------------------
+# 验证字符串长度（minLength/maxLength）
+#------------------------------------------------------------------------------
+validate_string_length() {
+    local json_file="$1"
+    local schema_file="$2"
+
+    local errors=()
+    local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
+
+    for prop in $props; do
+        local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
+        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+
+        if [ "$actual_type" = "string" ] && [ "$actual_value" != "null" ]; then
+            local min_length=$(jq -r ".properties.\"$prop\".minLength // empty" "$schema_file" 2>/dev/null)
+            local max_length=$(jq -r ".properties.\"$prop\".maxLength // empty" "$schema_file" 2>/dev/null)
+            local str_length=${#actual_value}
+
+            if [ -n "$min_length" ] && [ "$str_length" -lt "$min_length" ]; then
+                errors+=("字段 $prop: 长度 $str_length 小于最小长度 $min_length")
+            fi
+
+            if [ -n "$max_length" ] && [ "$str_length" -gt "$max_length" ]; then
+                errors+=("字段 $prop: 长度 $str_length 超过最大长度 $max_length")
+            fi
+        fi
+    done
+
+    printf '%s\n' "${errors[@]}"
+}
+
+#------------------------------------------------------------------------------
+# 验证数字范围（minimum/maximum）
+#------------------------------------------------------------------------------
+validate_number_range() {
+    local json_file="$1"
+    local schema_file="$2"
+
+    local errors=()
+    local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
+
+    for prop in $props; do
+        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+
+        if [ "$actual_type" = "number" ] || [ "$actual_type" = "integer" ]; then
+            local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
+            local minimum=$(jq -r ".properties.\"$prop\".minimum // empty" "$schema_file" 2>/dev/null)
+            local maximum=$(jq -r ".properties.\"$prop\".maximum // empty" "$schema_file" 2>/dev/null)
+
+            if [ -n "$minimum" ]; then
+                if [ "$(echo "$actual_value < $minimum" | bc -l 2>/dev/null)" = "1" ]; then
+                    errors+=("字段 $prop: 值 $actual_value 小于最小值 $minimum")
+                fi
+            fi
+
+            if [ -n "$maximum" ]; then
+                if [ "$(echo "$actual_value > $maximum" | bc -l 2>/dev/null)" = "1" ]; then
+                    errors+=("字段 $prop: 值 $actual_value 超过最大值 $maximum")
+                fi
+            fi
+        fi
+    done
+
+    printf '%s\n' "${errors[@]}"
+}
+
+#------------------------------------------------------------------------------
+# 验证数组items类型
+#------------------------------------------------------------------------------
+validate_array_items() {
+    local json_file="$1"
+    local schema_file="$2"
+
+    local errors=()
+    local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
+
+    for prop in $props; do
+        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+
+        if [ "$actual_type" = "array" ]; then
+            local items_type=$(jq -r ".properties.\"$prop\".items.type // empty" "$schema_file" 2>/dev/null)
+
+            if [ -n "$items_type" ]; then
+                local array_length=$(jq -r ".\"$prop\" | length" "$json_file" 2>/dev/null)
+
+                for i in $(seq 0 $((array_length - 1))); do
+                    local item_type=$(jq -r ".\"$prop\"[$i] | type" "$json_file" 2>/dev/null)
+                    local item_value=$(jq -r ".\"$prop\"[$i]" "$json_file" 2>/dev/null)
+
+                    case "$items_type" in
+                        string)
+                            if [ "$item_type" != "string" ]; then
+                                errors+=("字段 $prop[$i]: 期望 string，实际 $item_type (值: $item_value)")
+                            fi
+                            ;;
+                        number|integer)
+                            if [ "$item_type" != "number" ] && [ "$item_type" != "integer" ]; then
+                                errors+=("字段 $prop[$i]: 期望 number，实际 $item_type (值: $item_value)")
+                            fi
+                            ;;
+                        object)
+                            if [ "$item_type" != "object" ]; then
+                                errors+=("字段 $prop[$i]: 期望 object，实际 $item_type (值: $item_value)")
+                            fi
+                            ;;
+                    esac
+                done
+            fi
+
+            # 验证minItems/maxItems
+            local min_items=$(jq -r ".properties.\"$prop\".minItems // empty" "$schema_file" 2>/dev/null)
+            local max_items=$(jq -r ".properties.\"$prop\".maxItems // empty" "$schema_file" 2>/dev/null)
+            local array_length=$(jq -r ".\"$prop\" | length" "$json_file" 2>/dev/null)
+
+            if [ -n "$min_items" ] && [ "$array_length" -lt "$min_items" ]; then
+                errors+=("字段 $prop: 数组长度 $array_length 小于最小项数 $min_items")
+            fi
+
+            if [ -n "$max_items" ] && [ "$array_length" -gt "$max_items" ]; then
+                errors+=("字段 $prop: 数组长度 $array_length 超过最大项数 $max_items")
+            fi
+        fi
+    done
+
+    printf '%s\n' "${errors[@]}"
+}
+
+#------------------------------------------------------------------------------
+# 验证嵌套对象（递归验证）
+#------------------------------------------------------------------------------
+validate_nested_object() {
+    local json_file="$1"
+    local schema_file="$2"
+    local prefix="${3:-}"
+
+    local errors=()
+    local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
+
+    for prop in $props; do
+        local full_prop="${prefix}${prefix:+.}$prop"
+        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+        local expected_type=$(jq -r ".properties.\"$prop\".type" "$schema_file" 2>/dev/null)
+
+        # 验证类型
+        if [ "$actual_type" != "$expected_type" ] && [ "$actual_type" != "null" ]; then
+            errors+=("字段 $full_prop: 期望 $expected_type，实际 $actual_type")
+            continue
+        fi
+
+        # 如果是object，递归验证
+        if [ "$expected_type" = "object" ] && [ "$actual_type" = "object" ]; then
+            local nested_schema=$(jq -c ".properties.\"$prop\"" "$schema_file" 2>/dev/null)
+            local nested_json=$(jq -c ".\"$prop\"" "$json_file" 2>/dev/null)
+
+            # 创建临时文件进行递归验证
+            local tmp_schema=$(mktemp)
+            local tmp_json=$(mktemp)
+            echo "$nested_schema" > "$tmp_schema"
+            echo "$nested_json" > "$tmp_json"
+
+            # 验证nested required
+            local nested_required=$(jq -r '.required[]' "$tmp_schema" 2>/dev/null || echo "")
+            for field in $nested_required; do
+                local value=$(jq -r ".$field" "$tmp_json" 2>/dev/null || echo "null")
+                if [ "$value" = "null" ] || [ -z "$value" ]; then
+                    errors+=("字段 $full_prop.$field: 缺少必填字段")
+                fi
+            done
+
+            rm -f "$tmp_schema" "$tmp_json"
+        fi
+    done
+
+    printf '%s\n' "${errors[@]}"
+}
+
+#------------------------------------------------------------------------------
 # 验证 enum 值
 #------------------------------------------------------------------------------
 validate_enum() {
@@ -125,18 +302,23 @@ validate_enum() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local enum_values=$(jq -c ".properties.\"$prop\".enum[]" "$schema_file" 2>/dev/null || echo "")
-        if [ -n "$enum_values" ]; then
-            local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
+        local has_enum=$(jq -r '.properties."'$prop'".enum != null' "$schema_file" 2>/dev/null)
+        if [ "$has_enum" = "true" ]; then
+            local actual_value=$(jq -c ".\"$prop\"" "$json_file" 2>/dev/null)
+            local enum_count=$(jq -r '.properties."'$prop'".enum | length' "$schema_file" 2>/dev/null)
             local found=false
-            for enum_val in $enum_values; do
-                if [ "\"$actual_value\"" = "$enum_val" ]; then
+
+            for i in $(seq 0 $((enum_count - 1))); do
+                local enum_val=$(jq -c ".properties.\"$prop\".enum[$i]" "$schema_file" 2>/dev/null)
+                if [ "$actual_value" = "$enum_val" ]; then
                     found=true
                     break
                 fi
             done
+
             if [ "$found" = false ]; then
-                errors+=("字段 $prop: 值 '$actual_value' 不在允许的 enum 列表中")
+                local allowed=$(jq -r '.properties."'$prop'".enum | join(", ")' "$schema_file" 2>/dev/null)
+                errors+=("字段 $prop: 值 '$actual_value' 不在允许的枚举值中 [$allowed]")
             fi
         fi
     done
@@ -212,6 +394,26 @@ validate_phase() {
     while IFS= read -r error; do
         [ -n "$error" ] && all_errors+=("$error")
     done < <(validate_types "$json_file" "$schema_file")
+
+    echo "检查字符串长度..."
+    while IFS= read -r error; do
+        [ -n "$error" ] && all_errors+=("$error")
+    done < <(validate_string_length "$json_file" "$schema_file")
+
+    echo "检查数字范围..."
+    while IFS= read -r error; do
+        [ -n "$error" ] && all_errors+=("$error")
+    done < <(validate_number_range "$json_file" "$schema_file")
+
+    echo "检查数组items..."
+    while IFS= read -r error; do
+        [ -n "$error" ] && all_errors+=("$error")
+    done < <(validate_array_items "$json_file" "$schema_file")
+
+    echo "检查嵌套对象..."
+    while IFS= read -r error; do
+        [ -n "$error" ] && all_errors+=("$error")
+    done < <(validate_nested_object "$json_file" "$schema_file")
 
     echo "检查 enum 值..."
     while IFS= read -r error; do
