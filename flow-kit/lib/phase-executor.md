@@ -392,6 +392,31 @@ After each phase output complete:
 **关联文件**：
 - `@flow-kit/skills/output-self-check.md` (R8.3 产物自检清单)
 
+### 13. JSON Schema 验证触发（v1.12.5 新增）
+
+**阶段产物输出后验证**：
+```
+
+After each phase output (e.g., phase-0/1/2 output):
+
+1. Locate corresponding schema: flow-kit/lib/validation/schemas/phase-{N}-output.schema.json
+2. Validate output JSON against schema using jq:
+   ```bash
+   jq --schema-file flow-kit/lib/validation/schemas/phase-0-output.schema.json \
+      --validate .planning/outputs/phase-0-output.json 2>/dev/null || echo "[SCHEMA] 验证失败"
+   ```
+3. If validation fails:
+   - Block phase completion
+   - Output validation errors
+   - Prompt user to fix output before proceeding
+4. If validation passes:
+   - Continue to next step
+
+**支持阶段**：
+- Phase 0: `phase-0-output.schema.json` (变更分类产物)
+- Phase 1: `phase-1-output.schema.json` (需求分析产物)
+- Phase 2: `phase-2-output.schema.json` (设计文档产物)
+
 ## Constitution 安全墙
 
 **所有阶段前必须通过**：
