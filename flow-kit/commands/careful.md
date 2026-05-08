@@ -183,16 +183,18 @@ fi
 - 锁默认有效期 1 小时（expiry_ts）
 - 锁目录的 mtime 超过 expiry_ts，后续进程可删除并重新获取
 
-**死锁检测机制：**
+**死锁检测机制（v1.12.5 双重条件验证）：**
 
 ```bash
-# 扫描过期锁并清理
+# 扫描过期锁并清理（双重条件：时间过期 AND mtime 过期）
 for lock_dir in .flow-kit/locks/*.lock; do
     [ -d "$lock_dir" ] || continue
     if [ -f "$lock_dir/info.json" ]; then
         EXPIRY=$(jq -r '.expiry_ts' "$lock_dir/info.json" 2>/dev/null)
         NOW=$(date +%s)
-        if [ "$NOW" -gt "$EXPIRY" ]; then
+        MTIME=$(stat -c %Y "$lock_dir" 2>/dev/null || echo 0)
+        # 双重条件：时间过期 或 mtime 超过 expiry_ts
+        if [ "$NOW" -gt "$EXPIRY" ] || [ "$MTIME" -lt $((EXPIRY - 3600)) ]; then
             echo "🧹 清理过期锁: $(basename "$lock_dir")"
             rm -rf "$lock_dir"
         fi
