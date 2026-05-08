@@ -6,6 +6,19 @@
 set -euo pipefail
 
 #------------------------------------------------------------------------------
+# 依赖检查：jq 必须可用
+#------------------------------------------------------------------------------
+if ! command -v jq &>/dev/null; then
+    printf '[错误] jq 未安装，无法执行 JSON Schema 验证。\n' >&2
+    printf '请安装 jq 后重试：brew install jq 或 apt install jq\n' >&2
+    exit 3
+fi
+
+# v1.12.10 改进：引入错误处理框架
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/error-handler.sh"
+
+#------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 readonly SCHEMA_DIR="flow-kit/lib/validation/schemas"

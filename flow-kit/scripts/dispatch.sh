@@ -14,6 +14,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v1.12.9 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
+source "$SCRIPT_DIR/../lib/error-handler.sh"
 LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"
 TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 AGENT_NAME="${AGENT_NAME:-agent-main}"
@@ -465,32 +466,32 @@ EOF
 }
 
 #------------------------------------------------------------------------------
-# 并发池控制（v1.12.9 新增：限制最大并行数）
+# 并发池控制（v1.12.10 改进：使用 flock 消除竞态）
 #------------------------------------------------------------------------------
 acquire_slot() {
     local max_conc="$1"
-    while true; do
-        local running=0
-        for pid_file in "$TMP_DIR"/slot-*.pid; do
-            if [ -f "$pid_file" ]; then
-                local slot_pid=$(cat "$pid_file" 2>/dev/null || echo "")
-                if [ -n "$slot_pid" ] && kill -0 "$slot_pid" 2>/dev/null; then
-                    running=$((running + 1))
-                else
-                    rm -f "$pid_file" 2>/dev/null || true
-                fi
-            fi
-        done
-        if [ "$running" -lt "$max_conc" ]; then
-            echo "$$" > "$TMP_DIR/slot-$$.pid"
+    local lockfile fd
+    for ((i=0; i<max_conc; i++)); do
+        lockfile="$TMP_DIR/slot-$i.lock"
+        exec {fd}>"$lockfile" 2>/dev/null || continue
+        if flock -n "$fd" 2>/dev/null; then
+            echo "$fd" > "$TMP_DIR/slot-$$.fd"
+            echo "$i"   > "$TMP_DIR/slot-$$.id"
             return 0
         fi
-        sleep 0.5
+        exec {fd}>&-
     done
+    return 1
 }
 
 release_slot() {
-    rm -f "$TMP_DIR/slot-$$.pid" 2>/dev/null || true
+    local fd_file="$TMP_DIR/slot-$$.fd"
+    if [[ -f "$fd_file" ]]; then
+        local fd=$(cat "$fd_file")
+        flock -u "$fd" 2>/dev/null || true
+        exec {fd}>&- 2>/dev/null || true
+        rm -f "$fd_file" "$TMP_DIR/slot-$$.id"
+    fi
 }
 
 #------------------------------------------------------------------------------

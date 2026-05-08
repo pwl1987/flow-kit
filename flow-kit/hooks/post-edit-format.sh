@@ -41,6 +41,45 @@ if command -v npx &> /dev/null; then
     fi
 fi
 
+# v1.12.10 改进：多语言格式化支持
+detect_and_format() {
+    local file="$1"
+
+    case "$file" in
+        *.py)
+            if command -v black &>/dev/null; then
+                timeout 5 black "$file" 2>/dev/null && return 0
+            fi
+            if command -v autopep8 &>/dev/null; then
+                timeout 5 autopep8 --in-place "$file" 2>/dev/null && return 0
+            fi
+            ;;
+        *.go)
+            if command -v gofmt &>/dev/null; then
+                timeout 5 gofmt -w "$file" 2>/dev/null && return 0
+            fi
+            ;;
+        *.rs)
+            if command -v rustfmt &>/dev/null; then
+                timeout 5 rustfmt "$file" 2>/dev/null && return 0
+            fi
+            ;;
+        *.sh|*.bash)
+            if command -v shfmt &>/dev/null; then
+                timeout 5 shfmt -w "$file" 2>/dev/null && return 0
+            fi
+            ;;
+        *.java|*.c|*.cpp|*.h|*.hpp)
+            if command -v clang-format &>/dev/null; then
+                timeout 5 clang-format -i "$file" 2>/dev/null && return 0
+            fi
+            ;;
+    esac
+    return 1
+}
+
+detect_and_format "$FILE_PATH"
+
 # hooks 执行遥测
 END_TIME=$(date +%s%3N)
 ELAPSED=$((END_TIME - START_TIME))

@@ -105,6 +105,115 @@ check_result() {
 # check_result "my-module" "命令执行成功"
 
 #------------------------------------------------------------------------------
+# 错误上下文管理（v1.12.10 强化）
+#------------------------------------------------------------------------------
+ERROR_CONTEXT_DIR="${ERROR_CONTEXT_DIR:-$HOME/.flow-kit/error-contexts}"
+mkdir -p "$ERROR_CONTEXT_DIR" 2>/dev/null || true
+
+create_error_context() {
+    local error_file="${1:-}"
+    local error_type="${2:-UNKNOWN}"
+    local context="${3:-unknown}"
+
+    if [ -z "$error_file" ]; then
+        error_file="$ERROR_CONTEXT_DIR/error-$(date +%Y%m%d%H%M%S)-$$.json"
+    fi
+
+    mkdir -p "$(dirname "$error_file")" 2>/dev/null || true
+
+    local timestamp
+    timestamp=$(get_timestamp)
+
+    cat > "$error_file" << EOF
+{
+  "type": "$error_type",
+  "context": "$context",
+  "timestamp": "$timestamp",
+  "script": "${BASH_SOURCE[1]:-unknown}",
+  "line": "${BASH_LINENO[0]:-0}",
+  "command": "$BASH_COMMAND",
+  "recovery_suggestions": []
+}
+EOF
+    echo "$error_file"
+}
+
+get_error_recovery_suggestion() {
+    local error_type="$1"
+
+    case "$error_type" in
+        MISSING_DEPS)
+            echo "请安装缺失的依赖后重试"
+            ;;
+        GUARD_BLOCK)
+            echo "当前操作被安全护栏阻断，请检查配置或联系管理员"
+            ;;
+        TIMEOUT)
+            echo "操作超时，请检查网络连接或增加超时时间"
+            ;;
+        PERMISSION_DENIED)
+            echo "权限不足，请检查文件权限设置"
+            ;;
+        *)
+            echo "请查看错误日志获取更多信息"
+            ;;
+    esac
+}
+
+safe_exit() {
+    local exit_code="${1:-0}"
+    local error_file="${2:-}"
+    local message="${3:-}"
+
+    if [ -n "$message" ]; then
+        log_info "exit" "$message"
+    fi
+
+    if [ -n "$error_file" ] && [ -f "$error_file" ]; then
+        local error_type
+        error_type=$(grep -oP '"type": "\K[^"]+' "$error_file" 2>/dev/null || echo "UNKNOWN")
+
+        if [ "$exit_code" -ne 0 ]; then
+            local suggestion
+            suggestion=$(get_error_recovery_suggestion "$error_type")
+            log_warn "exit" "错误类型: $error_type"
+            log_warn "exit" "恢复建议: $suggestion"
+        fi
+    fi
+
+    exit "$exit_code"
+}
+
+aggregate_errors() {
+    local error_log="$1"
+    shift
+    local errors=("$@")
+
+    if [ ${#errors[@]} -eq 0 ]; then
+        return 0
+    fi
+
+    {
+        echo "{"
+        echo "  \"aggregated_at\": \"$(get_timestamp)\","
+        echo "  \"total_errors\": ${#errors[@]},"
+        echo "  \"errors\": ["
+        local first=true
+        for error in "${errors[@]}"; do
+            if [ "$first" = true ]; then
+                first=false
+            else
+                echo ","
+            fi
+            echo "    $error"
+        done
+        echo ""
+        echo "  ]"
+        echo "}"
+    } > "$error_log"
+}
+
+#------------------------------------------------------------------------------
 # 参考来源
 #------------------------------------------------------------------------------
 # [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) — 错误处理规范
