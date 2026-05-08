@@ -94,13 +94,16 @@ show_status() {
 # 团队共享安装
 #------------------------------------------------------------------------------
 show_share() {
-    echo "flow-kit v1.12.1 — 团队共享安装指令"
+    # 自动提取当前项目名
+    PROJECT_NAME=$(basename "$(pwd)")
+
+    echo "flow-kit v1.12.2 — 团队共享安装指令"
     echo ""
     echo "新成员执行以下命令完成安装:"
     echo ""
-    echo "# 1. 克隆项目"
-    echo "git clone <repo-url> <project-name>"
-    echo "cd <project-name>"
+    echo "# 1. 克隆项目（$PROJECT_NAME 可替换为实际项目名）"
+    echo "git clone <repo-url> $PROJECT_NAME"
+    echo "cd $PROJECT_NAME"
     echo ""
     echo "# 2. 安装 hooks（自动注册斜杠命令）"
     echo "./flow-kit/flow-kit.sh hooks install"

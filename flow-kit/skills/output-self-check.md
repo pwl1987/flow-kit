@@ -11,6 +11,17 @@
 
 ## 6 项自检清单
 
+> v1.12.2 新增：动态 change-id 路径支持
+
+```bash
+# 动态 change-id 变量（自动从 .flow-kit/current-change 读取）
+CHANGE_ID=$(cat .flow-kit/current-change 2>/dev/null || echo "")
+# 回退逻辑：若不存在，提示用户手动设置
+if [ -z "$CHANGE_ID" ]; then
+    echo "[R8.3] 警告: .flow-kit/current-change 不存在，请手动设置: export CHANGE_ID=xxx"
+fi
+```
+
 ### 1. 文件存在性检查
 
 ```
@@ -23,11 +34,12 @@
 **可执行命令**：
 
 ```bash
-# 检查输出文件是否存在
-ls -la .specs/{change-id}/*.md
+# 检查输出文件是否存在（动态 change-id）
+CHANGE_ID=$(cat .flow-kit/current-change 2>/dev/null || echo "")
+ls -la ".specs/$CHANGE_ID/"*.md 2>/dev/null || echo "[R8.3] 错误: 目录不存在，请设置 CHANGE_ID"
 
 # 检查 SPEC 文件命名规范
-grep -l "change-id" .specs/*/CHANGE.md
+grep -l "change-id" ".specs/$CHANGE_ID/"*.md 2>/dev/null
 ```
 
 ### 2. 命名规范检查
