@@ -89,27 +89,26 @@ get_model_params() {
 }
 
 #------------------------------------------------------------------------------
-# 检测文本语言类型（POSIX 兼容，v1.12.8 修复 grep -oP 移植性）
+# 检测文本语言类型（POSIX 兼容，v1.12.10 修复 UTF-8 中文字符检测）
 #------------------------------------------------------------------------------
 detect_language_type() {
     local text="$1"
 
-    # P0 修复：使用 awk 替代 grep -oP（POSIX 兼容）
-    # awk 检测 UTF-8 中文字符范围 [一-龥]
+    # P0 修复：使用 perl 进行 Unicode 中文字符检测（UTF-8 感知）
+    # 检测 UTF-8 中文字符范围：一-龥 (U+4E00-U+9FFF)
     local chinese_count
-    chinese_count=$(printf '%s' "$text" | awk '
-    BEGIN { count = 0 }
-    {
-        n = split($0, chars, "")
-        for (i = 1; i <= n; i++) {
-            c = chars[i]
-            if (c >= "\xe4\xb8\x80" && c <= "\xe9\xbe\xbf") {
-                count++
-            }
-        }
-    }
-    END { print count }
-    ' 2>/dev/null || echo "0")
+    if command -v perl &>/dev/null; then
+        chinese_count=$(printf '%s' "$text" | perl -0777 -ne '
+            my $count = () = $_ =~ /[\x{4E00}-\x{9FFF}]/g;
+            print $count;
+        ' 2>/dev/null || echo "0")
+    elif command -v grep &>/dev/null; then
+        # 回退：使用 grep -o 配合 Unicode 范围
+        chinese_count=$(printf '%s' "$text" | grep -o '['"'"'一-龥'"'"']' 2>/dev/null | wc -l || echo "0")
+    else
+        # 最后的回退：统计非 ASCII 字符
+        chinese_count=$(printf '%s' "$text" | tr -d '[:ascii:]' | wc -c || echo "0")
+    fi
 
     local total_chars=${#text}
 
@@ -179,7 +178,8 @@ estimate_tokens() {
     # 计算token估算值
     local token_estimate
     token_estimate=$(float_mul "$char_count" "$factor")
-    if [ -z "$token_estimate" ] || [ "$token_estimate" = "0" ]; then
+    # P1 修复：改进降级判断 - 仅在计算失败时降级（非空且非零才认为是成功）
+    if [ -z "$token_estimate" ] || ! [[ "$token_estimate" =~ ^[0-9]+$ ]] || [ "$token_estimate" -eq 0 ]; then
         token_estimate=$((char_count / 4))
     fi
 

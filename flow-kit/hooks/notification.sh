@@ -11,6 +11,9 @@ START_TIME=$(date +%s%3N)
 TITLE="${1:-flow-kit}"
 MESSAGE="${2:-Claude Code 需要你的关注}"
 
+# v1.12.10 修复：提前声明所有局部变量，避免 dash/sh 兼容性问题
+local ps_script=""
+
 # macOS
 if command -v osascript &> /dev/null; then
     osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\""
@@ -19,7 +22,9 @@ elif command -v notify-send &> /dev/null; then
     notify-send "${TITLE}" "${MESSAGE}"
 # Windows - P1 修复：实际发送 Toast 通知
 elif command -v powershell &> /dev/null; then
-    local ps_script=$(mktemp /tmp/notify-XXXXXX.ps1)
+    ps_script=$(mktemp /tmp/notify-XXXXXX.ps1)
+    # v1.12.10 安全修复：限制临时文件权限，防止信息泄露
+    chmod 600 "${ps_script}" 2>/dev/null || true
     cat > "${ps_script}" << 'PSEOF'
 param(
     [string]$Title,

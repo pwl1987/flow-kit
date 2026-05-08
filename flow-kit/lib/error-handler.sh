@@ -124,13 +124,18 @@ create_error_context() {
     local timestamp
     timestamp=$(get_timestamp)
 
+    # P0 修复：提前获取调用栈信息，避免在 here-doc 中引用不存在的数组索引
+    # BASH_SOURCE[0] 是当前脚本，BASH_SOURCE[1] 是调用者
+    local caller_script="${BASH_SOURCE[1]:-${BASH_SOURCE[0]:-unknown}}"
+    local caller_line="${BASH_LINENO[0]:-0}"
+
     cat > "$error_file" << EOF
 {
   "type": "$error_type",
   "context": "$context",
   "timestamp": "$timestamp",
-  "script": "${BASH_SOURCE[1]:-unknown}",
-  "line": "${BASH_LINENO[0]:-0}",
+  "script": "$caller_script",
+  "line": $caller_line,
   "command": "$BASH_COMMAND",
   "recovery_suggestions": []
 }
@@ -170,8 +175,13 @@ safe_exit() {
     fi
 
     if [ -n "$error_file" ] && [ -f "$error_file" ]; then
+        # P2 修复：使用 jq 解析 JSON，添加 grep 回退
         local error_type
-        error_type=$(grep -oP '"type": "\K[^"]+' "$error_file" 2>/dev/null || echo "UNKNOWN")
+        if command -v jq &>/dev/null; then
+            error_type=$(jq -r '.type // empty' "$error_file" 2>/dev/null || echo "UNKNOWN")
+        else
+            error_type=$(grep -oP '"type": "\K[^"]+' "$error_file" 2>/dev/null || echo "UNKNOWN")
+        fi
 
         if [ "$exit_code" -ne 0 ]; then
             local suggestion

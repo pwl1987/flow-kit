@@ -89,6 +89,11 @@ cleanup_children() {
     if [ -d "$TMP_DIR" ]; then
         rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*-result.json "$TMP_DIR"/subagent-*-status.json "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
     fi
+    # v1.12.10 改进：清理 slot 锁文件
+    if [ -d "$LOCK_DIR" ]; then
+        rm -f "$LOCK_DIR"/slot-*.lock 2>/dev/null || true
+    fi
+    rm -f "$TMP_DIR"/slot-*.id "$TMP_DIR"/slot-*.fd 2>/dev/null || true
     exit $exit_code
 }
 
@@ -466,31 +471,41 @@ EOF
 }
 
 #------------------------------------------------------------------------------
-# 并发池控制（v1.12.10 改进：使用 flock 消除竞态）
+# 并发池控制（v1.12.10 改进：使用 flock 消除竞态 + 防止 FD/文件泄漏）
 #------------------------------------------------------------------------------
 acquire_slot() {
     local max_conc="$1"
-    local lockfile fd
     for ((i=0; i<max_conc; i++)); do
-        lockfile="$TMP_DIR/slot-$i.lock"
-        exec {fd}>"$lockfile" 2>/dev/null || continue
-        if flock -n "$fd" 2>/dev/null; then
-            echo "$fd" > "$TMP_DIR/slot-$$.fd"
-            echo "$i"   > "$TMP_DIR/slot-$$.id"
+        local lockfile="$TMP_DIR/slot-$i.lock"
+        # 打开 FD 200 指向锁文件（如果文件不存在会创建）
+        exec 200>"$lockfile" 2>/dev/null || continue
+        # 非阻塞获取排他锁
+        if flock -n 200 2>/dev/null; then
+            # 保存 slot 编号到临时文件（而非 FD）
+            echo "$i" > "$TMP_DIR/slot-$$.id"
             return 0
         fi
-        exec {fd}>&-
+        # 获取失败，关闭 FD 并尝试下一个 slot
+        exec 200>&- 2>/dev/null
     done
     return 1
 }
 
 release_slot() {
-    local fd_file="$TMP_DIR/slot-$$.fd"
-    if [[ -f "$fd_file" ]]; then
-        local fd=$(cat "$fd_file")
-        flock -u "$fd" 2>/dev/null || true
-        exec {fd}>&- 2>/dev/null || true
-        rm -f "$fd_file" "$TMP_DIR/slot-$$.id"
+    local slot_id_file="$TMP_DIR/slot-$$.id"
+    if [[ -f "$slot_id_file" ]]; then
+        local slot_num
+        slot_num=$(cat "$slot_id_file" 2>/dev/null || echo "")
+        if [[ -n "$slot_num" ]]; then
+            local lockfile="$TMP_DIR/slot-$slot_num.lock"
+            # 使用 FD 200 重新打开锁文件并释放锁
+            exec 200>"$lockfile" 2>/dev/null || true
+            flock -u 200 2>/dev/null || true
+            exec 200>&- 2>/dev/null || true
+            # 清理锁文件本身
+            rm -f "$lockfile"
+        fi
+        rm -f "$slot_id_file"
     fi
 }
 

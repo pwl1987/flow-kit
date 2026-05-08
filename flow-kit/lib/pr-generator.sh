@@ -25,6 +25,19 @@ has_uncommitted_changes() {
 }
 
 #------------------------------------------------------------------------------
+# 验证分支名格式（防止命令注入）
+#------------------------------------------------------------------------------
+validate_branch_name() {
+    local branch_name="$1"
+
+    # P0 修复：只允许字母、数字、斜杠、下划线、连字符、点和 @
+    if [[ "$branch_name" =~ ^[a-zA-Z0-9/_.\-@]+$ ]]; then
+        return 0
+    fi
+    return 1
+}
+
+#------------------------------------------------------------------------------
 # 主函数
 #------------------------------------------------------------------------------
 main() {
@@ -45,6 +58,16 @@ main() {
     echo "Base: $base_branch"
     echo "Head: $head_branch"
     echo ""
+
+    # P0 修复：验证分支名格式
+    if ! validate_branch_name "$base_branch"; then
+        echo "[ERROR] 无效的分支名: $base_branch（只允许字母、数字、/、_、-、.、@）"
+        return 1
+    fi
+    if ! validate_branch_name "$head_branch"; then
+        echo "[ERROR] 无效的分支名: $head_branch（只允许字母、数字、/、_、-、.、@）"
+        return 1
+    fi
 
     local current_branch
     current_branch=$(git branch --show-current 2>/dev/null || echo "detached")
