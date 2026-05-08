@@ -69,6 +69,38 @@
 
 **趋势计算：** 与上次扫描结果对比（存储在 `.flow-kit/health-history.json`）
 
+### 2.1 B5/B6 护栏联动（v1.12.5 新增）
+
+**B5 性能护栏结果集成：**
+
+```json
+{
+  "performance_guardrails": {
+    "P1_nested_loops": { "found": 2, "status": "WARN" },
+    "P2_n1_queries": { "found": 0, "status": "PASS" },
+    "P3_missing_indexes": { "found": 1, "status": "FAIL" },
+    "P4_sync_io": { "found": 0, "status": "PASS" }
+  }
+}
+```
+
+**B6 测试覆盖率结果集成：**
+
+```json
+{
+  "test_coverage": {
+    "overall_coverage": 78,
+    "status": "WARN",
+    "incremental": {
+      "new_lines": 150,
+      "covered_lines": 120,
+      "coverage": "80%",
+      "status": "PASS"
+    }
+  }
+}
+```
+
 ### 3. Lint 状态
 
 **错误分类：**
