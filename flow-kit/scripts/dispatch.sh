@@ -256,7 +256,7 @@ check_lock_conflicts() {
 }
 
 #------------------------------------------------------------------------------
-# 执行单个子代理（后台进程函数）
+# 执行单个子代理（后台进程函数，支持重试）
 #------------------------------------------------------------------------------
 run_single_agent() {
     local agent_id="$1"
@@ -264,6 +264,8 @@ run_single_agent() {
     local prompt_file="$3"
     local task_desc="$4"
     local tmp_dir="$5"
+    local max_retries="${6:-2}"
+    local retry_interval="${7:-10}"
     local result_file="$tmp_dir/subagent-${agent_id}-result.json"
     local log_file="$tmp_dir/subagent-${agent_id}.log"
 
@@ -272,11 +274,24 @@ run_single_agent() {
 
     {
         echo "[agent-$agent_id] 开始执行 ($role)"
+        echo "[agent-$agent_id] 最大重试次数: $max_retries"
 
-        # 验证prompt文件存在
-        if [ ! -f "$prompt_file" ]; then
-            echo "[agent-$agent_id] ❌ Prompt文件不存在: $prompt_file"
-            cat > "$result_file" << EOF
+        local attempt=0
+        local success=false
+
+        while [ $attempt -le $max_retries ] && [ "$success" = false ]; do
+            if [ $attempt -gt 0 ]; then
+                echo "[agent-$agent_id] 第 $attempt 次重试（等待 ${retry_interval}s）..."
+                sleep $retry_interval
+            fi
+
+            attempt=$((attempt + 1))
+            echo "[agent-$agent_id] 尝试执行 (第 $attempt 次)"
+
+            # 验证prompt文件存在
+            if [ ! -f "$prompt_file" ]; then
+                echo "[agent-$agent_id] ❌ Prompt文件不存在: $prompt_file"
+                cat > "$result_file" << EOF
 {
   "id": "$agent_id",
   "role": "$role",
@@ -284,28 +299,28 @@ run_single_agent() {
   "summary": "Prompt文件不存在",
   "files_modified": [],
   "issues": ["Prompt文件不存在: $prompt_file"],
-  "context_consumed_pct": "0%"
+  "context_consumed_pct": "0%",
+  "attempts": $attempt
 }
 EOF
-            exit 1
-        fi
+                break
+            fi
 
-        # 读取prompt内容
-        local prompt_content=$(cat "$prompt_file")
+            # 读取prompt内容
+            local prompt_content=$(cat "$prompt_file")
 
-        # 模拟执行（实际环境中应由Claude Code Task API调用）
-        # 这里使用模拟执行来演示并行能力
-        echo "[agent-$agent_id] 正在执行任务..."
-        sleep 2  # 模拟执行时间
+            # 模拟执行（实际环境中应由Claude Code Task API调用）
+            echo "[agent-$agent_id] 正在执行任务..."
+            sleep 2  # 模拟执行时间
 
-        # 根据角色生成模拟结果
-        local role_lower=$(echo "$role" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-        local simulated_status="SUCCESS"
-        local simulated_files="[\"src/${role_lower}.ts\"]"
+            # 根据角色生成模拟结果
+            local role_lower=$(echo "$role" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+            local simulated_status="SUCCESS"
+            local simulated_files="[\"src/${role_lower}.ts\"]"
 
-        # 写入结果文件（使用原子写入避免竞态）
-        local tmp_result="$result_file.tmp"
-        cat > "$tmp_result" << EOF
+            # 写入结果文件（使用原子写入避免竞态）
+            local tmp_result="$result_file.tmp"
+            cat > "$tmp_result" << EOF
 {
   "id": "$agent_id",
   "role": "$role",
@@ -314,12 +329,19 @@ EOF
   "files_modified": $simulated_files,
   "issues": [],
   "context_consumed_pct": "25%",
-  "execution_time_seconds": 2
+  "execution_time_seconds": 2,
+  "attempts": $attempt
 }
 EOF
-        mv "$tmp_result" "$result_file"
+            mv "$tmp_result" "$result_file"
 
-        echo "[agent-$agent_id] ✅ 执行完成: $simulated_status"
+            echo "[agent-$agent_id] ✅ 执行完成: $simulated_status (尝试 $attempt 次)"
+            success=true
+        done
+
+        if [ "$success" = false ]; then
+            echo "[agent-$agent_id] ❌ 执行失败（已重试 $max_retries 次）"
+        fi
     } >> "$log_file" 2>&1
 }
 
@@ -410,20 +432,144 @@ EOF
     echo ""
     echo "[dispatch] 📊 已启动 ${#pids[@]} 个子代理（并行执行中）"
     echo "[dispatch] PIDs: ${pids[*]}"
+    echo "[dispatch] ⏱️ 超时设置: 300秒/子代理"
 
-    # 等待所有后台进程完成
+    # 监控并等待所有后台进程完成（带超时控制）
+    local timeout_seconds=300
+    local check_interval=5
+    local elapsed=0
     local all_success=true
-    for i in "${!pids[@]}"; do
-        local pid=${pids[$i]}
-        local agent_id=${agent_ids[$i]}
+    local timed_out_agents=()
 
-        if wait $pid; then
-            echo "[dispatch] ✅ $agent_id 执行成功"
-        else
-            echo "[dispatch] ❌ $agent_id 执行失败"
-            all_success=false
+    echo "[dispatch] ⏳ 等待子代理完成..."
+
+    while [ $elapsed -lt $timeout_seconds ]; do
+        local all_done=true
+        local completed=0
+        local running=0
+
+        for i in "${!pids[@]}"; do
+            local pid=${pids[$i]}
+            local agent_id=${agent_ids[$i]}
+
+            # 检查进程是否还在运行
+            if kill -0 $pid 2>/dev/null; then
+                all_done=false
+                running=$((running + 1))
+            else
+                # 进程已完成，检查退出码
+                if ! wait $pid 2>/dev/null; then
+                    # 检查是否已经处理过这个agent
+                    local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
+                    if [ ! -f "$result_file" ]; then
+                        echo "[dispatch] ❌ $agent_id 执行失败"
+                        cat > "$result_file" << EOF
+{
+  "id": "$agent_id",
+  "role": "unknown",
+  "status": "FAILED",
+  "summary": "子代理执行失败",
+  "files_modified": [],
+  "issues": ["子代理进程异常退出"],
+  "context_consumed_pct": "0%",
+  "attempts": 0
+}
+EOF
+                        all_success=false
+                    fi
+                else
+                    completed=$((completed + 1))
+                fi
+            fi
+        done
+
+        if [ "$all_done" = true ]; then
+            echo "[dispatch] ✅ 所有子代理已完成"
+            break
         fi
+
+        # 检查是否有超时的子代理
+        for i in "${!pids[@]}"; do
+            local pid=${pids[$i]}
+            local agent_id=${agent_ids[$i]}
+
+            if kill -0 $pid 2>/dev/null; then
+                local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
+                if [ -f "$status_file" ]; then
+                    local started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
+                    if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
+                        local start_epoch=$(date -d "$started_at" +%s 2>/dev/null || echo 0)
+                        local now_epoch=$(date +%s)
+                        local agent_elapsed=$((now_epoch - start_epoch))
+
+                        if [ $agent_elapsed -gt $timeout_seconds ]; then
+                            echo "[dispatch] ⏱️ $agent_id 执行超时 (${agent_elapsed}s > ${timeout_seconds}s)"
+                            echo "[dispatch] 🛑 正在终止 $agent_id (PID: $pid)..."
+                            kill -TERM $pid 2>/dev/null || true
+                            sleep 1
+                            kill -9 $pid 2>/dev/null || true
+
+                            # 写入超时结果
+                            cat > "$TMP_DIR/subagent-${agent_id}-result.json" << EOF
+{
+  "id": "$agent_id",
+  "role": "unknown",
+  "status": "FAILED",
+  "summary": "执行超时",
+  "files_modified": [],
+  "issues": ["执行时间超过 ${timeout_seconds}s 限制"],
+  "context_consumed_pct": "0%",
+  "attempts": 0,
+  "timeout_seconds": $agent_elapsed
+}
+EOF
+                            timed_out_agents+=("$agent_id")
+                            all_success=false
+                        fi
+                    fi
+                fi
+            fi
+        done
+
+        echo "[dispatch]    进度: 完成 $completed | 运行中 $running | 已用时 ${elapsed}s"
+        sleep $check_interval
+        elapsed=$((elapsed + check_interval))
     done
+
+    # 如果总超时，终止所有仍在运行的进程
+    if [ $elapsed -ge $timeout_seconds ]; then
+        echo "[dispatch] ⏱️ 总执行超时 (${timeout_seconds}s)"
+        for i in "${!pids[@]}"; do
+            local pid=${pids[$i]}
+            local agent_id=${agent_ids[$i]}
+
+            if kill -0 $pid 2>/dev/null; then
+                echo "[dispatch] 🛑 终止 $agent_id (PID: $pid)..."
+                kill -TERM $pid 2>/dev/null || true
+                sleep 1
+                kill -9 $pid 2>/dev/null || true
+
+                # 写入超时结果
+                cat > "$TMP_DIR/subagent-${agent_id}-result.json" << EOF
+{
+  "id": "$agent_id",
+  "role": "unknown",
+  "status": "FAILED",
+  "summary": "执行超时",
+  "files_modified": [],
+  "issues": ["总执行时间超过 ${timeout_seconds}s 限制"],
+  "context_consumed_pct": "0%",
+  "attempts": 0
+}
+EOF
+                all_success=false
+            fi
+        done
+    fi
+
+    if [ ${#timed_out_agents[@]} -gt 0 ]; then
+        echo "[dispatch] ⚠️ 超时代理: ${timed_out_agents[*]}"
+    fi
 
     # 更新summary
     local total=${#agent_ids[@]}

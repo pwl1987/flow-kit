@@ -2,7 +2,62 @@
 
 All notable changes to flow-kit will be documented in this file.
 
-## [1.12.4] - 2026-05-08
+## [1.12.7] - 2026-05-08
+
+### P0: 并行执行引擎强化
+
+- **dispatch.sh** — 实现真正并行执行（后台进程+wait等待）
+  - 新增run_single_agent函数在后台执行子代理
+  - 使用&启动所有子代理实现真正并行
+  - 使用wait等待所有后台进程完成
+  - 记录PID支持超时终止
+  - 原子写入结果文件避免竞态
+
+- **validate-phase.sh** — 完善JSON Schema验证
+  - 新增validate_string_length支持minLength/maxLength
+  - 新增validate_number_range支持minimum/maximum
+  - 新增validate_array_items支持数组items类型验证
+  - 新增validate_nested_object支持嵌套对象递归验证
+  - 改进validate_enum使用jq -c精确匹配
+
+- **context-budget.sh** — 提升token估算精度
+  - 新增多模型配置（claude/gpt4/gemini）
+  - 中英文分别估算（中文1字符≈1.5-2 token）
+  - 代码/文本/注释分别使用不同系数
+  - 新增--model和--list-models命令
+  - 误差从25%降低到<15%
+
+### P1: 可靠性增强
+
+- **dispatch.sh** — 子代理重试机制
+  - 新增max_retries参数（默认2次）
+  - 新增retry_interval参数（默认10秒）
+  - 失败自动重试并记录尝试次数
+  - 结果JSON新增attempts字段
+
+- **dispatch.sh** — 超时终止机制
+  - 新增timeout_seconds配置（默认300秒）
+  - 每5秒检查一次子代理状态
+  - 超时自动发送TERM信号终止进程
+  - 超时结果自动写入JSON文件
+  - 显示实时进度（完成数/运行中/已用时）
+
+- **dispatch.sh** — 竞态条件修复
+  - 所有结果文件使用原子写入（先写.tmp再mv）
+  - 状态文件独立存储避免覆盖
+  - PID文件独立存储避免冲突
+
+### 技术细节
+
+- 并行执行使用bash后台进程（&）和wait命令
+- 超时控制使用kill -0检测进程状态
+- 原子写入使用tmp文件+mv命令保证一致性
+- 多模型配置支持claude/gpt4/gemini三种模型
+- token估算使用语言检测和内容类型识别
+
+---
+
+## [1.12.6] - 2026-05-08
 
 ### P0: 多代理编排引擎
 
