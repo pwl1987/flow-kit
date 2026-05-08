@@ -3,7 +3,7 @@
 # v1.12.6 P0 新增
 # 实现 token 估算和预算控制
 
-set -e
+set -euo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
@@ -12,6 +12,47 @@ readonly DEFAULT_BUDGET=100000
 readonly WARN_THRESHOLD=0.80
 readonly BLOCK_THRESHOLD=1.00
 readonly CAVEMAN_SCRIPT="flow-kit/scripts/caveman-compress.sh"
+
+# v1.12.9 改进：检测 bc 可用性，提供降级方案
+HAS_BC=false
+if command -v bc &>/dev/null; then
+    HAS_BC=true
+fi
+
+# 浮点运算封装（支持 bc 降级）
+float_cmp() {
+    local a="$1"
+    local op="$2"
+    local b="$3"
+    if [ "$HAS_BC" = true ]; then
+        [ "$(echo "$a $op $b" | bc -l 2>/dev/null)" = "1" ]
+    else
+        # 降级：使用 awk 进行浮点比较
+        awk "BEGIN {exit !($a $op $b)}" 2>/dev/null
+    fi
+}
+
+float_mul() {
+    local a="$1"
+    local b="$2"
+    if [ "$HAS_BC" = true ]; then
+        echo "$a * $b" | bc -l 2>/dev/null | cut -d. -f1
+    else
+        # 降级：使用 awk
+        awk "BEGIN {printf \"%d\", $a * $b}" 2>/dev/null || echo "0"
+    fi
+}
+
+float_scale() {
+    local a="$1"
+    local scale="${2:-2}"
+    if [ "$HAS_BC" = true ]; then
+        echo "scale=$scale; $a" | bc -l 2>/dev/null
+    else
+        # 降级：使用 awk
+        awk "BEGIN {printf \"%.${scale}f\", $a}" 2>/dev/null || echo "$a"
+    fi
+}
 
 # 多模型token估算配置
 # 格式: 模型名:英文系数:中文系数:代码系数
@@ -136,8 +177,9 @@ estimate_tokens() {
     fi
 
     # 计算token估算值
-    local token_estimate=$(echo "$char_count * $factor" | bc -l 2>/dev/null | cut -d. -f1)
-    if [ -z "$token_estimate" ]; then
+    local token_estimate
+    token_estimate=$(float_mul "$char_count" "$factor")
+    if [ -z "$token_estimate" ] || [ "$token_estimate" = "0" ]; then
         token_estimate=$((char_count / 4))
     fi
 
@@ -163,7 +205,7 @@ estimate_file_tokens() {
             local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
             local config=$(get_model_params "$CURRENT_MODEL")
             local code_factor=$(echo "$config" | cut -d: -f4)
-            echo "$(echo "$char_count * $code_factor" | bc -l 2>/dev/null | cut -d. -f1)"
+            float_mul "$char_count" "$code_factor"
             ;;
         md|txt|log)
             # 文本文件，需要检测语言
@@ -203,22 +245,16 @@ check_budget() {
     local total_budget="${2:-$DEFAULT_BUDGET}"
 
     local usage_pct
-    usage_pct=$(echo "scale=2; $used_tokens * 100 / $total_budget" | bc 2>/dev/null || echo "0")
+    usage_pct=$(float_scale "$(awk "BEGIN {printf \"%.2f\", $used_tokens * 100 / $total_budget}" 2>/dev/null || echo "0")")
     local remaining_tokens=$((total_budget - used_tokens))
     local remaining_pct
-    remaining_pct=$(echo "scale=2; $remaining_tokens * 100 / $total_budget" | bc 2>/dev/null || echo "0")
+    remaining_pct=$(float_scale "$(awk "BEGIN {printf \"%.2f\", $remaining_tokens * 100 / $total_budget}" 2>/dev/null || echo "0")")
 
     local status="HEALTHY"
-    local usage_cmp
-    usage_cmp=$(echo "$usage_pct" | bc -l 2>/dev/null || echo "0")
-    local warn_thresh
-    warn_thresh=$(echo "$WARN_THRESHOLD * 100" | bc -l 2>/dev/null || echo "80")
-    local block_thresh
-    block_thresh=$(echo "$BLOCK_THRESHOLD * 100" | bc -l 2>/dev/null || echo "100")
 
-    if [ "$(echo "$usage_cmp >= $block_thresh" | bc -l 2>/dev/null)" = "1" ]; then
+    if float_cmp "$usage_pct" ">=" "100"; then
         status="BLOCK"
-    elif [ "$(echo "$usage_cmp >= $warn_thresh" | bc -l 2>/dev/null)" = "1" ]; then
+    elif float_cmp "$usage_pct" ">=" "80"; then
         status="WARNING"
     fi
 

@@ -5,18 +5,52 @@
 
 # P0 修复：移除 set -e，改用显式错误处理
 # set -e 与 jq 回退模式冲突，导致不可预测的脚本终止
+# v1.12.9 改进：启用 -u（未定义变量检测）和 -o pipefail（管道错误传递）
+set -uo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
-LOCK_DIR=".flow-kit/locks"
-TMP_DIR=".flow-kit/tmp"
+# v1.12.9 改进：使用统一路径管理
+source "$SCRIPT_DIR/../lib/paths.sh"
+LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"
+TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 AGENT_NAME="${AGENT_NAME:-agent-main}"
 
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
-declare -a CHILD_PIDS=()
+CHILD_PIDS=(${CHILD_PIDS[@]:-})
+
+# v1.12.9 改进：并发池控制 - 最大并行子代理数
+MAX_CONCURRENT="${MAX_CONCURRENT:-5}"
+
+#------------------------------------------------------------------------------
+# 跨平台时间戳工具（v1.12.9 新增：macOS/Linux 兼容）
+#------------------------------------------------------------------------------
+get_epoch_ms() {
+    # macOS: date 不支持 %3N，使用 python/perl 回退
+    if python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null; then
+        return 0
+    fi
+    if perl -MTime::HiRes -e 'printf("%d\n",Time::HiRes::time()*1000)' 2>/dev/null; then
+        return 0
+    fi
+    # 最终回退：date +%s 拼接 000
+    echo "$(date +%s)000"
+}
+
+date_to_epoch() {
+    local iso_date="$1"
+    # macOS: date -j -f, Linux: date -d
+    if date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s 2>/dev/null; then
+        return 0
+    fi
+    if date -d "$iso_date" +%s 2>/dev/null; then
+        return 0
+    fi
+    # 最终回退
+    echo "0"
+}
 
 cleanup_children() {
     local exit_code=$?
@@ -28,12 +62,31 @@ cleanup_children() {
                 kill -TERM "$pid" 2>/dev/null || true
             fi
         done
-        sleep 1
+        # P0 修复：循环等待而非固定 sleep 1
+        local wait_elapsed=0
+        while [ $wait_elapsed -lt 5 ]; do
+            local all_dead=true
+            for pid in "${CHILD_PIDS[@]}"; do
+                if kill -0 "$pid" 2>/dev/null; then
+                    all_dead=false
+                    break
+                fi
+            done
+            if [ "$all_dead" = true ]; then
+                break
+            fi
+            sleep 0.5
+            wait_elapsed=$((wait_elapsed + 1))
+        done
         for pid in "${CHILD_PIDS[@]}"; do
             if kill -0 "$pid" 2>/dev/null; then
                 kill -9 "$pid" 2>/dev/null || true
             fi
         done
+    fi
+    # v1.12.9 改进：清理临时文件
+    if [ -d "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*-result.json "$TMP_DIR"/subagent-*-status.json "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
     fi
     exit $exit_code
 }
@@ -49,14 +102,22 @@ dispatch.sh — 多代理并行编排脚本
 
 用法:
   ./dispatch.sh [N] "任务描述"
+  ./dispatch.sh --wait [--timeout <秒>]
+  ./dispatch.sh --aggregate
 
 参数:
   N           并行 executor 数量（默认: 3）
   任务描述    要分解和执行的任务
+  --wait      等待子代理完成并聚合结果
+  --timeout   等待超时秒数（默认: 300，仅与 --wait 联用）
+  --aggregate 聚合已有结果
 
 示例:
   ./dispatch.sh 3 "实现用户认证系统"
   ./dispatch.sh "修复登录 bug"
+  ./dispatch.sh --wait
+  ./dispatch.sh --wait --timeout 600
+  ./dispatch.sh --aggregate
 
 输出:
   - .flow-kit/tmp/subagent-{id}-prompt.txt  (子任务 prompt 文件)
@@ -71,15 +132,27 @@ parse_args() {
     EXECUTE_MODE=false
     WAIT_MODE=false
     AGGREGATE_MODE=false
+    WAIT_TIMEOUT=300
 
     if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         show_help
         exit 0
     fi
 
-    # 收集所有参数（过滤掉 --execute, --wait, --aggregate）
+    # 收集所有参数（过滤掉 --execute, --wait, --aggregate, --timeout）
     local args=()
+    local skip_next=false
+    local timeout_next=false
     for arg in "$@"; do
+        if [ "$skip_next" = true ]; then
+            skip_next=false
+            continue
+        fi
+        if [ "$timeout_next" = true ]; then
+            WAIT_TIMEOUT="$arg"
+            timeout_next=false
+            continue
+        fi
         case "$arg" in
             --execute)
                 EXECUTE_MODE=true
@@ -89,6 +162,9 @@ parse_args() {
                 ;;
             --aggregate)
                 AGGREGATE_MODE=true
+                ;;
+            --timeout)
+                timeout_next=true
                 ;;
             *)
                 args+=("$arg")
@@ -312,6 +388,9 @@ run_single_agent() {
     # 记录PID
     echo $$ > "$tmp_dir/subagent-${agent_id}.pid"
 
+    # v1.12.9 改进：确保退出时释放并发槽位
+    trap 'release_slot' EXIT
+
     {
         echo "[agent-$agent_id] 开始执行 ($role)"
         echo "[agent-$agent_id] 最大重试次数: $max_retries"
@@ -386,7 +465,37 @@ EOF
 }
 
 #------------------------------------------------------------------------------
+# 并发池控制（v1.12.9 新增：限制最大并行数）
+#------------------------------------------------------------------------------
+acquire_slot() {
+    local max_conc="$1"
+    while true; do
+        local running=0
+        for pid_file in "$TMP_DIR"/slot-*.pid; do
+            if [ -f "$pid_file" ]; then
+                local slot_pid=$(cat "$pid_file" 2>/dev/null || echo "")
+                if [ -n "$slot_pid" ] && kill -0 "$slot_pid" 2>/dev/null; then
+                    running=$((running + 1))
+                else
+                    rm -f "$pid_file" 2>/dev/null || true
+                fi
+            fi
+        done
+        if [ "$running" -lt "$max_conc" ]; then
+            echo "$$" > "$TMP_DIR/slot-$$.pid"
+            return 0
+        fi
+        sleep 0.5
+    done
+}
+
+release_slot() {
+    rm -f "$TMP_DIR/slot-$$.pid" 2>/dev/null || true
+}
+
+#------------------------------------------------------------------------------
 # 执行子代理（v1.12.7 真正并行执行引擎）
+# v1.12.9 改进：并发池控制
 #------------------------------------------------------------------------------
 execute_subagents() {
     local summary_file="$TMP_DIR/dispatch-summary.json"
@@ -421,7 +530,10 @@ execute_subagents() {
         local role=$(echo "$agent_json" | jq -r '.role')
         local prompt_file=$(echo "$agent_json" | jq -r '.prompt_file')
 
-        echo "[dispatch] � 启动子代理: $agent_id ($role)"
+        echo "[dispatch]  启动子代理: $agent_id ($role)"
+
+        # v1.12.9 改进：并发池控制 - 等待可用槽位
+        acquire_slot "$MAX_CONCURRENT"
 
         # 在后台启动子代理
         run_single_agent "$agent_id" "$role" "$prompt_file" "$orig_task_desc" "$TMP_DIR" &
@@ -430,7 +542,7 @@ execute_subagents() {
         agent_ids+=("$agent_id")
         CHILD_PIDS+=($pid)  # P0 修复：跟踪子进程用于 trap 清理
 
-        echo "[dispatch]    PID: $pid"
+        echo "[dispatch]    PID: $pid (并发: $MAX_CONCURRENT)"
 
         # 构建agents数组
         if [ "$first" = true ]; then
@@ -539,7 +651,7 @@ EOF
                 if [ -f "$status_file" ]; then
                     local started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
                     if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
-                        local start_epoch=$(date -d "$started_at" +%s 2>/dev/null || echo 0)
+                        local start_epoch=$(date_to_epoch "$started_at")
                         local now_epoch=$(date +%s)
                         local agent_elapsed=$((now_epoch - start_epoch))
 
@@ -919,8 +1031,8 @@ main() {
 
     if [ "$WAIT_MODE" = true ]; then
         init_dirs
-        echo "[dispatch] ⏳ 等待模式"
-        wait_for_subagents 300
+        echo "[dispatch] ⏳ 等待模式（超时: ${WAIT_TIMEOUT}s）"
+        wait_for_subagents $WAIT_TIMEOUT
         collect_results
         return 0
     fi
@@ -957,4 +1069,7 @@ main() {
     fi
 }
 
-main "$@"
+# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

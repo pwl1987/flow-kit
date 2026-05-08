@@ -3,14 +3,14 @@
 # v1.12.5 P1 新增
 # 读取 dispatch-summary.json 生成聚合报告
 
-set -e
+set -euo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
-TMP_DIR=".flow-kit/tmp"
+source "$SCRIPT_DIR/../lib/paths.sh"
+TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 
 #------------------------------------------------------------------------------
 # 帮助信息
@@ -108,4 +108,7 @@ main() {
     echo "⏳ 使用 /flow-kit:dispatch-status 查看最新状态"
 }
 
-main "$@"
+# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

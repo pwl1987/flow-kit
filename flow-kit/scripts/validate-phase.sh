@@ -1,9 +1,9 @@
 #!/bin/bash
 # validate-phase.sh — 阶段产物 JSON Schema 验证
-# v1.12.6 P1 新增
+# v1.12.9 P0 修复：临时文件安全清理 + set -euo pipefail
 # 验证 phase-0/1/2 产物是否符合 JSON Schema
 
-set -e
+set -euo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
@@ -243,12 +243,17 @@ validate_array_items() {
 }
 
 #------------------------------------------------------------------------------
-# 验证嵌套对象（递归验证）
+# 验证嵌套对象（递归验证，v1.12.9 修复：临时文件安全清理）
 #------------------------------------------------------------------------------
 validate_nested_object() {
     local json_file="$1"
     local schema_file="$2"
     local prefix="${3:-}"
+
+    # P0 修复：创建临时目录统一管理临时文件
+    local tmp_dir
+    tmp_dir=$(mktemp -d 2>/dev/null || mktemp -d -t 'validate-nested-XXXX')
+    trap 'rm -rf "$tmp_dir"' RETURN
 
     local errors=()
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
@@ -269,9 +274,9 @@ validate_nested_object() {
             local nested_schema=$(jq -c ".properties.\"$prop\"" "$schema_file" 2>/dev/null)
             local nested_json=$(jq -c ".\"$prop\"" "$json_file" 2>/dev/null)
 
-            # 创建临时文件进行递归验证
-            local tmp_schema=$(mktemp)
-            local tmp_json=$(mktemp)
+            # 使用临时目录中的文件进行递归验证
+            local tmp_schema="$tmp_dir/schema-${prop}.json"
+            local tmp_json="$tmp_dir/json-${prop}.json"
             echo "$nested_schema" > "$tmp_schema"
             echo "$nested_json" > "$tmp_json"
 
@@ -283,8 +288,6 @@ validate_nested_object() {
                     errors+=("字段 $full_prop.$field: 缺少必填字段")
                 fi
             done
-
-            rm -f "$tmp_schema" "$tmp_json"
         fi
     done
 
@@ -492,4 +495,7 @@ main() {
     esac
 }
 
-main "$@"
+# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
