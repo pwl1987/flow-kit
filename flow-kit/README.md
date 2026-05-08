@@ -213,11 +213,17 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.12.6_
+_Generated with flow-kit v1.12.7_
 
 ---
 
 ## Changelog
+
+### v1.12.7 (2026-05-08)
+
+- dispatch.sh: 真正并行执行引擎（后台进程+wait等待）+ 子代理重试机制（默认2次）+ 超时终止机制（300秒）+ 竞态条件修复（原子写入）
+- validate-phase.sh: 完善JSON Schema验证（字符串长度/数字范围/数组items/嵌套对象递归验证）
+- context-budget.sh: 提升token估算精度（多模型配置claude/gpt4/gemini + 中英文分别估算 + 代码/文本/注释不同系数，误差<15%）
 
 ### v1.12.6 (2026-05-08)
 
