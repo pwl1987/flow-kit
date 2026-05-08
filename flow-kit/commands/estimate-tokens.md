@@ -1,84 +1,46 @@
-> 【CLAUDE CODE INSTRUCTION 强制约束】
-> 本文件实现基于代码行数的 Token 估算逻辑。
-> D4-2: LOC-based Token Estimation
+# estimate-tokens
 
-# Token Estimation Module
+> flow-kit v1.12.10 命令
 
-## 核心公式
+基于 LOC 估算 token 使用量。
 
-```
-estimated_tokens = total_LOC * 1.5
-```
-
-## 行为定义
-
-### 统计范围
-
-- 扫描 `.planning/phases/*/` 下所有 `.md` 文件
-- **排除**包含 `template` 或 `TEMPLATE` 的文件名
-
-### Budget 定义
-
-| Budget 级别 | 阈值 | 行为 |
-|-------------|------|------|
-| 健康 | < 80% | 正常执行，无提示 |
-| 警告 | >= 80% | 输出 `[WARNING] Approaching token budget ({pct}%)` |
-| 阻止 | >= 100% | 输出 `[BLOCK] Token budget exhausted` 并阻止继续 |
-
-**默认 Budget**: 100,000 tokens（可配置）
-
-## 输出格式
+## 使用方法
 
 ```
-Token Estimation Report
-=======================
-Phase 01: {LOC1} lines
-Phase 02: {LOC2} lines
-Phase 03: {LOC3} lines
-Phase 04: {LOC4} lines
-...
-Total LOC: {total_LOC}
-Estimated Tokens: {estimated_tokens}
-Budget: {budget} ({budget_pct}% used)
-Status: [HEALTHY/WARNING/BLOCK]
+/flow-kit:estimate-tokens [目标目录]
 ```
 
-## 命令
+## 参数
 
-| 命令 | 行为 |
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| 目标目录 | 要估算的目录路径 | .planning/phases |
+
+## 示例
+
+```
+/flow-kit:estimate-tokens
+/flow-kit:estimate-tokens .planning/phases
+/flow-kit:estimate-tokens ./src
+```
+
+## 功能说明
+
+1. 统计指定目录中所有 `.md` 文件的行数
+2. 根据语言类型（中文/英文/代码）应用不同系数估算 token
+3. 计算总 token 与预算（100000）的比例
+4. 显示每个 phase 的详细统计
+
+## Token 估算规则
+
+| 类型 | 系数 |
 |------|------|
-| `/flow-kit:estimate-tokens` | 输出完整 Token 估算报告 |
-| `/flow-kit:tokens` | 同上，简写 |
+| 中文 | 1.5 |
+| 英文 | 0.25 |
+| 代码 | 0.35 |
 
-## 实现逻辑
+## 状态码
 
-### LOC 统计流程
-
-```
-1. glob('.planning/phases/*/*.md') -> files
-2. filter files where !filename.includes('template') && !filename.includes('TEMPLATE')
-3. for each file: count lines using wc -l
-4. group by phase directory
-5. sum all lines -> total_LOC
-6. estimated = total_LOC * 1.5
-7. pct = (estimated / budget) * 100
-```
-
-### 集成点
-
-- GO.md 启动时自动调用（静默模式，警告才输出）
-- `/flow-kit:estimate-tokens` 命令触发（完整输出）
-
-## 边界情况
-
-### 空目录
-- 无 .md 文件：输出 `Total LOC: 0, Estimated Tokens: 0`
-
-### 单文件过大
-- 单一文件超过 10,000 行：标记为异常，给出警告
-
----
-
-**关联文件**：
-- `@flow-kit/GO.md` (启动时调用)
-- `.planning/phases/*/` (扫描目标)
+- `0`: 健康，token 在预算内
+- `1`: 警告，token 接近预算（≥80%）
+- `2`: 阻断，token 超出预算
