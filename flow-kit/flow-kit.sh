@@ -63,6 +63,12 @@ flow-kit $ver — 结构化开发流程 CLI
   minimal "<task>"        启动 L0 极简模式
   register                注册斜杠命令
   archive                 归档完成变更
+  estimate-tokens        估算 token 使用量
+  check-expiry           检查上下文过期状态
+  cost-report            生成成本报告
+  update-context         更新上下文变更日志
+  pr-description         生成 PR 描述
+  p0                     P0 变更检测
 
 示例:
   ./flow-kit.sh help                      # 显示帮助
@@ -177,6 +183,10 @@ declare -A COMMANDS=(
     ["scan"]="/flow-kit:scan"
     ["cost-report"]="/flow-kit:cost-report"
     ["estimate-tokens"]="/flow-kit:estimate-tokens"
+    ["check-expiry"]="/flow-kit:check-expiry"
+    ["update-context"]="/flow-kit:update-context"
+    ["pr-description"]="/flow-kit:pr-description"
+    ["p0"]="/flow-kit:p0"
     ["share"]="/flow-kit:share-install"
     ["map-codebase"]="/flow-kit:register-commands"
 )
@@ -189,7 +199,7 @@ route_command() {
     shift
 
     case "$cmd" in
-        health|hooks|scan|cost-report|estimate-tokens)
+        health|hooks|scan|cost-report|estimate-tokens|check-expiry|update-context|pr-description|p0)
             echo "[flow-kit] 路由到 $cmd..."
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:$cmd"
             ;;
