@@ -109,10 +109,10 @@ parse_command_info() {
       done <<< "$content"
 
       # 解析 frontmatter 中的 name 和 description
-      if [[ "$frontmatter" =~ name:[[:space:]]*[\"']?([^\"'\n]+)[\"']? ]]; then
+      if [[ "$frontmatter" =~ name:[[:space:]]*[\"']?([^"'"'\n]+)[\"']? ]]; then
         name="${BASH_REMATCH[1]}"
       fi
-      if [[ "$frontmatter" =~ description:[[:space:]]*[\"']?([^\"'\n]+)[\"']? ]]; then
+      if [[ "$frontmatter" =~ description:[[:space:]]*[\"']?([^"'"'\n]+)[\"']? ]]; then
         description="${BASH_REMATCH[1]}"
       fi
     fi

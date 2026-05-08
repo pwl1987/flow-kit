@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-0-output.schema.json",
+  "title": "Phase 0 Output Schema",
+  "description": "变更分类产物验证 schema — v1.12.4 新增",
+  "type": "object",
+  "required": ["change_id", "change_type", "created_at", "summary"],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+-[0-9]{8}$",
+      "description": "变更 ID，格式：{功能名}-{YYYYMMDD}"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["feature", "bugfix", "refactor", "docs", "test", "chore"],
+      "description": "变更类型"
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3"],
+      "description": "优先级，P0 为最高"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "创建时间，ISO 8601 格式"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 200,
+      "description": "变更摘要，10-200 字符"
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "涉及文件列表"
+        },
+        "modules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "涉及模块列表"
+        }
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "风险等级"
+    },
+    "breaking_change": {
+      "type": "boolean",
+      "description": "是否为破坏性变更"
+    }
+  }
+}

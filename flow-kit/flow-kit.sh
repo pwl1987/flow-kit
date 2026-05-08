@@ -11,7 +11,19 @@
 # v1.12.2 新增：借鉴 OMC CLI 双入口设计
 #==============================================================================
 
-set -e
+set -euo pipefail
+
+#------------------------------------------------------------------------------
+# 版本读取（v1.12.4 新增）
+#------------------------------------------------------------------------------
+read_version() {
+    local version_file="$(dirname "$0")/VERSION"
+    if [ -f "$version_file" ]; then
+        cat "$version_file"
+    else
+        echo "v1.12.4"
+    fi
+}
 
 #------------------------------------------------------------------------------
 # 环境检测
@@ -31,8 +43,9 @@ check_dependencies() {
 # 帮助信息
 #------------------------------------------------------------------------------
 show_help() {
-    cat << 'EOF'
-flow-kit v1.12.2 — 结构化开发流程 CLI
+    local ver=$(read_version)
+    cat << EOF
+flow-kit $ver — 结构化开发流程 CLI
 
 用法:
   flow-kit.sh <command> [args]
@@ -71,6 +84,7 @@ EOF
 # 状态显示
 #------------------------------------------------------------------------------
 show_status() {
+    local ver=$(read_version)
     local mode_file=".flow-kit/mode"
     local current_mode="autopilot"
 
@@ -78,7 +92,7 @@ show_status() {
         current_mode=$(cat "$mode_file")
     fi
 
-    echo "flow-kit v1.12.2 — 执行模式状态"
+    echo "flow-kit $ver — 执行模式状态"
     echo ""
     echo "当前模式: $current_mode"
     echo ""
@@ -94,10 +108,11 @@ show_status() {
 # 团队共享安装
 #------------------------------------------------------------------------------
 show_share() {
+    local ver=$(read_version)
     # 自动提取当前项目名
     PROJECT_NAME=$(basename "$(pwd)")
 
-    echo "flow-kit v1.12.2 — 团队共享安装指令"
+    echo "flow-kit $ver — 团队共享安装指令"
     echo ""
     echo "新成员执行以下命令完成安装:"
     echo ""
@@ -118,11 +133,42 @@ show_share() {
 }
 
 #------------------------------------------------------------------------------
+# Hooks 执行摘要（v1.12.4 P3 新增）
+#------------------------------------------------------------------------------
+show_hooks_summary() {
+    local log_file=".flow-kit/logs/hooks-execution.log"
+
+    echo "flow-kit v$(read_version) — Hooks 执行摘要"
+    echo ""
+
+    if [ ! -f "$log_file" ]; then
+        echo "暂无 hooks 执行记录"
+        return
+    fi
+
+    echo "最近 20 条执行记录："
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    tail -20 "$log_file" | while read -r line; do
+        echo "$line"
+    done
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+    # 统计
+    local total=$(wc -l < "$log_file" 2>/dev/null || echo 0)
+    local ok_count=$(grep -c "\[OK\]" "$log_file" 2>/dev/null || echo 0)
+    local fail_count=$(grep -c "\[FAIL\]" "$log_file" 2>/dev/null || echo 0)
+
+    echo ""
+    echo "统计: 总执行 $total 次 | 成功 $ok_count | 失败 $fail_count"
+}
+
+#------------------------------------------------------------------------------
 # 命令路由映射表
 #------------------------------------------------------------------------------
 declare -A COMMANDS=(
     ["health"]="/flow-kit:health"
     ["hooks"]="/flow-kit:hooks"
+    ["hooks-summary"]="/flow-kit:hooks"
     ["mode"]="/flow-kit:mode"
     ["dispatch"]="/flow-kit:dispatch"
     ["minimal"]="/flow-kit:minimal"
@@ -154,6 +200,11 @@ route_command() {
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:hooks $action"
             ;;
 
+        hooks-summary)
+            show_hooks_summary
+            exit 0
+            ;;
+
         mode)
             local mode="${1:-}"
             if [ -z "$mode" ]; then
@@ -173,19 +224,21 @@ route_command() {
                 echo "[flow-kit] 示例: ./flow-kit.sh dispatch 3 \"实现用户认证模块\""
                 exit 1
             fi
-            echo "[flow-kit] Team 模式启动 ($n executors)..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:dispatch $n:\"$task\""
+            # 直接调用 dispatch.sh 执行（--execute 模式）
+            local dispatch_script="$(dirname "$0")/scripts/dispatch.sh"
+            if [ ! -f "$dispatch_script" ]; then
+                echo "[flow-kit] 错误: dispatch.sh 不存在"
+                exit 1
+            fi
+            echo "[flow-kit] ⚡ Team 模式启动 ($n executors)..."
+            "$dispatch_script" --execute "$n" "$task"
+            exit $?
             ;;
 
         minimal)
-            local task="${1:-}"
-            if [ -z "$task" ]; then
-                echo "[flow-kit] 错误: minimal 需要任务描述"
-                echo "[flow-kit] 示例: ./flow-kit.sh minimal \"修复登录 bug\""
-                exit 1
-            fi
-            echo "[flow-kit] L0 极简模式..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:minimal \"$task\""
+            shift
+            perform_minimal "$@"
+            exit 0
             ;;
 
         register)
@@ -227,6 +280,26 @@ route_command() {
 }
 
 #------------------------------------------------------------------------------
+# 极简模式（v1.12.4 P0 新增）
+#------------------------------------------------------------------------------
+perform_minimal() {
+    local task="${1:-}"
+
+    if [ -z "$task" ]; then
+        echo "[flow-kit] 错误: minimal 需要任务描述" >&2
+        echo "[flow-kit] 示例: ./flow-kit.sh minimal \"修复登录 bug\"" >&2
+        exit 1
+    fi
+
+    echo "[flow-kit] ⚡ L0 极简模式启动"
+    echo "[flow-kit] 任务: $task"
+    echo "[flow-kit] 限制: 最多修改 3 个文件，跳过 Phase 1-3"
+    echo ""
+    echo "[flow-kit] 请在 Claude Code 中执行:"
+    echo "/flow-kit:minimal \"$task\""
+}
+
+#------------------------------------------------------------------------------
 # 主入口
 #------------------------------------------------------------------------------
 main() {
@@ -241,4 +314,7 @@ main() {
     route_command "$@"
 }
 
-main "$@"
+# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

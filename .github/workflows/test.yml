@@ -1,0 +1,96 @@
+name: flow-kit CI
+
+on:
+  push:
+    branches: [main, develop, 'release/**', 'feat/**']
+    paths:
+      - 'flow-kit/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'flow-kit/**'
+
+jobs:
+  shellcheck:
+    name: ShellCheck 静态分析
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装 ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: 运行 ShellCheck
+        run: |
+          shellcheck scripts/*.sh hooks/*.sh lib/*.sh || true
+      - name: 检查 ShellCheck 结果
+        run: |
+          errors=$(shellcheck scripts/*.sh hooks/*.sh lib/*.sh --severity=error 2>/dev/null | grep -c "^In " || echo 0)
+          echo "ShellCheck 错误数: $errors"
+          if [ "$errors" -gt 0 ]; then exit 1; fi
+
+  unit-tests:
+    name: 单元测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装依赖
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq bc
+      - name: 运行 dispatch.sh 单元测试
+        run: bash tests/test-dispatch.sh
+      - name: 运行 validate-phase.sh 单元测试
+        run: bash tests/test-validate.sh
+
+  hooks-tests:
+    name: Hooks 集成测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装依赖
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+      - name: 运行 Hooks 集成测试
+        run: bash tests/test-hooks.sh
+
+  e2e-tests:
+    name: E2E 集成测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装依赖
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq bc
+      - name: 运行 E2E 测试
+        run: bash tests/e2e-test-harness.sh
+
+  js-tests:
+    name: JavaScript 检测测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: 运行 JS 测试
+        run: |
+          if [ -f lib/detection/checkpoint.test.js ]; then
+            node lib/detection/checkpoint.test.js
+          fi
+          if [ -f lib/detection/database-type.test.js ]; then
+            node lib/detection/database-type.test.js
+          fi

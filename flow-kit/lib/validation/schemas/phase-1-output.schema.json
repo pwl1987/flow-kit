@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-1-output.schema.json",
+  "title": "Phase 1 Output Schema",
+  "description": "需求分析产物验证 schema — v1.12.4 新增",
+  "type": "object",
+  "required": [
+    "change_id",
+    "requirements",
+    "acceptance_criteria",
+    "created_at"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["functional", "non-functional", "constraint"]
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["must", "should", "could", "wont"]
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "需求列表，至少 1 项"
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "criteria", "verification_method"],
+        "properties": {
+          "id": { "type": "string" },
+          "criteria": { "type": "string" },
+          "verification_method": { "type": "string" },
+          "measurable": { "type": "boolean" }
+        }
+      },
+      "minItems": 1,
+      "description": "验收标准列表"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ambiguity_notes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "需求模糊性记录"
+    },
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "未解决问题列表"
+    }
+  }
+}

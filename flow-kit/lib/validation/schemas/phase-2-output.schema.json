@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-2-output.schema.json",
+  "title": "Phase 2 Output Schema",
+  "description": "设计文档产物验证 schema — v1.12.4 新增",
+  "type": "object",
+  "required": ["change_id", "design_decisions", "architecture", "created_at"],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "design_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "decision", "rationale"],
+        "properties": {
+          "id": { "type": "string" },
+          "decision": { "type": "string" },
+          "rationale": { "type": "string" },
+          "alternatives_considered": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "consequences": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "设计决策列表"
+    },
+    "architecture": {
+      "type": "object",
+      "properties": {
+        "style": {
+          "type": "string",
+          "enum": [
+            "monolithic",
+            "layered",
+            "microservices",
+            "event-driven",
+            "hexagonal",
+            "other"
+          ]
+        },
+        "components": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "data_flow": {
+          "type": "string",
+          "description": "数据流描述"
+        }
+      }
+    },
+    "api_spec": {
+      "type": "object",
+      "properties": {
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "method": { "type": "string" },
+              "path": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "db_schema_changes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "数据库 schema 变更描述"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "审查者"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "review", "approved", "rejected"]
+    }
+  }
+}

@@ -9,49 +9,52 @@
 
 ---
 
-# Code Health Scan
+# 代码健康扫描
 
-## Command
+## 命令
 
 `/flow-kit:health`
 
-## Purpose
+## 目的
 
-Perform comprehensive code health scan detecting tech stack, test coverage, lint status, and dependency health. Generate health report with scores per category.
+执行全面的代码健康扫描，检测技术栈、测试覆盖率、Lint 状态和依赖健康状况。按类别生成带评分的健康报告。
 
-## Execution
+## 执行
 
-### 1. Stack Detection
+### 1. 技术栈检测
 
-Scan for project type files:
-- `package.json` → Node.js/npm ecosystem
+扫描项目类型文件：
+
+- `package.json` → Node.js/npm 生态
 - `go.mod` → Go
 - `pom.xml` → Java/Maven
 - `Cargo.toml` → Rust
 - `pyproject.toml` → Python
 - `composer.json` → PHP
-- `*.sln` or `*.csproj` → .NET
+- `*.sln` 或 `*.csproj` → .NET
 
-Report detected stack.
+报告检测到的技术栈。
 
-### 2. Test Coverage Analysis
+### 2. 测试覆盖率分析
 
-**Thresholds:**
-| Coverage | Status | Action |
-|----------|--------|--------|
-| >80% | PASS | Healthy |
-| 60-80% | WARN | Improve |
-| <60% | FAIL | Critical |
+**阈值：**
+| 覆盖率 | 状态 | 操作 |
+|--------|------|------|
+| >80% | 通过 | 健康 |
+| 60-80% | 警告 | 需改进 |
+| <60% | 失败 | 严重 |
 
-**Methods by Stack:**
-- **Node.js**: `npm test` + `coverage/` report (Istanbul/NYC)
-- **Go**: `go test -cover` → parse coverage.out
+**按技术栈的检测方法：**
+
+- **Node.js**: `npm test` + `coverage/` 报告 (Istanbul/NYC)
+- **Go**: `go test -cover` → 解析 coverage.out
 - **Python**: `pytest --cov` → `.coverage` (Coverage.py)
 - **Rust**: `cargo test --lib` → llvm-coverage
 - **Java**: `mvn test` → `target/site/jacoco/`
 - **.NET**: `dotnet test /p:CollectCoverage=true` → `TestResults/`
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "coverage": 78,
@@ -64,26 +67,60 @@ Report detected stack.
 }
 ```
 
-**Trend Calculation:** Compare current vs previous scan (stored in `.flow-kit/health-history.json`)
+**趋势计算：** 与上次扫描结果对比（存储在 `.flow-kit/health-history.json`）
 
-### 3. Lint Status
+### 2.1 B5/B6 护栏联动（v1.12.5 新增）
 
-**Error Classification:**
-| Type | Indicators | Fix Command |
-|------|------------|-------------|
-| Syntax | Unexpected token, missing } | Manual fix |
-| Style | Indentation, semicolons, quotes | `eslint --fix` |
-| Type | Type 'X' not assignable to 'Y' | `tsc --noEmit` |
+**B5 性能护栏结果集成：**
 
-**Commands by Stack:**
-- **Node.js**: `npm run lint` or `npx eslint . --format json`
-- **Go**: `go vet ./...` → stderr parse
-- **Python**: `flake8 . --statistics` or `pylint . --output-format=text`
-- **Rust**: `cargo clippy -- -D warnings` → stderr parse
+```json
+{
+  "performance_guardrails": {
+    "P1_nested_loops": { "found": 2, "status": "WARN" },
+    "P2_n1_queries": { "found": 0, "status": "PASS" },
+    "P3_missing_indexes": { "found": 1, "status": "FAIL" },
+    "P4_sync_io": { "found": 0, "status": "PASS" }
+  }
+}
+```
+
+**B6 测试覆盖率结果集成：**
+
+```json
+{
+  "test_coverage": {
+    "overall_coverage": 78,
+    "status": "WARN",
+    "incremental": {
+      "new_lines": 150,
+      "covered_lines": 120,
+      "coverage": "80%",
+      "status": "PASS"
+    }
+  }
+}
+```
+
+### 3. Lint 状态
+
+**错误分类：**
+| 类型 | 标识 | 修复命令 |
+|------|------|---------|
+| 语法 | Unexpected token, missing } | 手动修复 |
+| 风格 | 缩进、分号、引号 | `eslint --fix` |
+| 类型 | Type 'X' not assignable to 'Y' | `tsc --noEmit` |
+
+**按技术栈的命令：**
+
+- **Node.js**: `npm run lint` 或 `npx eslint . --format json`
+- **Go**: `go vet ./...` → stderr 解析
+- **Python**: `flake8 . --statistics` 或 `pylint . --output-format=text`
+- **Rust**: `cargo clippy -- -D warnings` → stderr 解析
 - **Java**: `mvn checkstyle:check`
 - **.NET**: `dotnet format --verify-no-changes`
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "errors": 3,
@@ -95,28 +132,31 @@ Report detected stack.
 }
 ```
 
-**Trend:** Compare error count vs previous scan. -5 = improved, +3 = degraded.
+**趋势：** 与上次扫描的错误数对比。-5 = 改善，+3 = 恶化。
 
-### 4. Dependency Health
+### 4. 依赖健康
 
-**Commands by Stack:**
-- **Node.js**: `npm audit --json` → parse `vulnerabilities`
-- **Go**: `go list -m all | xargs go mod graph` → check conflicts
-- **Python**: `pip-audit` or `safety check --json`
+**按技术栈的命令：**
+
+- **Node.js**: `npm audit --json` → 解析 `vulnerabilities`
+- **Go**: `go list -m all | xargs go mod graph` → 检查冲突
+- **Python**: `pip-audit` 或 `safety check --json`
 - **Rust**: `cargo audit` → stderr/JSON
-- **Docker**: `trivy image .` if Dockerfile exists
+- **Docker**: `trivy image .`（若存在 Dockerfile）
 
-**Severity Table:**
+**严重度表：**
+
 ```markdown
-| Severity | Count | Action |
-|----------|-------|--------|
-| CRITICAL | 2 | `npm audit fix --force` |
-| HIGH | 5 | `npm audit fix` |
-| MEDIUM | 12 | Review and fix |
-| LOW | 23 | Optional |
+| 严重度 | 数量 | 操作                    |
+| ------ | ---- | ----------------------- |
+| 严重   | 2    | `npm audit fix --force` |
+| 高     | 5    | `npm audit fix`         |
+| 中     | 12   | 审查并修复              |
+| 低     | 23   | 可选                    |
 ```
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "total": 42,
@@ -128,50 +168,56 @@ Report detected stack.
 }
 ```
 
-**Score Calculation:**
-- CRITICAL: -20 per item
-- HIGH: -10 per item
-- MEDIUM: -5 per item
-- LOW: -1 per item
-- Total subtracted from 100
+**评分计算：**
 
-### 5. Code Quality Indicators
+- 严重: 每个 -20 分
+- 高: 每个 -10 分
+- 中: 每个 -5 分
+- 低: 每个 -1 分
+- 从 100 中扣除
 
-**Complexity Detection:**
-- Use `eslint --print-config` or language-specific tools
-- **Threshold**: >50 cyclomatic complexity = hotspot
+### 5. 代码质量指标
+
+**复杂度检测：**
+
+- 使用 `eslint --print-config` 或语言特定工具
+- **阈值**：圈复杂度 >50 = 热点
 
 ```markdown
-| Complexity | File | Function |
-|------------|------|----------|
-| 127 | src/core/processor.ts | processItems() |
-| 89 | src/api/handler.ts | handleRequest() |
+| 复杂度 | 文件                  | 函数            |
+| ------ | --------------------- | --------------- |
+| 127    | src/core/processor.ts | processItems()  |
+| 89     | src/api/handler.ts    | handleRequest() |
 ```
 
-**Duplication Detection:**
-- **Node.js**: `npx jscpd .` or `pmd cpd`
+**重复代码检测：**
+
+- **Node.js**: `npx jscpd .` 或 `pmd cpd`
 - **Python**: `pylint --disable=all --enable=DuplicationDefinedName`
-- **Go**: `mvdan.cc/gofumpt` + custom analysis
+- **Go**: `mvdan.cc/gofumpt` + 自定义分析
 
 ```markdown
-| Lines | File | Similar |
-|-------|------|---------|
-| 47 | src/utils/auth.ts | src/compat/legacy-auth.ts:124 |
-| 23 | src/api/users.ts | src/api/accounts.ts:89 |
+| 行数 | 文件              | 相似文件                      |
+| ---- | ----------------- | ----------------------------- |
+| 47   | src/utils/auth.ts | src/compat/legacy-auth.ts:124 |
+| 23   | src/api/users.ts  | src/api/accounts.ts:89        |
 ```
 
-**Dead Code Detection:**
-- **Node.js**: `ts-prune` or `depcheck`
+**死代码检测：**
+
+- **Node.js**: `ts-prune` 或 `depcheck`
 - **Python**: `vulture`
-- **Unused exports**: AST analysis
+- **未使用的导出**：AST 分析
 
 ```markdown
-**Dead Code (5 items):**
-- `src/core/legacy.ts` - unused export: `processLegacy`
-- `src/api/v1/users.ts` - unused: `getUserStats`
+**死代码（5 项）：**
+
+- `src/core/legacy.ts` - 未使用的导出: `processLegacy`
+- `src/api/v1/users.ts` - 未使用: `getUserStats`
 ```
 
-**Output Format:**
+**输出格式：**
+
 ```json
 {
   "complexity_hotspots": 3,
@@ -182,47 +228,50 @@ Report detected stack.
 }
 ```
 
-## Output Format
+## 输出格式
 
-```markdown
-## Health Report
+````markdown
+## 健康报告
 
-**Stack**: TypeScript, React, Node.js
-**Scan Time**: 2026-05-07 10:30:00
-**Duration**: 45s
+**技术栈**: TypeScript, React, Node.js
+**扫描时间**: 2026-05-07 10:30:00
+**耗时**: 45s
 
-### Summary
+### 摘要
 
-| Category | Score | Status | Trend |
-|----------|-------|--------|-------|
-| Test Coverage | 78% | WARN | -2% |
-| Lint Status | 3 errors | PASS | -5 |
-| Dependencies | 2 HIGH | WARN | -1 |
-| Code Quality | 85 | PASS | +3 |
+| 类别       | 评分     | 状态 | 趋势 |
+| ---------- | -------- | ---- | ---- |
+| 测试覆盖率 | 78%      | 警告 | -2%  |
+| Lint 状态  | 3 errors | 通过 | -5   |
+| 依赖健康   | 2 高     | 警告 | -1   |
+| 代码质量   | 85       | 通过 | +3   |
 
-**Overall**: PASS (1 warning)
+**总体**: 通过（1 个警告）
 
-### Details
+### 详情
 
-[Test Coverage]
-- Files below 60%: src/api/auth.ts (45%), src/core/worker.ts (52%)
-- Trend: -2% from last scan
+[测试覆盖率]
 
-[Dependencies]
-- CRITICAL: json5@1.0.1 (CVE-2022-46175)
-- HIGH: express@4.18.0 (CVE-2022-44946)
+- 低于 60% 的文件: src/api/auth.ts (45%), src/core/worker.ts (52%)
+- 趋势: 较上次扫描下降 2%
 
-[Code Quality]
-- Hotspots: src/core/processor.ts (127 complexity)
-- Dead code: 7 unused exports
+[依赖]
 
-### Action Items
+- 严重: json5@1.0.1 (CVE-2022-46175)
+- 高: express@4.18.0 (CVE-2022-44946)
 
-1. [WARN] Test coverage below 80% target
-2. [CRITICAL] Fix 2 CRITICAL vulnerabilities
-3. [LOW] Remove 7 dead code exports
+[代码质量]
 
-### JSON Output (for automation)
+- 热点: src/core/processor.ts (127 复杂度)
+- 死代码: 7 个未使用的导出
+
+### 操作项
+
+1. [警告] 测试覆盖率低于 80% 目标
+2. [严重] 修复 2 个严重漏洞
+3. [低] 移除 7 个死代码导出
+
+### JSON 输出（用于自动化）
 
 ```json
 {
@@ -239,19 +288,18 @@ Report detected stack.
 }
 ```
 
-## Scoring
+## 评分
 
-| Score | Status | Meaning |
-|-------|--------|---------|
-| 90-100 | EXCELLENT | Health optimal |
-| 70-89 | PASS | Minor issues |
-| 50-69 | WARN | Needs attention |
-| <50 | FAIL | Critical issues |
+| 评分   | 状态 | 含义         |
+| ------ | ---- | ------------ |
+| 90-100 | 优秀 | 健康状况最佳 |
+| 70-89  | 通过 | 轻微问题     |
+| 50-69  | 警告 | 需要关注     |
+| <50    | 失败 | 严重问题     |
 
-## Usage
+## 用法
 
 ```bash
 @flow-kit/commands/M-health.md
 ```
-
---- END flow-kit/commands/M-health.md ---
+````
