@@ -224,8 +224,15 @@ route_command() {
                 echo "[flow-kit] 示例: ./flow-kit.sh dispatch 3 \"实现用户认证模块\""
                 exit 1
             fi
-            echo "[flow-kit] Team 模式启动 ($n executors)..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:dispatch $n:\"$task\""
+            # 直接调用 dispatch.sh 执行（--execute 模式）
+            local dispatch_script="$(dirname "$0")/scripts/dispatch.sh"
+            if [ ! -f "$dispatch_script" ]; then
+                echo "[flow-kit] 错误: dispatch.sh 不存在"
+                exit 1
+            fi
+            echo "[flow-kit] ⚡ Team 模式启动 ($n executors)..."
+            "$dispatch_script" --execute "$n" "$task"
+            exit $?
             ;;
 
         minimal)

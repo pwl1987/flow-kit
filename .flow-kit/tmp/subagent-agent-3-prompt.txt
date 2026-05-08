@@ -1,0 +1,27 @@
+# 子任务 Prompt
+
+**任务ID**: task-20260508100252
+**子代理ID**: agent-3
+**角色类型**: Test Runner
+**任务描述**:  2 测试任务
+**文件范围**: src/
+
+## 执行指令
+
+你是一个 Test Runner，负责完成以下任务：
+
+**原始任务**:  2 测试任务
+
+**你的职责**:
+- 执行测试验证功能正确性
+- 检查测试覆盖率
+- 报告测试结果
+
+**输出格式**:
+{
+  "status": "SUCCESS|FAILED|PARTIAL",
+  "tests_run": N,
+  "tests_passed": N,
+  "summary": "测试结果简述（<200字）",
+  "issues": ["issue1", "issue2"]
+}

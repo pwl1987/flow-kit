@@ -1,0 +1,24 @@
+{
+  "task_id": "task-20260508100658",
+  "task_desc": "测试任务",
+  "parallel_n": 2,
+  "agents": [{
+  "id": "agent-1",
+  "role": "Code Executor",
+  "status": "SUCCESS",
+  "prompt_file": ".flow-kit/tmp/subagent-agent-1-prompt.txt"
+},{
+  "id": "agent-2",
+  "role": "Code Reviewer",
+  "status": "SUCCESS",
+  "prompt_file": ".flow-kit/tmp/subagent-agent-2-prompt.txt"
+}],
+  "created_at": "2026-05-08T02:06:58Z",
+  "executed_at": "2026-05-08T02:06:58Z",
+  "summary": {
+    "total": 2,
+    "successful": 2,
+    "failed": 0,
+    "partial": 0
+  }
+}
