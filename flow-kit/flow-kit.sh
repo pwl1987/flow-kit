@@ -69,6 +69,7 @@ flow-kit $ver — 结构化开发流程 CLI
   update-context         更新上下文变更日志
   pr-description         生成 PR 描述
   p0                     P0 变更检测
+  uninstall              卸载 flow-kit（删除 hooks 和配置）
 
 示例:
   ./flow-kit.sh help                      # 显示帮助
@@ -276,6 +277,11 @@ route_command() {
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:register-commands"
             ;;
 
+        uninstall)
+            perform_uninstall
+            exit 0
+            ;;
+
         help|--help|-h)
             show_help
             exit 0
@@ -307,6 +313,59 @@ perform_minimal() {
     echo ""
     echo "[flow-kit] 请在 Claude Code 中执行:"
     echo "/flow-kit:minimal \"$task\""
+}
+
+#------------------------------------------------------------------------------
+# 卸载 flow-kit（v1.12.10 新增）
+#------------------------------------------------------------------------------
+perform_uninstall() {
+    local confirm="${1:-}"
+
+    echo "flow-kit v$(read_version) — 卸载程序"
+    echo ""
+
+    if [ "$confirm" != "--force" ]; then
+        echo "⚠️  警告：此操作将删除以下内容："
+        echo "   • .git/hooks/*        — Git hooks"
+        echo "   • .flow-kit/          — 配置和日志"
+        echo "   • .claude/           — 斜杠命令"
+        echo ""
+        read -p "确认卸载? (输入 'yes' 确认): " confirm
+        if [ "$confirm" != "yes" ]; then
+            echo "[flow-kit] 取消卸载"
+            exit 0
+        fi
+    fi
+
+    echo "[flow-kit] 开始卸载..."
+
+    # 删除 Git hooks
+    if [ -d ".git/hooks" ]; then
+        rm -f .git/hooks/pre-* .git/hooks/post-* 2>/dev/null || true
+        echo "[flow-kit] ✓ 已删除 Git hooks"
+    fi
+
+    # 删除配置目录
+    if [ -d ".flow-kit" ]; then
+        rm -rf .flow-kit
+        echo "[flow-kit] ✓ 已删除 .flow-kit/"
+    fi
+
+    # 删除斜杠命令（保留 .claude 目录本身）
+    if [ -d ".claude/commands" ]; then
+        rm -rf .claude/commands
+        echo "[flow-kit] ✓ 已删除 .claude/commands/"
+    fi
+
+    # 删除 settings.json（如果存在）
+    if [ -f ".claude/settings.json" ]; then
+        rm -f .claude/settings.json
+        echo "[flow-kit] ✓ 已删除 .claude/settings.json"
+    fi
+
+    echo ""
+    echo "[flow-kit] ✅ 卸载完成"
+    echo "[flow-kit] 如需完全清理，可手动删除 flow-kit/ 目录"
 }
 
 #------------------------------------------------------------------------------
