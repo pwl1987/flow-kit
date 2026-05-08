@@ -27,7 +27,7 @@ count_loc_in_dir() {
     local phase_stats=()
 
     if [ ! -d "$target_dir" ]; then
-        echo "目录不存在: $target_dir"
+        echo "目录不存在: $target_dir" >&2
         return 1
     fi
 
@@ -42,7 +42,7 @@ count_loc_in_dir() {
         total_loc=$((total_loc + loc))
 
         local phase
-        phase=$(echo "$file" | grep -oP 'phases/\K[^/]+' || echo "unknown")
+        phase=$(echo "$file" | sed 's|.*/phases/||' | cut -d/ -f1 || echo "unknown")
         phase_stats+=("$phase:$loc")
     done < <(find "$target_dir" -name "*.md" -type f -print0 2>/dev/null)
 

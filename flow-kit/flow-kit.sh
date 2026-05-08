@@ -249,7 +249,6 @@ route_command() {
             ;;
 
         minimal)
-            shift
             perform_minimal "$@"
             exit 0
             ;;

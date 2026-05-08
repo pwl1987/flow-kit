@@ -11,8 +11,8 @@ START_TIME=$(date +%s%3N)
 TITLE="${1:-flow-kit}"
 MESSAGE="${2:-Claude Code 需要你的关注}"
 
-# v1.12.10 修复：提前声明所有局部变量，避免 dash/sh 兼容性问题
-local ps_script=""
+# v1.12.10 修复：声明变量（不能在函数外使用 local）
+ps_script=""
 
 # macOS
 if command -v osascript &> /dev/null; then

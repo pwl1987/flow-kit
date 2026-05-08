@@ -52,13 +52,10 @@ test_safe_exit() {
 
     create_error_context "$err_file" "TEST_ERROR" "test-context"
 
-    local output
-    output=$(safe_exit 0 "$err_file" "test message" 2>&1 || echo "exit_code:$?")
-    if [[ "$output" =~ ^exit_code: ]]; then
-        assert_equals "0" "${output#exit_code:}" "safe_exit 0 returns 0"
-    else
-        assert_equals "0" "non-zero" "safe_exit 0 returns 0"
-    fi
+    local exit_code
+    exit_code=0
+    safe_exit 0 "$err_file" "test message" 2>/dev/null || exit_code=$?
+    assert_equals "0" "$exit_code" "safe_exit 0 returns exit code 0"
 }
 
 test_error_context_file_format() {

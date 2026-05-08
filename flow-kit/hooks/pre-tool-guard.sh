@@ -26,7 +26,11 @@ else
 fi
 
 # 放行只读语句（DDL/DML 中的查询类操作）
-if echo "$COMMAND" | grep -qE '^(COMMENT|COMMENT ON|SELECT|SHOW|DESCRIBE|EXPLAIN)[[:space:]]'; then
+# P2 修复：排除 SELECT INTO OUTFILE 等写文件操作
+if echo "$COMMAND" | grep -qE '^(COMMENT|COMMENT ON|SHOW|DESCRIBE|EXPLAIN)[[:space:]]'; then
+    exit 0
+fi
+if echo "$COMMAND" | grep -qE '^SELECT[[:space:]]' && ! echo "$COMMAND" | grep -qiE 'INTO[[:space:]]+(OUTFILE|DUMPFILE)'; then
     exit 0
 fi
 

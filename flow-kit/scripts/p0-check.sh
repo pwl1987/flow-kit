@@ -117,7 +117,7 @@ main() {
     echo ""
 
     local result
-    result=$(check_p0_files "$files")
+    result=$(check_p0_files "$files") || result="P0_BLOCK"
 
     if [ "$result" = "P0_BLOCK" ]; then
         log_error "=========================================="

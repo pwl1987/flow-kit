@@ -58,14 +58,17 @@ test_estimate_tokens() {
     echo "=== test_estimate_tokens ==="
 
     local result
-    result=$(estimate_tokens "你好世界" 0)
-    assert_equals "2" "$result" "estimate_tokens Chinese"
+    # "你好世界" = 4字符 × 1.5(中文系数) = 6
+    result=$(estimate_tokens "你好世界")
+    assert_equals "6" "$result" "estimate_tokens Chinese"
 
-    result=$(estimate_tokens "hello world" 0)
+    # "hello world" = 11字符 × 0.25(英文系数) = 2 (整数)
+    result=$(estimate_tokens "hello world")
     assert_equals "2" "$result" "estimate_tokens English"
 
-    result=$(estimate_tokens "function test() {}" 1)
-    assert_equals "3" "$result" "estimate_tokens Code"
+    # "function test() {}" = 18字符 × 0.35(代码系数) = 6 (整数)
+    result=$(estimate_tokens "function test() {}")
+    assert_equals "6" "$result" "estimate_tokens Code"
 }
 
 test_check_budget() {

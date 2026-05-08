@@ -30,7 +30,7 @@ count_loc_in_dir() {
 
     while IFS= read -r -d '' file; do
         local basename=$(basename "$file")
-        if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Te][Ee] ]]; then
+        if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi
 
@@ -38,7 +38,7 @@ count_loc_in_dir() {
         loc=$(grep -c '' "$file" 2>/dev/null || echo 0)
 
         local phase
-        phase=$(echo "$file" | grep -oP 'phases/\K[^/]+' || echo "unknown")
+        phase=$(echo "$file" | sed 's|.*/phases/||' | cut -d/ -f1 || echo "unknown")
 
         echo "$phase:$loc"
     done < <(find "$target_dir" -name "*.md" -type f -print0 2>/dev/null)
@@ -101,7 +101,7 @@ main() {
         echo "| Total Changes | ${#phase_totals[@]} |"
         echo "| Total LOC | $total_loc |"
         echo "| Est. Tokens | $total_tokens |"
-        echo "| Avg Tokens/Phase | $(( total_tokens / ${#phase_totals[@]} )) |"
+        echo "| Avg Tokens/Phase | $([ ${#phase_totals[@]} -gt 0 ] && echo "$(( total_tokens / ${#phase_totals[@]} ))" || echo "0") |"
         echo ""
         echo "## Recommendations"
         echo ""
@@ -109,7 +109,7 @@ main() {
         local budget=100000
         local pct=$((total_tokens * 100 / budget))
 
-        if [ "$pct" -gt 80000 ]; then
+        if [ "$pct" -gt 80 ]; then
             echo "- Token usage high ($pct%). Consider archiving expired contexts."
         fi
 

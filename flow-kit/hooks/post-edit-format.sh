@@ -33,7 +33,7 @@ fi
 
 # P1 修复：prettier 错误写入日志而非丢弃
 if command -v npx &> /dev/null; then
-    local prettier_log="$PROJECT_DIR/.flow-kit/logs/prettier-errors.log"
+    prettier_log="$PROJECT_DIR/.flow-kit/logs/prettier-errors.log"
     mkdir -p "$PROJECT_DIR/.flow-kit/logs"
 
     if ! timeout 3 npx prettier --write "$FILE_PATH" > "$prettier_log" 2>&1; then

@@ -71,7 +71,11 @@ main() {
     fi
 
     local now
-    now=$(date +%s 2>/dev/null || echo "0")
+    now=$(date +%s 2>/dev/null)
+    if [ -z "$now" ] || [ "$now" = "0" ]; then
+        echo "[expiry-checker] 错误: 无法获取当前时间" >&2
+        return 1
+    fi
     local days_since=$(( (now - newest_mtime) / 86400 ))
 
     local newest_date

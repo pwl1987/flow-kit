@@ -49,7 +49,7 @@ EOF
 #------------------------------------------------------------------------------
 has_change_log_header() {
     local context_file="$1"
-    grep -q '^\| Date | Change | Phase |' "$context_file" 2>/dev/null
+    grep -qF '| Date | Change | Phase |' "$context_file" 2>/dev/null
 }
 
 #------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ EOF
 
     local temp_file="${context_file}.tmp"
 
-    awk -v ts="$timestamp" -v desc="$change_desc" -v ph="$phase" '
+    awk -v ts="$timestamp" -v desc="$(printf '%s' "$change_desc" | sed 's/[&\\]/\\&/g')" -v ph="$phase" '
     /^## Change Log/ { in_log=1 }
     /^\| Date/ && in_log && !header_done {
         print

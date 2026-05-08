@@ -87,7 +87,7 @@ check "P2-1: hooks 添加 set -euo pipefail ($HOOKS_WITH_STRICT/5)" test "$HOOKS
 check "P2-3: dispatch.sh 版本头 v1.12.8" grep -q "v1.12.8" scripts/dispatch.sh
 
 # 版本号统一
-check "版本号统一为 v1.12.8" grep -q "v1.12.8" VERSION
+check "版本号统一为 v1.12.10" grep -q "v1.12.10" VERSION
 
 # CHANGELOG 更新
 check "CHANGELOG 更新 v1.12.8" grep -q "1.12.8" CHANGELOG.md
