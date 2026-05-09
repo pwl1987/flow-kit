@@ -11,7 +11,9 @@ set -euo pipefail
 readonly DEFAULT_BUDGET=100000
 readonly WARN_THRESHOLD=0.80
 readonly BLOCK_THRESHOLD=1.00
-readonly CAVEMAN_SCRIPT="flow-kit/scripts/caveman-compress.sh"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly FLOW_KIT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+CAVEMAN_SCRIPT="$FLOW_KIT_ROOT/scripts/caveman-compress.sh"
 
 # v1.12.9 改进：检测 bc 可用性，提供降级方案
 HAS_BC=false

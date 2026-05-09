@@ -15,7 +15,7 @@ ARCHIVE_DIR=".flow-kit/health-archive"
 #------------------------------------------------------------------------------
 # 获取文件大小（KB），Linux/BSD 兼容
 #------------------------------------------------------------------------------
-get_file_size_kb() {
+get_file_size_bytes() {
     local file="$1"
 
     # P1 修复：统一 stat 命令 Linux/BSD 检测
@@ -38,7 +38,7 @@ main() {
     fi
 
     local size_bytes
-    size_bytes=$(get_file_size_kb "$HISTORY_FILE")
+    size_bytes=$(get_file_size_bytes "$HISTORY_FILE")
     local size_kb=$((size_bytes / 1024))
 
     if [ "$size_kb" -lt "$MAX_SIZE_KB" ]; then

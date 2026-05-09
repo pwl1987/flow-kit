@@ -50,6 +50,9 @@ scan_hardcoded_secrets() {
         'sk-[0-9a-zA-Z]{20,}'
     )
 
+    # 排除文件类型，避免匹配文档和测试中的示例 token
+    local exclude_grep="grep -v -E '(\.md|\.txt|test_|_test\.|spec\.)'"
+
     for pattern in "${patterns[@]}"; do
         while IFS= read -r file; do
             local line_num
@@ -57,7 +60,7 @@ scan_hardcoded_secrets() {
             log_error "发现疑似密钥: $file:$line_num"
             echo "  Pattern: $pattern"
             found=$((found + 1))
-        done < <(grep -rlE "$pattern" --include="*.sh" --include="*.js" --include="*.ts" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
+        done < <(grep -rlE "$pattern" --include="*.sh" --include="*.js" --include="*.ts" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' | grep -v -E '(\.md|\.txt|test_|_test\.|spec\.)' || true)
     done
 
     if [ "$found" -eq 0 ]; then
@@ -89,7 +92,7 @@ scan_sql_injection() {
                 log_warn "发现疑似 SQL 注入风险: $file ($matches 处)"
                 found=$((found + 1))
             fi
-        done < <(grep -rlE "${patterns[0]}" --include="*.js" --include="*.ts" --include="*.py" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
+        done < <(grep -rlE "$pattern" --include="*.js" --include="*.ts" --include="*.py" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
     done
 
     if [ "$found" -eq 0 ]; then
@@ -139,7 +142,7 @@ scan_dangerous_shell() {
 
     local found=0
     local patterns=(
-        'rm\s+-rf\s+/\s*\#'
+        'rm\s+-rf\s+/'
         ':\(\)\{\s*:\|\:&\s*\}\s*;'
         '>\s*/dev/sda'
         'dd\s+if=.*of=/dev/'

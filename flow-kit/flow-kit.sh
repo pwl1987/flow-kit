@@ -116,16 +116,16 @@ show_status() {
 #------------------------------------------------------------------------------
 show_share() {
     local ver=$(read_version)
-    # 自动提取当前项目名
-    PROJECT_NAME=$(basename "$(pwd)")
+    local project_name
+    project_name=$(basename "$(pwd)")
 
     echo "flow-kit $ver — 团队共享安装指令"
     echo ""
     echo "新成员执行以下命令完成安装:"
     echo ""
-    echo "# 1. 克隆项目（$PROJECT_NAME 可替换为实际项目名）"
-    echo "git clone <repo-url> $PROJECT_NAME"
-    echo "cd $PROJECT_NAME"
+    echo "# 1. 克隆项目（$project_name 可替换为实际项目名）"
+    echo "git clone <repo-url> $project_name"
+    echo "cd $project_name"
     echo ""
     echo "# 2. 安装 hooks（自动注册斜杠命令）"
     echo "./flow-kit/flow-kit.sh hooks install"
@@ -356,10 +356,20 @@ perform_uninstall() {
 
     echo "[flow-kit] 开始卸载..."
 
-    # 删除 Git hooks
+    # 删除 Git hooks（仅删除 flow-kit 安装的 hooks）
     if [ -d ".git/hooks" ]; then
-        rm -f .git/hooks/pre-* .git/hooks/post-* 2>/dev/null || true
-        echo "[flow-kit] ✓ 已删除 Git hooks"
+        local hook_files=()
+        for hook in .git/hooks/pre-commit .git/hooks/post-merge .git/hooks/post-checkout .git/hooks/pre-push; do
+            if [ -f "$hook" ] && grep -q "flow-kit" "$hook" 2>/dev/null; then
+                rm -f "$hook"
+                hook_files+=("$hook")
+            fi
+        done
+        if [ ${#hook_files[@]} -gt 0 ]; then
+            echo "[flow-kit] ✓ 已删除 flow-kit 安装的 Git hooks"
+        else
+            echo "[flow-kit] ✓ 未发现 flow-kit 安装的 Git hooks"
+        fi
     fi
 
     # 删除配置目录

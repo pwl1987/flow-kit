@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v1.12.9 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
-LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"
+# 注意：LOCK_DIR 复用 paths.sh 中的 $LOCK_DIR 定义，无需重复定义
 TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 AGENT_NAME="${AGENT_NAME:-agent-main}"
 
@@ -573,6 +573,7 @@ execute_subagents() {
         CHILD_PIDS+=($pid)  # P0 修复：跟踪子进程用于 trap 清理
 
         echo "[dispatch]    PID: $pid (并发: $MAX_CONCURRENT)"
+        PID_TO_AGENT[$pid]="$agent_id"
 
         # 构建agents数组
         if [ "$first" = true ]; then
@@ -659,45 +660,42 @@ EOF
         local new_remaining=()
         for pid in "${remaining_pids[@]}"; do
             if kill -0 $pid 2>/dev/null; then
-                # 进程仍在运行，检查超时
+                # 进程仍在运行，使用关联数组 O(1) 查找 agent_id
                 local timed_out=false
-                for i in "${!pids[@]}"; do
-                    if [ "${pids[$i]}" = "$pid" ]; then
-                        local agent_id="${agent_ids[$i]}"
-                        local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
-                        if [ -f "$status_file" ]; then
-                            local started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
-                            if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
-                                local start_epoch_agent=$(date_to_epoch "$started_at" 2>/dev/null || echo "$start_epoch")
-                                local agent_elapsed=$((now_epoch - start_epoch_agent))
-                                if [ $agent_elapsed -gt $timeout_seconds ]; then
-                                    echo "[dispatch] ⏱️ $agent_id 执行超时 (${agent_elapsed}s)"
-                                    kill -TERM $pid 2>/dev/null || true
-                                    sleep 1
-                                    kill -9 $pid 2>/dev/null || true
-                                    timed_out_agents+=("$agent_id")
-                                    timed_out=true
-                                    all_success=false
-                                fi
+                if [[ -n "${PID_TO_AGENT[$pid]+isset}" ]]; then
+                    local agent_id="${PID_TO_AGENT[$pid]}"
+                    local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
+                    if [ -f "$status_file" ]; then
+                        local started_at
+                        started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
+                        if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
+                            local start_epoch_agent
+                            start_epoch_agent=$(date_to_epoch "$started_at")
+                            local agent_elapsed=$((now_epoch - start_epoch_agent))
+                            if [ $agent_elapsed -gt $timeout_seconds ]; then
+                                echo "[dispatch] ⏱️ $agent_id 执行超时 (${agent_elapsed}s)"
+                                kill -TERM $pid 2>/dev/null || true
+                                sleep 1
+                                kill -9 $pid 2>/dev/null || true
+                                timed_out_agents+=("$agent_id")
+                                timed_out=true
+                                all_success=false
                             fi
                         fi
-                        break
                     fi
-                done
+                fi
                 if [ "$timed_out" = false ]; then
                     new_remaining+=("$pid")
                 fi
             else
-                # 进程已完成，检查退出码
-                local exited_ok=false
-                for i in "${!pids[@]}"; do
-                    if [ "${pids[$i]}" = "$pid" ]; then
-                        local agent_id="${agent_ids[$i]}"
-                        if ! wait $pid 2>/dev/null; then
-                            local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-                            if [ ! -f "$result_file" ]; then
-                                echo "[dispatch] ❌ $agent_id 执行失败"
-                                cat > "$result_file" << EOF
+                # 进程已完成，使用关联数组 O(1) 查找 agent_id
+                if [[ -n "${PID_TO_AGENT[$pid]+isset}" ]]; then
+                    local agent_id="${PID_TO_AGENT[$pid]}"
+                    if ! wait $pid 2>/dev/null; then
+                        local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
+                        if [ ! -f "$result_file" ]; then
+                            echo "[dispatch] ❌ $agent_id 执行失败"
+                            cat > "$result_file" << EOF
 {
   "id": "$agent_id",
   "role": "unknown",
@@ -709,13 +707,10 @@ EOF
   "attempts": 0
 }
 EOF
-                                all_success=false
-                            fi
+                            all_success=false
                         fi
-                        exited_ok=true
-                        break
                     fi
-                done
+                fi
             fi
         done
         remaining_pids=(${new_remaining[@]+"${new_remaining[@]}"})
@@ -1055,14 +1050,7 @@ main() {
     check_lock_conflicts
 
     if [ "$EXECUTE_MODE" = true ]; then
-        # 执行模式：生成 launch manifest（实际执行由 Claude Code Task API 完成）
         execute_subagents
-        echo ""
-        echo "📋 使用以下命令等待完成并聚合结果:"
-        echo "   bash flow-kit/scripts/dispatch.sh --wait"
-        echo ""
-        echo "或直接聚合已有结果:"
-        echo "   bash flow-kit/scripts/dispatch.sh --aggregate"
     else
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
