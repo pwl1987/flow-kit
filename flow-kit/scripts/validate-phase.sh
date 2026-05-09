@@ -15,7 +15,7 @@ if ! command -v jq &>/dev/null; then
 fi
 
 # v1.12.10 改进：引入错误处理框架
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 
 #------------------------------------------------------------------------------

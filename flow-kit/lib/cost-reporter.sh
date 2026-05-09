@@ -15,8 +15,8 @@ fi
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-DEFAULT_PHASES="${1:-.planning/phases}"
-DEFAULT_OUTPUT="${2:-.flow-kit/reports/cost-report-$(date +%Y%m).md}"
+readonly DEFAULT_PHASES="${1:-.planning/phases}"
+readonly DEFAULT_OUTPUT="${2:-.flow-kit/reports/cost-report-$(date +%Y%m).md}"
 
 #------------------------------------------------------------------------------
 # 统计函数

@@ -8,7 +8,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 
@@ -92,16 +92,12 @@ main() {
     fi
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    # 收集所有修改的文件
+    # 收集所有修改的文件（单次 jq 聚合，减少子 shell 调用）
     echo ""
     echo "修改文件清单:"
-    local all_files="[]"
-    for result_file in "$TMP_DIR"/subagent-*-result.json; do
-        if [ -f "$result_file" ]; then
-            local files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
-            all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
-        fi
-    done
+    local all_files
+    all_files=$(find "$TMP_DIR" -name 'subagent-*-result.json' -print0 2>/dev/null | \
+        xargs -0 -I{} jq -s '[.[].files_modified // []] | add | unique' {} 2>/dev/null || echo "[]")
     echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
 
     echo ""

@@ -5,16 +5,16 @@
 set -euo pipefail
 
 # v1.12.10 P1 修复：引入统一错误处理框架
-P0_CHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly P0_CHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$P0_CHECK_DIR/../lib/error-handler.sh"
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-GREEN='\033[0;32m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly YELLOW='\033[0;33m'
+readonly GREEN='\033[0;32m'
+readonly NC='\033[0m'
 
 #------------------------------------------------------------------------------
 # 日志函数（覆盖 error-handler.sh 的实现以支持彩色输出和单参数接口）
