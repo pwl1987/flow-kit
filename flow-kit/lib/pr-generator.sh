@@ -5,12 +5,6 @@
 set -euo pipefail
 
 #------------------------------------------------------------------------------
-# 配置
-#------------------------------------------------------------------------------
-DEFAULT_BASE="${1:-main}"
-DEFAULT_HEAD="${2:-HEAD}"
-
-#------------------------------------------------------------------------------
 # 获取 git 仓库根目录
 #------------------------------------------------------------------------------
 get_git_root() {
@@ -30,7 +24,6 @@ has_uncommitted_changes() {
 validate_branch_name() {
     local branch_name="$1"
 
-    # P0 修复：只允许字母、数字、斜杠、下划线、连字符、点和 @
     if [[ "$branch_name" =~ ^[a-zA-Z0-9/_.\-@]+$ ]]; then
         return 0
     fi
@@ -41,8 +34,8 @@ validate_branch_name() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local base_branch="${1:-$DEFAULT_BASE}"
-    local head_branch="${2:-$DEFAULT_HEAD}"
+    local base_branch="${1:-main}"
+    local head_branch="${2:-HEAD}"
 
     local git_root
     git_root=$(get_git_root)

@@ -42,15 +42,21 @@ get_epoch_ms() {
 
 date_to_epoch() {
     local iso_date="$1"
-    # macOS: date -j -f, Linux: date -d
-    if date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s 2>/dev/null; then
+    local epoch=0
+    if [ -z "$iso_date" ] || [ "$iso_date" = "null" ] || [ "$iso_date" = "" ]; then
+        echo "0"
         return 0
     fi
-    if date -d "$iso_date" +%s 2>/dev/null; then
-        return 0
+    if date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s >/dev/null 2>&1; then
+        epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s 2>/dev/null || echo "0")
+    elif date -d "$iso_date" +%s >/dev/null 2>&1; then
+        epoch=$(date -d "$iso_date" +%s 2>/dev/null || echo "0")
     fi
-    # 最终回退
-    echo "0"
+    if [ "$epoch" = "0" ] || [ -z "$epoch" ]; then
+        echo "0"
+    else
+        echo "$epoch"
+    fi
 }
 
 cleanup_children() {
@@ -218,7 +224,8 @@ split_task() {
     local n="$2"
 
     local TASK_ID="task-$(date +%Y%m%d%H%M%S)"
-    local CREATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    local CREATED_AT
+    CREATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
     echo "[dispatch] 📋 任务拆分中: $task -> $n 个子任务"
 
@@ -522,10 +529,11 @@ execute_subagents() {
     fi
 
     # 提前提取原始值
-    local orig_task_id=$(jq -r '.task_id' "$summary_file")
-    local orig_task_desc=$(jq -r '.task_desc' "$summary_file")
-    local orig_parallel_n=$(jq -r '.parallel_n' "$summary_file")
-    local orig_created_at=$(jq -r '.created_at' "$summary_file")
+    local orig_task_id orig_task_desc orig_parallel_n orig_created_at
+    orig_task_id=$(jq -r '.task_id' "$summary_file")
+    orig_task_desc=$(jq -r '.task_desc' "$summary_file")
+    orig_parallel_n=$(jq -r '.parallel_n' "$summary_file")
+    orig_created_at=$(jq -r '.created_at' "$summary_file")
 
     echo ""
     echo "[dispatch] ⚡ 开始并行执行子代理..."
@@ -540,15 +548,17 @@ execute_subagents() {
     local pids=()
     local agent_ids=()
 
+    # 建立 PID 到 agent_id 的关联映射（O(1) 查找）
+    declare -A PID_TO_AGENT=()
+
     # 启动所有子代理（后台并行执行）
     # v1.12.10 P0 修复：初始化 agents 构建变量
     local first=true
     local agents_array=""
 
     while IFS= read -r agent_json; do
-        local agent_id=$(echo "$agent_json" | jq -r '.id')
-        local role=$(echo "$agent_json" | jq -r '.role')
-        local prompt_file=$(echo "$agent_json" | jq -r '.prompt_file')
+        local agent_id role prompt_file
+        read -r agent_id role prompt_file <<< "$(echo "$agent_json" | jq -r '[.id, .role, .prompt_file] | join(" ")')"
 
         echo "[dispatch]  启动子代理: $agent_id ($role)"
 
@@ -708,7 +718,7 @@ EOF
                 done
             fi
         done
-        remaining_pids=("${new_remaining[@]}")
+        remaining_pids=(${new_remaining[@]+"${new_remaining[@]}"})
         if [ ${#remaining_pids[@]} -gt 0 ]; then
             sleep $check_interval
         fi

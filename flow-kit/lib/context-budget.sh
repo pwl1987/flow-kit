@@ -122,11 +122,16 @@ detect_language_type() {
 detect_content_type() {
     local text="$1"
 
-    # 检测代码特征
-    if echo "$text" | grep -qE '(function|class|import|export|const|let|var|if|for|while|return)' 2>/dev/null; then
+    # 检测代码特征（增强：支持更多语言关键字）
+    if echo "$text" | grep -qE '(function|class|import|export|const|let|var|if|for|while|return|def |func |package |pub fn |impl |struct |interface |module |use |async |await |fn )' 2>/dev/null; then
         echo "code"
     else
-        echo "text"
+        # 补充：检查代码块标记
+        if echo "$text" | grep -qE '^\`\`\`' 2>/dev/null; then
+            echo "code"
+        else
+            echo "text"
+        fi
     fi
 }
 
@@ -192,10 +197,15 @@ estimate_file_tokens() {
     # 代码文件使用代码系数
     case "$ext" in
         sh|bash|py|js|ts|jsx|tsx|java|c|cpp|h|go|rs|rb|php)
-            local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
-            local config=$(get_model_params "$CURRENT_MODEL")
-            local code_factor=$(echo "$config" | cut -d: -f3)
-            float_mul "$char_count" "$code_factor"
+            local char_count
+            char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
+            local config
+            config=$(get_model_params "$CURRENT_MODEL")
+            local code_factor
+            code_factor=$(echo "$config" | cut -d: -f3)
+            local result
+            result=$(float_mul "$char_count" "$code_factor")
+            echo "${result:-0}"
             ;;
         md|txt|log)
             # 文本文件，需要检测语言
@@ -394,6 +404,7 @@ main() {
                 echo "[context-budget] 错误: 需要指定模型名称" >&2
                 exit 1
             fi
+            mkdir -p .flow-kit
             echo "$2" > .flow-kit/context-budget-model
             echo "[context-budget] ✅ 模型已设置为: $2"
             ;;

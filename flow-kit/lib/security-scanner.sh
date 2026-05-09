@@ -16,7 +16,7 @@ SEVERITY_THRESHOLD="${SEVERITY_THRESHOLD:-medium}"
 
 # 验证 SCAN_DIR
 if [ ! -d "$SCAN_DIR" ]; then
-    die "ERR_INVALID_ARGS" "扫描目录不存在: $SCAN_DIR"
+    die "$EXIT_MISSING_DEPS" "security-scanner" "扫描目录不存在: $SCAN_DIR"
 fi
 
 #------------------------------------------------------------------------------

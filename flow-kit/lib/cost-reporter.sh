@@ -107,7 +107,10 @@ main() {
         echo ""
 
         local budget=100000
-        local pct=$((total_tokens * 100 / budget))
+        local pct=0
+        if [ "$budget" -gt 0 ] && [ "$total_tokens" -gt 0 ]; then
+            pct=$((total_tokens * 100 / budget))
+        fi
 
         if [ "$pct" -gt 80 ]; then
             echo "- Token usage high ($pct%). Consider archiving expired contexts."

@@ -175,12 +175,15 @@ safe_exit() {
     fi
 
     if [ -n "$error_file" ] && [ -f "$error_file" ]; then
-        # P2 修复：使用 jq 解析 JSON，添加 grep 回退
+        # P0 修复：使用 jq 优先，sed 回退（macOS/Linux 全兼容）
         local error_type
         if command -v jq &>/dev/null; then
             error_type=$(jq -r '.type // empty' "$error_file" 2>/dev/null || echo "UNKNOWN")
+        elif command -v sed &>/dev/null; then
+            error_type=$(sed -n 's/.*"type": *"\([^"]*\)".*/\1/p' "$error_file" 2>/dev/null | head -1)
+            [ -z "$error_type" ] && error_type="UNKNOWN"
         else
-            error_type=$(grep -oP '"type": "\K[^"]+' "$error_file" 2>/dev/null || echo "UNKNOWN")
+            error_type="UNKNOWN"
         fi
 
         if [ "$exit_code" -ne 0 ]; then
