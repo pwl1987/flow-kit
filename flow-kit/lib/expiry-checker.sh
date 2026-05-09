@@ -7,8 +7,8 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-WARNING_DAYS=15
-BLOCK_DAYS=30
+readonly WARNING_DAYS=15
+readonly BLOCK_DAYS=30
 DEFAULT_TARGET="${1:-.planning/phases}"
 
 #------------------------------------------------------------------------------
@@ -46,6 +46,10 @@ get_newest_mtime() {
 
 #------------------------------------------------------------------------------
 # 主函数
+# 返回码:
+#   0 = OK (上下文健康)
+#   1 = WARNING (即将过期)
+#   2 = BLOCK (已过期，需要归档)
 #------------------------------------------------------------------------------
 main() {
     local target_dir="${1:-$DEFAULT_TARGET}"
@@ -79,7 +83,8 @@ main() {
     local days_since=$(( (now - newest_mtime) / 86400 ))
 
     local newest_date
-    newest_date=$(date -d "@$newest_mtime" '+%Y-%m-%d' 2>/dev/null || date -r "$newest_mtime" '+%Y-%m-%d' 2>/dev/null || echo "unknown")
+    # macOS: date -r, Linux: date -d @
+    newest_date=$(date -r "$newest_mtime" '+%Y-%m-%d' 2>/dev/null || date -d "@$newest_mtime" '+%Y-%m-%d' 2>/dev/null || echo "unknown")
 
     echo "Last activity: $newest_date"
     echo "Days since: $days_since"

@@ -54,8 +54,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # 确定 commands 目录路径
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMMANDS_PATH="$REPO_ROOT/$COMMANDS_DIR"
 
 # 确定输出目录
@@ -209,7 +209,7 @@ while IFS= read -r -d '' file; do
     echo "  来源: $rel_path"
   else
     generate_entry "$name" "$description" "$rel_path" "$output_file"
-    echo "[生成] $name -> $output_dir/${name}.md"
+    echo "[生成] $name -> $OUTPUT_PATH/${name}.md"
   fi
 
   ((generated++))
