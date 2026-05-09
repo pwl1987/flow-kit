@@ -174,11 +174,12 @@ main() {
     echo ""
 
     local total_issues=0
+    local ret=0
 
-    scan_hardcoded_secrets || total_issues=$((total_issues + $?))
-    scan_sql_injection || total_issues=$((total_issues + $?))
-    scan_xss || total_issues=$((total_issues + $?))
-    scan_dangerous_shell || total_issues=$((total_issues + $?))
+    scan_hardcoded_secrets; ret=$?; total_issues=$((total_issues + ret))
+    scan_sql_injection; ret=$?; total_issues=$((total_issues + ret))
+    scan_xss; ret=$?; total_issues=$((total_issues + ret))
+    scan_dangerous_shell; ret=$?; total_issues=$((total_issues + ret))
 
     echo ""
     echo "=========================================="

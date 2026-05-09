@@ -3,7 +3,8 @@
 # v1.12.9 P1 新增
 # 集中管理 flow-kit 所有路径常量，避免各脚本重复定义
 
-set -uo pipefail
+# 注意：paths.sh 不使用 set -u，因为被 source 时可能影响调用脚本的变量检查
+# 各调用脚本应自行设置 set -euo pipefail
 
 # v1.12.9 改进：防止重复加载
 if [ -n "${PATHS_LOADED:-}" ]; then

@@ -96,7 +96,7 @@ main() {
     echo "To rollback this change, run:"
     echo '```bash'
     echo "# Find the commit to revert"
-    echo "git log --oneline $base_branch..$head_branch | tail -1"
+    echo "git log --oneline $base_branch..$head_branch | tail -1 || echo '无提交'"
     echo ""
     echo "# Revert the changes"
     echo "git revert <commit-hash>"

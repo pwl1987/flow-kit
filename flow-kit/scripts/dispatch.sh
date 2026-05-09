@@ -11,13 +11,13 @@ set -uo pipefail
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v1.12.9 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 # 注意：LOCK_DIR 复用 paths.sh 中的 $LOCK_DIR 定义，无需重复定义
-TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
-AGENT_NAME="${AGENT_NAME:-agent-main}"
+readonly TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
+readonly AGENT_NAME="${AGENT_NAME:-agent-main}"
 
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
 CHILD_PIDS=(${CHILD_PIDS[@]:-})
@@ -30,10 +30,15 @@ MAX_CONCURRENT="${MAX_CONCURRENT:-5}"
 #------------------------------------------------------------------------------
 get_epoch_ms() {
     # macOS: date 不支持 %3N，使用 python/perl 回退
-    if python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null; then
+    local epoch_ms
+    epoch_ms=$(python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null)
+    if [ -n "$epoch_ms" ] && [[ "$epoch_ms" =~ ^[0-9]+$ ]]; then
+        echo "$epoch_ms"
         return 0
     fi
-    if perl -MTime::HiRes -e 'printf("%d\n",Time::HiRes::time()*1000)' 2>/dev/null; then
+    epoch_ms=$(perl -MTime::HiRes -e 'printf("%d\n",Time::HiRes::time()*1000)' 2>/dev/null)
+    if [ -n "$epoch_ms" ] && [[ "$epoch_ms" =~ ^[0-9]+$ ]]; then
+        echo "$epoch_ms"
         return 0
     fi
     # 最终回退：date +%s 拼接 000
@@ -441,9 +446,9 @@ EOF
             # 读取prompt内容
             local prompt_content=$(cat "$prompt_file")
 
-            # 模拟执行（实际环境中应由Claude Code Task API调用）
+            # TODO: 模拟执行（实际环境中应替换为 Claude Code Task API 调用）
             echo "[agent-$agent_id] 正在执行任务..."
-            sleep 2  # 模拟执行时间
+            sleep 2  # 模拟执行时间（占位代码）
 
             # 根据角色生成模拟结果
             local role_lower=$(echo "$role" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
@@ -646,12 +651,9 @@ EOF
                 kill -9 $pid 2>/dev/null || true
             done
             for pid in "${remaining_pids[@]}"; do
-                for i in "${!pids[@]}"; do
-                    if [ "${pids[$i]}" = "$pid" ]; then
-                        timed_out_agents+=("${agent_ids[$i]}")
-                        break
-                    fi
-                done
+                if [[ -n "${PID_TO_AGENT[$pid]+isset}" ]]; then
+                    timed_out_agents+=("${PID_TO_AGENT[$pid]}")
+                fi
             done
             all_success=false
             break
@@ -903,17 +905,18 @@ collect_results() {
         done
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-        # 收集所有修改的文件
+        # 收集所有修改的文件（v1.12.10 优化：单次 jq 聚合，减少子 shell）
         echo ""
         echo "修改文件清单:"
         local all_files="[]"
-        for result_file in "$TMP_DIR"/subagent-*-result.json; do
-            if [ -f "$result_file" ]; then
-                local files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
-                all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
-            fi
-        done
-        echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
+        if [ -f "$TMP_DIR/subagent-agent-1-result.json" ]; then
+            all_files=$(jq -s '[.[] | .files_modified // []] | add | unique' "$TMP_DIR"/subagent-*-result.json 2>/dev/null || echo "[]")
+        fi
+        if [ "$all_files" = "[]" ]; then
+            echo "  (无)"
+        else
+            echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
+        fi
 
         # 更新 summary 文件
         local agents_json=""
@@ -1051,6 +1054,7 @@ main() {
 
     if [ "$EXECUTE_MODE" = true ]; then
         execute_subagents
+        collect_results
     else
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

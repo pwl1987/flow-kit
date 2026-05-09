@@ -9,8 +9,6 @@ set -euo pipefail
 # 配置
 #------------------------------------------------------------------------------
 readonly DEFAULT_BUDGET=100000
-readonly WARN_THRESHOLD=0.80
-readonly BLOCK_THRESHOLD=1.00
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly FLOW_KIT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 CAVEMAN_SCRIPT="$FLOW_KIT_ROOT/scripts/caveman-compress.sh"
@@ -128,8 +126,8 @@ detect_content_type() {
     if echo "$text" | grep -qE '(function|class|import|export|const|let|var|if|for|while|return|def |func |package |pub fn |impl |struct |interface |module |use |async |await |fn )' 2>/dev/null; then
         echo "code"
     else
-        # 补充：检查代码块标记
-        if echo "$text" | grep -qE '^\`\`\`' 2>/dev/null; then
+        # 补充：检查代码块标记（允许前导空格）
+        if echo "$text" | grep -qE '^\s*\`\`\`' 2>/dev/null; then
             echo "code"
         else
             echo "text"
