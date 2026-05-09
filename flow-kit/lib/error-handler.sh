@@ -18,12 +18,13 @@ readonly EXIT_MISSING_DEPS=3
 #------------------------------------------------------------------------------
 get_timestamp() {
     # P1 修复：添加 POSIX date 回退格式
+    # v1.12.16 修复：第三回退格式统一为 ISO 8601（补 T 和 Z）
     if date -u +%Y-%m-%dT%H:%M:%SZ >/dev/null 2>&1; then
         # GNU date (Linux)
         date -u +%Y-%m-%dT%H:%M:%SZ
     else
         # BSD date (macOS) 回退
-        date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u +"%Y-%m-%d %H:%M:%S"
+        date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%S+00:00"
     fi
 }
 

@@ -20,6 +20,7 @@ if echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
     FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 else
     # 非 JSON 输入，回退到直接使用
+    log_warn "pre-tool-guard" "非 JSON 输入格式，使用回退解析 - 可能与新版 Claude Code 不兼容"
     TOOL=$(echo "$INPUT" | grep -oE '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 || echo "")
     COMMAND=""
     FILE_PATH=""
@@ -42,7 +43,8 @@ if [ "$TOOL" = "Bash" ]; then
         exit 2
     fi
     # P1 修复：DDL 高危操作（补全 RENAME TO 格式）
-    if echo "$COMMAND" | grep -qE 'DROP COLUMN|ALTER TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME TO|RENAME COLUMN)|TRUNCATE TABLE'; then
+    # v1.12.16 修复：SQL 关键字间支持任意空白（DROP[[:space:]]+COLUMN 等）
+    if echo "$COMMAND" | grep -qE 'DROP[[:space:]]+COLUMN|ALTER[[:space:]]+TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME[[:space:]]+TO|RENAME[[:space:]]+COLUMN)|TRUNCATE[[:space:]]+TABLE'; then
         echo "BLOCKED: DDL 高危操作被 flow-kit 护栏拦截（DROP COLUMN/ALTER TABLE RENAME/TRUNCATE TABLE）。" >&2
         exit 2
     fi
