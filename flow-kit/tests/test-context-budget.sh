@@ -8,9 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FLOW_KIT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 source "$FLOW_KIT_DIR/lib/context-budget.sh"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly NC='\033[0m'
 
 passed=0
 failed=0

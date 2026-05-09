@@ -5,9 +5,9 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
-TMP_DIR=".flow-kit/tmp"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
+readonly TMP_DIR=".flow-kit/tmp"
 
 passed=0
 failed=0

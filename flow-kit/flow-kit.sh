@@ -17,7 +17,7 @@ set -euo pipefail
 # 版本读取（v1.12.4 新增）
 #------------------------------------------------------------------------------
 read_version() {
-    local version_file="$(dirname "$0")/VERSION"
+    local -r version_file="$(dirname "$0")/VERSION"
     if [ -f "$version_file" ]; then
         cat "$version_file"
     else
@@ -58,6 +58,7 @@ flow-kit $ver — 结构化开发流程 CLI
   health                  运行健康扫描
   hooks install           安装 hooks
   hooks status            查看 hooks 状态
+  hooks-summary           显示 hooks 执行摘要
   mode <mode>             设置执行模式 (autopilot|team|ralph)
   dispatch <n> "<task>"  启动 Team 模式，n 个并行 executor
   minimal "<task>"        启动 L0 极简模式
@@ -69,6 +70,8 @@ flow-kit $ver — 结构化开发流程 CLI
   update-context         更新上下文变更日志
   pr-description         生成 PR 描述
   p0                     P0 变更检测
+  dispatch-status        查看多代理编排状态
+  dispatch-aggregate     查看多代理聚合报告
   uninstall              卸载 flow-kit（删除 hooks 和配置）
 
 示例:
@@ -172,7 +175,7 @@ show_hooks_summary() {
 #------------------------------------------------------------------------------
 # 命令路由映射表
 #------------------------------------------------------------------------------
-declare -A COMMANDS=(
+declare -rA COMMANDS=(
     ["health"]="/flow-kit:health"
     ["hooks"]="/flow-kit:hooks"
     ["hooks-summary"]="/flow-kit:hooks-summary"
