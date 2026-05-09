@@ -8,7 +8,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
 LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"

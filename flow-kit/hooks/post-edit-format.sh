@@ -6,11 +6,8 @@ set -euo pipefail
 
 INPUT=$(cat)
 
-# 获取项目目录（基于 INPUT 中的 project_dir）
-PROJECT_DIR=$(echo "$INPUT" | jq -r '.project_dir // empty')
-if [ -z "$PROJECT_DIR" ]; then
-    PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-fi
+# 获取项目目录（基于 INPUT 中的 project_dir，优先使用 jq 结果，否则回退到脚本位置）
+PROJECT_DIR="${PROJECT_DIR:-$(echo "$INPUT" | jq -r '.project_dir // "'"$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"'"')}"
 
 # 引入统一错误处理框架
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
