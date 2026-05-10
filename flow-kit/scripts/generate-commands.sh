@@ -109,10 +109,10 @@ parse_command_info() {
       done <<< "$content"
 
       # 解析 frontmatter 中的 name 和 description
-      if [[ "$frontmatter" =~ name:[[:space:]]*[\"']?([^"'"'\n]+)[\"']? ]]; then
+      if [[ "$frontmatter" =~ name:[[:space:]]*[\"']?([^"'"$'\n']+)[\"']? ]]; then
         name="${BASH_REMATCH[1]}"
       fi
-      if [[ "$frontmatter" =~ description:[[:space:]]*[\"']?([^"'"'\n]+)[\"']? ]]; then
+      if [[ "$frontmatter" =~ description:[[:space:]]*[\"']?([^"'"$'\n']+)[\"']? ]]; then
         description="${BASH_REMATCH[1]}"
       fi
     fi
@@ -175,7 +175,7 @@ echo ""
 
 # 扫描所有 .md 文件
 while IFS= read -r -d '' file; do
-  ((total++))
+  total=$((total + 1))
 
   # 获取相对于 commands 目录的路径
   rel_path="${file#$COMMANDS_PATH/}"
@@ -198,7 +198,7 @@ while IFS= read -r -d '' file; do
   # 检查文件是否已存在
   if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
     echo "[跳过] $name (已存在, 使用 --force 覆盖)"
-    ((skipped++))
+    skipped=$((skipped + 1))
     continue
   fi
 
@@ -212,7 +212,7 @@ while IFS= read -r -d '' file; do
     echo "[生成] $name -> $OUTPUT_PATH/${name}.md"
   fi
 
-  ((generated++))
+  generated=$((generated + 1))
 
 done < <(find "$COMMANDS_PATH" -name "*.md" -print0 | sort -z)
 

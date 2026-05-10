@@ -2,6 +2,21 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [1.12.10] - 2026-05-10
+
+### P0: 核心脚本修复
+
+- **generate-commands.sh** — 修复 bash 语法错误
+  - 修复 `[^"'"'\n]` 字符类语法错误，改为 `[^"'"$'\n']`
+  - 修复 `set -euo pipefail` 下 `((x++))` 导致退出码非零问题，改为 `x=$((x + 1))`
+  - 现在正确生成全部 24 个斜杠命令
+
+### P1: 命令注册完善
+
+- **斜杠命令注册** — 修复注册流程
+  - 修复 generate-commands.sh 退出码问题
+  - 成功生成全部 24 个命令文件到 `.claude/commands/`
+
 ## [1.12.8] - 2026-05-08
 
 ### P0: 核心稳定性修复
