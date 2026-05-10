@@ -2,7 +2,7 @@
 
 All notable changes to flow-kit will be documented in this file.
 
-## [1.12.10] - 2026-05-10
+## [1.12.17] - 2026-05-10
 
 ### P0: 核心脚本修复
 
