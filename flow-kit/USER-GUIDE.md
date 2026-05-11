@@ -74,38 +74,38 @@ flow-kit 是面向 Claude Code 的结构化开发流程工具包，提供完整�
 
 ### 1.2 核心特性
 
-| 特性 | 描述 |
-|------|------|
-| **8 阶段工作流** | 从需求立项到集成归档的完整开发流程 |
-| **棕地护栏 B1-B6** | 六大护栏保护现有代码库免受破坏性变更 |
-| **多代理编排** | 支持并行执行多个子代理，主上下文维持在 30-40% |
-| **元技能包** | 15+ 个可复用技能模块覆盖需求、开发、测试、审查 |
-| **多语言支持** | TypeScript、Python、Java、Go、Rust、PHP 工程规范 |
-| **上下文预算** | 智能 token 估算与预算管理，防止上下文溢出 |
-| **Hooks 系统** | 5 个自动化钩子实现质量门禁和通知 |
+| 特性               | 描述                                             |
+| ------------------ | ------------------------------------------------ |
+| **8 阶段工作流**   | 从需求立项到集成归档的完整开发流程               |
+| **棕地护栏 B1-B6** | 六大护栏保护现有代码库免受破坏性变更             |
+| **多代理编排**     | 支持并行执行多个子代理，主上下文维持在 30-40%    |
+| **元技能包**       | 15+ 个可复用技能模块覆盖需求、开发、测试、审查   |
+| **多语言支持**     | TypeScript、Python、Java、Go、Rust、PHP 工程规范 |
+| **上下文预算**     | 智能 token 估算与预算管理，防止上下文溢出        |
+| **Hooks 系统**     | 5 个自动化钩子实现质量门禁和通知                 |
 
 ### 1.3 适用场景
 
-| 场景 | 推荐配置 |
-|------|---------|
-| 简单功能变更（1-3 文件） | L0 极简模式，跳过 Phase 2-3 |
-| 中等复杂度新功能 | L1 标准 8 阶段流程 |
-| 复杂架构变更 | L2-L3 完整流程 + 设计评审 + 多代理并行 |
-| 棕地项目迭代 | 启用 B1-B6 全部护栏 |
-| 团队并行开发 | 多代理编排 + 角色分工 |
+| 场景                     | 推荐配置                               |
+| ------------------------ | -------------------------------------- |
+| 简单功能变更（1-3 文件） | L0 极简模式，跳过 Phase 2-3            |
+| 中等复杂度新功能         | L1 标准 8 阶段流程                     |
+| 复杂架构变更             | L2-L3 完整流程 + 设计评审 + 多代理并行 |
+| 棕地项目迭代             | 启用 B1-B6 全部护栏                    |
+| 团队并行开发             | 多代理编排 + 角色分工                  |
 
 ### 1.4 术语表
 
-| 术语 | 定义 |
-|------|------|
-| **Phase** | 开发流程的一个阶段，共 0-8 九个阶段 |
-| **Guardrail** | 护栏规则，防止破坏性变更的安全检查 |
-| **Skill** | 可复用的技能模块，提供特定能力 |
-| **Hook** | 自动化钩子，在特定事件触发时执行 |
-| **Context Budget** | 上下文窗口预算，控制 token 使用量 |
-| **Subagent** | 子代理，在独立上下文中执行任务的 AI 实例 |
-| **Brownfield** | 棕地项目，已有代码库的迭代开发 |
-| **Greenfield** | 绿地项目，从零开始的新项目开发 |
+| 术语               | 定义                                     |
+| ------------------ | ---------------------------------------- |
+| **Phase**          | 开发流程的一个阶段，共 0-8 九个阶段      |
+| **Guardrail**      | 护栏规则，防止破坏性变更的安全检查       |
+| **Skill**          | 可复用的技能模块，提供特定能力           |
+| **Hook**           | 自动化钩子，在特定事件触发时执行         |
+| **Context Budget** | 上下文窗口预算，控制 token 使用量        |
+| **Subagent**       | 子代理，在独立上下文中执行任务的 AI 实例 |
+| **Brownfield**     | 棕地项目，已有代码库的迭代开发           |
+| **Greenfield**     | 绿地项目，从零开始的新项目开发           |
 
 ---
 
@@ -143,6 +143,7 @@ git submodule add https://github.com/pwl1987/flow-kit.git .flow-kit
    - `config/system-rules.md` — R1-R8 系统级硬规则
 
 2. **检测项目类型**
+
    ```
    /flow-kit:project-type detect
    ```
@@ -156,12 +157,12 @@ git submodule add https://github.com/pwl1987/flow-kit.git .flow-kit
 
 flow-kit 支持多种 AI 编程环境：
 
-| IDE | 配置文件 | 自动检测 |
-|-----|---------|---------|
-| Claude Code | `.claude/settings.json` | 默认支持 |
-| Windsurf | `.windsurfrules` | 自动适配 |
-| Cursor | `.cursorrules` | 自动适配 |
-| GitHub Copilot | `copilot.*` 配置 | 需手动配置 |
+| IDE            | 配置文件                | 自动检测   |
+| -------------- | ----------------------- | ---------- |
+| Claude Code    | `.claude/settings.json` | 默认支持   |
+| Windsurf       | `.windsurfrules`        | 自动适配   |
+| Cursor         | `.cursorrules`          | 自动适配   |
+| GitHub Copilot | `copilot.*` 配置        | 需手动配置 |
 
 检测到非 Claude Code 环境时，请参考 `reference/multi-ide-guide.md` 完成适配。
 
@@ -174,6 +175,7 @@ flow-kit 支持多种 AI 编程环境：
 ```
 
 预期输出应包含：
+
 - 项目类型检测结果
 - 上下文状态
 - Hooks 安装状态
@@ -196,59 +198,60 @@ flow-kit 支持多种 AI 编程环境：
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| 阶段 | 名称 | 主要产出 | 关键活动 |
-|------|------|---------|---------|
-| 0 | 变更立项 | change-id、变更摘要 | 立项申请、影响评估 |
-| 1 | 需求澄清 | 需求文档、验收标准 | 需求分析、边界定义 |
-| 2 | 架构设计 | 设计文档、技术选型 | 架构设计、方案对比 |
-| 3 | 任务拆解 | 任务列表、依赖图 | 任务拆分、并行检测 |
-| 4 | 开发执行 | 代码实现、单元测试 | TDD 驱动、编码实现 |
-| 5 | 测试验证 | 测试报告、覆盖率 | 集成测试、性能测试 |
-| 6 | 代码审查 | 审查报告、修改建议 | 三轮评审、问题修复 |
-| 7 | 集成归档 | 归档记录、经验教训 | 合并代码、知识沉淀 |
-| 8 | 变更回滚 | 回滚记录、事故报告 | 紧急回滚、原因分析 |
+| 阶段 | 名称     | 主要产出            | 关键活动           |
+| ---- | -------- | ------------------- | ------------------ |
+| 0    | 变更立项 | change-id、变更摘要 | 立项申请、影响评估 |
+| 1    | 需求澄清 | 需求文档、验收标准  | 需求分析、边界定义 |
+| 2    | 架构设计 | 设计文档、技术选型  | 架构设计、方案对比 |
+| 3    | 任务拆解 | 任务列表、依赖图    | 任务拆分、并行检测 |
+| 4    | 开发执行 | 代码实现、单元测试  | TDD 驱动、编码实现 |
+| 5    | 测试验证 | 测试报告、覆盖率    | 集成测试、性能测试 |
+| 6    | 代码审查 | 审查报告、修改建议  | 三轮评审、问题修复 |
+| 7    | 集成归档 | 归档记录、经验教训  | 合并代码、知识沉淀 |
+| 8    | 变更回滚 | 回滚记录、事故报告  | 紧急回滚、原因分析 |
 
 ### 3.2 棕地护栏 B1-B6
 
-| 护栏 | 名称 | 检查内容 | 触发条件 |
-|------|------|---------|---------|
-| B1 | 文件变更限制 | 单文件修改行数 | > 50 行警告 |
-| B2 | 破坏性变更 | API 签名变更、删除公共接口 | 任何破坏性变更 |
-| B3 | 数据库安全 | DROP/ALTER/TRUNCATE 操作 | 危险 SQL 语句 |
-| B4 | 安全检查 | 凭证泄露、注入漏洞 | 安全风险检测 |
-| B5 | 性能护栏 | O(n²)循环、N+1查询、缺失索引 | 性能退化风险 |
-| B6 | 测试覆盖率 | 新增代码测试覆盖率 | < 60% 阻断 |
+| 护栏 | 名称         | 检查内容                     | 触发条件       |
+| ---- | ------------ | ---------------------------- | -------------- |
+| B1   | 文件变更限制 | 单文件修改行数               | > 50 行警告    |
+| B2   | 破坏性变更   | API 签名变更、删除公共接口   | 任何破坏性变更 |
+| B3   | 数据库安全   | DROP/ALTER/TRUNCATE 操作     | 危险 SQL 语句  |
+| B4   | 安全检查     | 凭证泄露、注入漏洞           | 安全风险检测   |
+| B5   | 性能护栏     | O(n²)循环、N+1查询、缺失索引 | 性能退化风险   |
+| B6   | 测试覆盖率   | 新增代码测试覆盖率           | < 60% 阻断     |
 
 ### 3.3 元技能包
 
-| 技能 | 用途 | 调用方式 |
-|------|------|---------|
-| requirement-clarify | 需求澄清与边界定义 | `/flow-kit:skill:requirement-clarify` |
-| task-master | 任务拆解与依赖管理 | `/flow-kit:skill:task-master` |
-| subagent-execution | 子代理执行与进度恢复 | `/flow-kit:skill:subagent-execution` |
-| code-review | 三层代码审查 | `/flow-kit:skill:code-review` |
-| debugging | 系统化调试 | `/flow-kit:skill:debugging` |
-| parallel-dispatch | 并行任务分发 | `/flow-kit:skill:parallel-dispatch` |
-| verification | 全量验证与对照 | `/flow-kit:skill:verification` |
-| agent-orchestrator | 多代理编排决策 | `/flow-kit:skill:agent-orchestrator` |
-| agent-pipeline | Agent 交接验证 | `/flow-kit:skill:agent-pipeline` |
-| caveman-compress | 上下文压缩 | `/flow-kit:skill:caveman-compress` |
-| dag-resolver | 依赖图解析 | `/flow-kit:skill:dag-resolver` |
-| failure-detector | 失败检测与恢复 | `/flow-kit:skill:failure-detector` |
-| output-self-check | 产物自检 | `/flow-kit:skill:output-self-check` |
-| team-dispatch | 团队任务分发 | `/flow-kit:skill:team-dispatch` |
-| ubiquitous-language | 统一语言定义 | `/flow-kit:skill:ubiquitous-language` |
+| 技能                | 用途                 | 调用方式                              |
+| ------------------- | -------------------- | ------------------------------------- |
+| requirement-clarify | 需求澄清与边界定义   | `/flow-kit:skill:requirement-clarify` |
+| task-master         | 任务拆解与依赖管理   | `/flow-kit:skill:task-master`         |
+| subagent-execution  | 子代理执行与进度恢复 | `/flow-kit:skill:subagent-execution`  |
+| code-review         | 三层代码审查         | `/flow-kit:skill:code-review`         |
+| debugging           | 系统化调试           | `/flow-kit:skill:debugging`           |
+| parallel-dispatch   | 并行任务分发         | `/flow-kit:skill:parallel-dispatch`   |
+| verification        | 全量验证与对照       | `/flow-kit:skill:verification`        |
+| agent-orchestrator  | 多代理编排决策       | `/flow-kit:skill:agent-orchestrator`  |
+| agent-pipeline      | Agent 交接验证       | `/flow-kit:skill:agent-pipeline`      |
+| caveman-compress    | 上下文压缩           | `/flow-kit:skill:caveman-compress`    |
+| dag-resolver        | 依赖图解析           | `/flow-kit:skill:dag-resolver`        |
+| failure-detector    | 失败检测与恢复       | `/flow-kit:skill:failure-detector`    |
+| output-self-check   | 产物自检             | `/flow-kit:skill:output-self-check`   |
+| team-dispatch       | 团队任务分发         | `/flow-kit:skill:team-dispatch`       |
+| ubiquitous-language | 统一语言定义         | `/flow-kit:skill:ubiquitous-language` |
 
 ### 3.4 执行模式
 
-| 模式 | 名称 | 适用场景 | 特点 |
-|------|------|---------|------|
-| L0 | 极简模式 | 1-3 文件变更 | 跳过 Phase 2-3，最多改 3 文件 |
-| L1 | 标准模式 | 中等复杂度功能 | 完整 8 阶段流程 |
-| L2 | 团队模式 | 复杂架构变更 | 多代理并行 + 角色分工 |
-| L3 | 大规模并行 | 大型项目重构 | 多 IDE 并行 + 全量护栏 |
+| 模式 | 名称       | 适用场景       | 特点                          |
+| ---- | ---------- | -------------- | ----------------------------- |
+| L0   | 极简模式   | 1-3 文件变更   | 跳过 Phase 2-3，最多改 3 文件 |
+| L1   | 标准模式   | 中等复杂度功能 | 完整 8 阶段流程               |
+| L2   | 团队模式   | 复杂架构变更   | 多代理并行 + 角色分工         |
+| L3   | 大规模并行 | 大型项目重构   | 多 IDE 并行 + 全量护栏        |
 
 切换模式：
+
 ```
 /flow-kit:mode <autopilot|team|ralph>
 ```
@@ -281,6 +284,7 @@ context-budget.sh --compress "auto-trigger"
 ```
 
 **Token 估算精度**：
+
 - Claude: 英文 0.25x, 中文 1.5x, 代码 0.35x
 - GPT-4: 英文 0.25x, 中文 1.6x, 代码 0.30x
 - Gemini: 英文 0.20x, 中文 1.4x, 代码 0.30x
@@ -298,6 +302,7 @@ context-budget.sh --compress "auto-trigger"
 ```
 
 健康扫描将检查：
+
 - 项目类型（棕地/绿地）
 - 技术栈识别
 - 现有代码质量
@@ -313,6 +318,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 ```
 
 规格目录应包含：
+
 - `CHANGE.md` — 变更摘要
 - `REQUIREMENT.md` — 需求文档
 - `DESIGN.md` — 设计文档
@@ -329,6 +335,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 ```
 
 GO.md 将自动执行：
+
 1. 加载宪法文件（constitution.md）
 2. 加载用户配置（default-user-config.md）
 3. 加载系统规则（system-rules.md）
@@ -338,12 +345,12 @@ GO.md 将自动执行：
 
 ### 4.4 场景决策指南
 
-| 场景 | 推荐流程 | 预计耗时 |
-|------|---------|---------|
-| 修复单个 Bug | L0 极简模式 | 15-30 分钟 |
-| 添加新功能（< 5 文件） | L1 标准模式 | 1-2 小时 |
-| 重构模块（5-20 文件） | L2 团队模式 | 2-4 小时 |
-| 架构升级（> 20 文件） | L3 大规模并行 | 4-8 小时 |
+| 场景                   | 推荐流程      | 预计耗时   |
+| ---------------------- | ------------- | ---------- |
+| 修复单个 Bug           | L0 极简模式   | 15-30 分钟 |
+| 添加新功能（< 5 文件） | L1 标准模式   | 1-2 小时   |
+| 重构模块（5-20 文件）  | L2 团队模式   | 2-4 小时   |
+| 架构升级（> 20 文件）  | L3 大规模并行 | 4-8 小时   |
 
 ---
 
@@ -357,6 +364,7 @@ GO.md 将自动执行：
 **输出**: `CHANGE.md`、change-id
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:0`
 2. 填写变更摘要
 3. 评估影响范围（文件数、模块数）
@@ -364,6 +372,7 @@ GO.md 将自动执行：
 5. 创建 `.specs/{change-id}/CHANGE.md`
 
 **关键检查点**:
+
 - [ ] change-id 唯一性
 - [ ] 影响范围评估完整
 - [ ] 变更分类正确（bugfix/feature/refactor）
@@ -376,6 +385,7 @@ GO.md 将自动执行：
 **输出**: `REQUIREMENT.md`
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:1`
 2. 使用 requirement-clarify 技能
 3. 定义用户故事和验收标准
@@ -383,6 +393,7 @@ GO.md 将自动执行：
 5. 创建 `.specs/{change-id}/REQUIREMENT.md`
 
 **关键检查点**:
+
 - [ ] 需求描述清晰无歧义
 - [ ] 验收标准可测试
 - [ ] 边界条件已识别
@@ -396,6 +407,7 @@ GO.md 将自动执行：
 **输出**: `DESIGN.md`
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:2`
 2. 列出候选技术方案
 3. 对比优缺点
@@ -403,6 +415,7 @@ GO.md 将自动执行：
 5. 创建 `.specs/{change-id}/DESIGN.md`
 
 **关键检查点**:
+
 - [ ] 技术方案对比完整
 - [ ] 选型理由充分
 - [ ] 风险评估到位
@@ -418,6 +431,7 @@ GO.md 将自动执行：
 **输出**: `TASK.md`
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:3`
 2. 使用 task-master 技能
 3. 拆解为原子任务（每个 < 2 小时）
@@ -426,6 +440,7 @@ GO.md 将自动执行：
 6. 创建 `.specs/{change-id}/TASK.md`
 
 **关键检查点**:
+
 - [ ] 任务粒度合理
 - [ ] 依赖关系清晰
 - [ ] 并行机会已识别
@@ -439,6 +454,7 @@ GO.md 将自动执行：
 **输出**: 代码实现、单元测试
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:4`
 2. 按依赖顺序执行任务
 3. 遵循 TDD 标准（先写测试，再写实现）
@@ -446,12 +462,14 @@ GO.md 将自动执行：
 5. 触发 output-self-check 自检
 
 **关键检查点**:
+
 - [ ] 测试先行（TDD）
 - [ ] 代码符合工程规范
 - [ ] 进度记录完整
 - [ ] 产物自检通过
 
 **多代理并行执行**:
+
 ```bash
 # 生成并行计划
 dispatch.sh --plan "实现用户认证模块" --parallel 3
@@ -474,6 +492,7 @@ dispatch.sh --aggregate
 **输出**: 测试报告、覆盖率报告
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:5`
 2. 运行单元测试
 3. 运行集成测试
@@ -482,6 +501,7 @@ dispatch.sh --aggregate
 6. 生成测试报告
 
 **关键检查点**:
+
 - [ ] 所有测试通过
 - [ ] 新增代码覆盖率 ≥ 80%
 - [ ] 无性能退化
@@ -495,6 +515,7 @@ dispatch.sh --aggregate
 **输出**: `REVIEW.md`
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:6`
 2. 第一轮：架构师审查（架构合理性）
 3. 第二轮：设计审查（设计模式应用）
@@ -503,6 +524,7 @@ dispatch.sh --aggregate
 6. 创建 `.specs/{change-id}/REVIEW.md`
 
 **关键检查点**:
+
 - [ ] 三轮审查完成
 - [ ] 所有问题已修复
 - [ ] 审查记录完整
@@ -516,6 +538,7 @@ dispatch.sh --aggregate
 **输出**: `SUMMARY.md`、归档记录
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:7`
 2. 合并代码到主分支
 3. 更新项目文档
@@ -524,6 +547,7 @@ dispatch.sh --aggregate
 6. 提取经验教训
 
 **关键检查点**:
+
 - [ ] 代码已合并
 - [ ] 文档已更新
 - [ ] 归档记录完整
@@ -536,6 +560,7 @@ dispatch.sh --aggregate
 **触发条件**: 生产环境出现严重问题
 
 **步骤**:
+
 1. 运行 `/flow-kit:phase:8` 或 `/flow-kit:rollback`
 2. 执行回滚操作
 3. 验证回滚结果
@@ -543,6 +568,7 @@ dispatch.sh --aggregate
 5. 制定修复计划
 
 **关键检查点**:
+
 - [ ] 回滚执行成功
 - [ ] 服务恢复正常
 - [ ] 事故记录完整
@@ -552,37 +578,111 @@ dispatch.sh --aggregate
 
 ## 第六章：命令参考
 
-### 6.1 核心命令
+> v1.13 更新：命令按分类组织，格式 `/flow-kit:{category}-{command}`
 
-| 命令 | 描述 | 示例 |
-|------|------|------|
-| `/flow-kit:health` | 代码健康度扫描 | `/flow-kit:health` |
-| `/flow-kit:scan` | 技术债务扫描 | `/flow-kit:scan` |
-| `/flow-kit:update-context` | 更新项目上下文 | `/flow-kit:update-context` |
-| `/flow-kit:sync-config` | 同步团队配置 | `/flow-kit:sync-config` |
-| `/flow-kit:archive` | 归档完成变更 | `/flow-kit:archive` |
-| `/flow-kit:minimal` | 启用极简模式 | `/flow-kit:minimal` |
-| `/flow-kit:offline` | 启用离线模式 | `/flow-kit:offline` |
+### 6.1 dev 开发流程命令
 
-### 6.2 管理命令
+| 命令                            | 描述               |
+| ------------------------------- | ------------------ |
+| `/flow-kit:dev-health`          | 代码健康度扫描     |
+| `/flow-kit:dev-scan`            | 技术债务扫描       |
+| `/flow-kit:dev-update-context`  | 更新项目上下文     |
+| `/flow-kit:dev-sync-config`     | 同步团队配置       |
+| `/flow-kit:dev-archive`         | 归档完成变更       |
+| `/flow-kit:dev-minimal`         | 启用极简模式（L0） |
+| `/flow-kit:dev-offline`         | 启用离线模式       |
+| `/flow-kit:dev-check-expiry`    | 检查上下文过期状态 |
+| `/flow-kit:dev-estimate-tokens` | 估算 token 使用量  |
+| `/flow-kit:dev-cost-report`     | 生成成本报告       |
+| `/flow-kit:dev-pr-description`  | 生成 PR 描述       |
+| `/flow-kit:dev-skill-audit`     | 技能质量审计       |
+| `/flow-kit:dev-scale`           | 规模自动评估       |
+| `/flow-kit:dev-project-type`    | 检测项目类型       |
+| `/flow-kit:dev-search-lessons`  | 跨会话搜索         |
+| `/flow-kit:dev-recovery`        | 过期上下文恢复     |
 
-| 命令 | 描述 | 示例 |
-|------|------|------|
-| `/flow-kit:mode` | 切换执行模式 | `/flow-kit:mode team` |
-| `/flow-kit:hooks` | 管理 Hooks | `/flow-kit:hooks install` |
-| `/flow-kit:project-type` | 检测项目类型 | `/flow-kit:project-type detect` |
-| `/flow-kit:cost-report` | 生成成本报告 | `/flow-kit:cost-report` |
-| `/flow-kit:share-install` | 团队共享安装 | `/flow-kit:share-install` |
+### 6.2 dev Phase 工作流命令
 
-### 6.3 多代理编排命令
+| 命令                | 描述                   |
+| ------------------- | ---------------------- |
+| `/flow-kit:phase-0` | 变更立项               |
+| `/flow-kit:phase-1` | 需求澄清               |
+| `/flow-kit:phase-2` | 架构设计               |
+| `/flow-kit:phase-3` | 任务拆解               |
+| `/flow-kit:phase-4` | 开发执行               |
+| `/flow-kit:phase-5` | 测试验证               |
+| `/flow-kit:phase-6` | 代码审查               |
+| `/flow-kit:phase-7` | 集成归档               |
+| `/flow-kit:phase-8` | 变更回滚               |
+| `/flow-kit:next`    | 推进到下一个工作流步骤 |
 
-| 命令 | 描述 | 示例 |
-|------|------|------|
-| `dispatch.sh --plan` | 生成并行计划 | `dispatch.sh --plan "实现认证" --parallel 3` |
-| `dispatch.sh --execute` | 执行子代理 | `dispatch.sh --execute` |
-| `dispatch.sh --status` | 查看执行状态 | `dispatch.sh --status` |
-| `dispatch.sh --aggregate` | 聚合执行结果 | `dispatch.sh --aggregate` |
-| `dispatch.sh --wait` | 等待执行完成 | `dispatch.sh --wait` |
+### 6.3 meta 管理命令
+
+| 命令                           | 描述                                |
+| ------------------------------ | ----------------------------------- |
+| `/flow-kit:meta-mode`          | 切换执行模式 (autopilot/team/ralph) |
+| `/flow-kit:meta-hooks`         | 管理 Hooks                          |
+| `/flow-kit:meta-hooks-summary` | 显示 hooks 执行摘要                 |
+| `/flow-kit:meta-status`        | 显示当前执行模式                    |
+| `/flow-kit:meta-share-install` | 团队共享安装                        |
+| `/flow-kit:meta-register`      | 注册斜杠命令                        |
+| `/flow-kit:meta-generate`      | 生成命令入口文件                    |
+| `/flow-kit:meta-uninstall`     | 卸载 flow-kit                       |
+
+### 6.4 team 多代理编排命令
+
+| 命令                            | 描述              |
+| ------------------------------- | ----------------- |
+| `/flow-kit:team-dispatch`       | 并行任务分发      |
+| `/flow-kit:team-roles`          | 团队角色管理      |
+| `/flow-kit:team-strategy`       | 策略优先开发      |
+| `/flow-kit:team-tmux-init`      | tmux 工作区初始化 |
+| `/flow-kit:team-tmux-run`       | tmux 并行执行     |
+| `/flow-kit:team-tmux-aggregate` | tmux 结果聚合     |
+
+### 6.5 skill 元技能命令
+
+| 命令                                     | 描述                 |
+| ---------------------------------------- | -------------------- |
+| `/flow-kit:skill-requirement-clarify`    | 需求澄清与边界定义   |
+| `/flow-kit:skill-task-master`            | 任务拆解与依赖管理   |
+| `/flow-kit:skill-subagent-execution`     | 子代理执行与进度恢复 |
+| `/flow-kit:skill-code-review`            | 三层代码审查         |
+| `/flow-kit:skill-debugging`              | 系统化调试           |
+| `/flow-kit:skill-parallel-dispatch`      | 并行任务分发         |
+| `/flow-kit:skill-verification`           | 全量验证与对照       |
+| `/flow-kit:skill-agent-orchestrator`     | 多代理编排决策       |
+| `/flow-kit:skill-agent-pipeline`         | Agent 交接验证       |
+| `/flow-kit:skill-caveman-compress`       | 上下文压缩           |
+| `/flow-kit:skill-dag-resolver`           | 依赖图解析           |
+| `/flow-kit:skill-failure-detector`       | 失败检测与恢复       |
+| `/flow-kit:skill-output-self-check`      | 产物自检             |
+| `/flow-kit:skill-team-dispatch`          | 团队任务分发         |
+| `/flow-kit:skill-ubiquitous-language`    | 统一语言定义         |
+| `/flow-kit:skill-team-dispatch-parallel` | 团队并行分发         |
+
+### 6.6 hooks 自动化钩子命令
+
+| 命令                                | 描述           |
+| ----------------------------------- | -------------- |
+| `/flow-kit:hooks-notification`      | 通知钩子       |
+| `/flow-kit:hooks-post-edit-format`  | 编辑后格式化   |
+| `/flow-kit:hooks-pre-tool-guard`    | 工具执行前检查 |
+| `/flow-kit:hooks-session-start`     | 会话启动钩子   |
+| `/flow-kit:hooks-stop-quality-gate` | 停止质量门禁   |
+
+### 6.7 ops 运维护栏命令
+
+| 命令                        | 描述             |
+| --------------------------- | ---------------- |
+| `/flow-kit:ops-careful`     | 三级生产安全护栏 |
+| `/flow-kit:ops-freeze`      | 限制编辑范围     |
+| `/flow-kit:ops-unfreeze`    | 解除编辑限制     |
+| `/flow-kit:ops-guard`       | 组合护栏模式     |
+| `/flow-kit:ops-lock`        | 文件锁管理       |
+| `/flow-kit:ops-unlock`      | 解除文件锁       |
+| `/flow-kit:ops-rollback`    | 变更回滚         |
+| `/flow-kit:ops-p0-approval` | P0 变更审批      |
 
 ---
 
@@ -593,12 +693,14 @@ dispatch.sh --aggregate
 flow-kit v1.12.7 实现了真正的并行执行引擎：
 
 **工作原理**:
+
 1. 使用 bash 后台进程（`&`）启动子代理
 2. 使用 `wait` 命令等待所有后台进程完成
 3. 记录 PID 支持超时终止和进程管理
 4. 原子写入结果文件避免竞态条件
 
 **执行流程**:
+
 ```
 主代理
   ├── 生成并行计划
@@ -611,16 +713,19 @@ flow-kit v1.12.7 实现了真正的并行执行引擎：
 ### 7.2 子代理重试机制
 
 **配置参数**:
+
 - `max_retries`: 最大重试次数（默认 2 次）
 - `retry_interval`: 重试间隔（默认 10 秒）
 
 **重试策略**:
+
 1. 子代理执行失败时自动重试
 2. 每次重试记录尝试次数
 3. 结果 JSON 包含 `attempts` 字段
 4. 超过最大重试次数后标记为 FAILED
 
 **示例输出**:
+
 ```json
 {
   "id": "agent-1",
@@ -634,16 +739,19 @@ flow-kit v1.12.7 实现了真正的并行执行引擎：
 ### 7.3 超时终止机制
 
 **配置参数**:
+
 - `timeout_seconds`: 超时时间（默认 300 秒）
 - `check_interval`: 检查间隔（默认 5 秒）
 
 **超时控制**:
+
 1. 每 5 秒检查一次子代理状态
 2. 超时自动发送 TERM 信号终止进程
 3. 超时结果自动写入 JSON 文件
 4. 显示实时进度（完成数/运行中/已用时）
 
 **超时处理流程**:
+
 ```
 检测超时 → 发送 TERM 信号 → 等待 1 秒 → 发送 KILL 信号 → 写入超时结果
 ```
@@ -651,11 +759,13 @@ flow-kit v1.12.7 实现了真正的并行执行引擎：
 ### 7.4 结果聚合与验证
 
 **聚合命令**:
+
 ```bash
 dispatch.sh --aggregate
 ```
 
 **聚合输出**:
+
 ```json
 {
   "task_id": "TASK-001",
@@ -663,15 +773,16 @@ dispatch.sh --aggregate
   "parallel_n": 3,
   "status": "COMPLETED",
   "agents": [
-    {"id": "agent-1", "status": "SUCCESS"},
-    {"id": "agent-2", "status": "SUCCESS"},
-    {"id": "agent-3", "status": "FAILED"}
+    { "id": "agent-1", "status": "SUCCESS" },
+    { "id": "agent-2", "status": "SUCCESS" },
+    { "id": "agent-3", "status": "FAILED" }
   ],
   "summary": "2/3 子代理执行成功"
 }
 ```
 
 **验证步骤**:
+
 1. 检查所有子代理状态
 2. 验证结果文件完整性
 3. 对照目标验证输出
@@ -684,32 +795,36 @@ dispatch.sh --aggregate
 ### 8.1 项目类型识别
 
 **棕地项目（Brownfield）**:
+
 - 已有代码库的迭代开发
 - 必须启用 B1-B6 全部护栏
 - 重点关注破坏性变更检测
 - 建议启用代码审查技能
 
 **绿地项目（Greenfield）**:
+
 - 从零开始的新项目
 - 可适度放宽护栏
 - 重点关注架构设计
 - 建议启用任务拆解技能
 
 **识别方法**:
+
 ```bash
 /flow-kit:project-type detect
 ```
 
 ### 8.2 规模评估策略
 
-| 级别 | 改动范围 | 推荐流程 | 预计耗时 |
-|------|---------|---------|---------|
-| L0 | 1-3 文件 | 极简模式，跳过 Phase 2-3 | 15-30 分钟 |
-| L1 | 4-10 文件 | 标准 8 阶段 | 1-2 小时 |
-| L2 | 11-30 文件 | 完整流程 + 设计评审 | 2-4 小时 |
-| L3 | > 30 文件 | 多代理并行 + 全量护栏 | 4-8 小时 |
+| 级别 | 改动范围   | 推荐流程                 | 预计耗时   |
+| ---- | ---------- | ------------------------ | ---------- |
+| L0   | 1-3 文件   | 极简模式，跳过 Phase 2-3 | 15-30 分钟 |
+| L1   | 4-10 文件  | 标准 8 阶段              | 1-2 小时   |
+| L2   | 11-30 文件 | 完整流程 + 设计评审      | 2-4 小时   |
+| L3   | > 30 文件  | 多代理并行 + 全量护栏    | 4-8 小时   |
 
 **自动评估**:
+
 ```bash
 # 根据改动范围自动评估
 @flow-kit/commands/scale-level.md
@@ -731,6 +846,7 @@ dispatch.sh --aggregate
 ### 8.4 上下文优化技巧
 
 **执行计划三要素声明**:
+
 ```
 ✅ 已加载：列出所有已加载文件，含起止行
    例："REQUIREMENT.md（全读，98行）""tech-stacks.md（仅查适用矩阵，line 380-405）"
@@ -743,6 +859,7 @@ dispatch.sh --aggregate
 ```
 
 **上下文压缩**:
+
 ```bash
 # 触发压缩
 context-budget.sh --compress "auto-trigger"
@@ -752,6 +869,7 @@ context-budget.sh --compress "auto-trigger"
 ```
 
 **压缩策略**:
+
 - 标准压缩：保留核心信息，压缩率 50%
 - 极限压缩：仅保留关键决策，压缩率 80%
 
@@ -767,6 +885,7 @@ context-budget.sh --compress "auto-trigger"
 | QA Engineer | 测试验证、质量门禁 | 质量否决 |
 
 **P0 变更审批流程**:
+
 1. 提交 P0 审批申请
 2. Architect 审核架构影响
 3. Tech Lead 审核实现方案
@@ -782,14 +901,17 @@ context-budget.sh --compress "auto-trigger"
 **Q1: 上下文窗口溢出怎么办？**
 
 A: 运行上下文压缩：
+
 ```bash
 context-budget.sh --compress "manual"
 ```
+
 或使用 caveman-compress 技能进行标准/极限压缩。
 
 **Q2: 子代理执行失败如何处理？**
 
 A: flow-kit 自动重试机制会处理：
+
 - 默认重试 2 次，间隔 10 秒
 - 查看日志：`cat .flow-kit/tmp/subagent-{id}.log`
 - 手动重试：`dispatch.sh --execute --retry`
@@ -797,6 +919,7 @@ A: flow-kit 自动重试机制会处理：
 **Q3: 如何查看执行进度？**
 
 A: 使用状态命令：
+
 ```bash
 dispatch.sh --status
 ```
@@ -804,6 +927,7 @@ dispatch.sh --status
 **Q4: Hooks 未安装如何修复？**
 
 A: 运行安装命令：
+
 ```bash
 /flow-kit:hooks install
 ```
@@ -811,6 +935,7 @@ A: 运行安装命令：
 **Q5: 项目类型检测不准确？**
 
 A: 手动设置项目类型：
+
 ```bash
 /flow-kit:project-type brownfield  # 设为棕地
 /flow-kit:project-type greenfield  # 设为绿地
@@ -818,30 +943,33 @@ A: 手动设置项目类型：
 
 ### 9.2 错误代码参考
 
-| 错误代码 | 描述 | 解决方案 |
-|---------|------|---------|
-| E001 | 上下文窗口溢出 | 运行压缩或归档旧变更 |
-| E002 | 子代理执行超时 | 检查任务复杂度，增加超时时间 |
-| E003 | 文件锁冲突 | 等待锁释放或手动清理 `.flow-kit/locks/` |
-| E004 | JSON Schema 验证失败 | 检查产物格式，参考对应 schema |
-| E005 | 测试覆盖率不达标 | 补充单元测试，确保覆盖率 ≥ 80% |
-| E006 | 破坏性变更检测 | 评估影响，制定迁移方案 |
-| E007 | 安全风险检测 | 修复安全漏洞，重新扫描 |
-| E008 | 性能退化检测 | 优化代码，消除 O(n²) 循环 |
+| 错误代码 | 描述                 | 解决方案                                |
+| -------- | -------------------- | --------------------------------------- |
+| E001     | 上下文窗口溢出       | 运行压缩或归档旧变更                    |
+| E002     | 子代理执行超时       | 检查任务复杂度，增加超时时间            |
+| E003     | 文件锁冲突           | 等待锁释放或手动清理 `.flow-kit/locks/` |
+| E004     | JSON Schema 验证失败 | 检查产物格式，参考对应 schema           |
+| E005     | 测试覆盖率不达标     | 补充单元测试，确保覆盖率 ≥ 80%          |
+| E006     | 破坏性变更检测       | 评估影响，制定迁移方案                  |
+| E007     | 安全风险检测         | 修复安全漏洞，重新扫描                  |
+| E008     | 性能退化检测         | 优化代码，消除 O(n²) 循环               |
 
 ### 9.3 日志分析
 
 **日志位置**:
+
 - 子代理日志：`.flow-kit/tmp/subagent-{id}.log`
 - Hooks 日志：`.flow-kit/hooks-log/`
 - 执行摘要：`.flow-kit/tmp/dispatch-summary.json`
 
 **查看最近 20 条 Hooks 执行记录**:
+
 ```bash
 flow-kit.sh hooks summary
 ```
 
 **分析子代理执行结果**:
+
 ```bash
 dispatch.sh --aggregate
 ```
@@ -849,16 +977,19 @@ dispatch.sh --aggregate
 ### 9.4 恢复策略
 
 **上下文过期恢复**:
+
 1. 归档旧变更：`/flow-kit:archive`
 2. 清理过期文件：`rm -rf .planning/phases/`
 3. 重新启动流程
 
 **执行中断恢复**:
+
 1. 查看进度文件：`cat .specs/{change-id}/PROGRESS.md`
 2. 使用进度恢复模板：`@flow-kit/skills/subagent-execution.md`
 3. 从中断点继续执行
 
 **锁冲突恢复**:
+
 1. 检查锁状态：`ls -la .flow-kit/locks/`
 2. 清理过期锁：`rm -rf .flow-kit/locks/{filepath_hash}.lock`
 3. 重新执行操作
@@ -938,7 +1069,9 @@ flow-kit/
 ├── scripts/                   # 脚本工具
 │   ├── dispatch.sh              # 多代理编排
 │   ├── validate-phase.sh        # 阶段验证
-│   └── dispatch-aggregate.sh    # 结果聚合
+│   ├── dispatch-aggregate.sh    # 结果聚合
+│   ├── offline-mode.sh         # 离线模式控制
+│   └── pr-description.sh       # PR描述生成
 │
 ├── reference/                 # 工程规范
 │   ├── frontend-engineer-rules.md  # 前端规范
@@ -955,29 +1088,33 @@ flow-kit/
 
 ### B. 版本历史
 
-| 版本 | 日期 | 主要变更 |
-|------|------|---------|
-| v1.12.7 | 2026-05-08 | 真正并行执行引擎 + 重试机制 + 超时终止 + JSON Schema 完整验证 + token 估算精度提升 |
-| v1.12.6 | 2026-05-08 | 多代理编排引擎 + 高危修复 + 全量中文化 + 阶段契约验证 |
-| v1.12.3 | 2026-05-08 | 版本号统一 + Hooks 补全参考来源 |
-| v1.12.2 | 2026-05-08 | 动态变量 + 自动提取项目名 |
-| v1.12 | 2026-05-08 | CLI 子命令 + 交接验证 + 团队共享安装 |
-| v1.11 | 2026-05-08 | Hooks 参考来源 + 阶段切换门 + 显式模式切换 |
-| v1.10 | 2026-05-08 | 任务过大检测 + Agent 交接验证门 + 任务对齐检查 |
-| v1.9 | 2026-05-08 | Hooks 路由 + 整链路预算 + 三路线选择 |
-| v1.8 | 2026-05-08 | Schema 变更规则 + 5 个 Hook 脚本 |
-| v1.7 | 2026-05-08 | 进度恢复 + 执行计划三要素 + 成本对比 |
+| 版本     | 日期       | 主要变更                                                                           |
+| -------- | ---------- | ---------------------------------------------------------------------------------- |
+| v1.12.18 | 2026-05-11 | 代码评审修复8轮 + P0/P1/P2全部修复 + offline-mode/pr-description新增               |
+| v1.12.17 | 2026-05-11 | 斜杠命令全量注册(194个文件) + dispatch真正并行执行                                 |
+| v1.12.7  | 2026-05-08 | 真正并行执行引擎 + 重试机制 + 超时终止 + JSON Schema 完整验证 + token 估算精度提升 |
+| v1.12.6  | 2026-05-08 | 多代理编排引擎 + 高危修复 + 全量中文化 + 阶段契约验证                              |
+| v1.12.3  | 2026-05-08 | 版本号统一 + Hooks 补全参考来源                                                    |
+| v1.12.2  | 2026-05-08 | 动态变量 + 自动提取项目名                                                          |
+| v1.12    | 2026-05-08 | CLI 子命令 + 交接验证 + 团队共享安装                                               |
+| v1.11    | 2026-05-08 | Hooks 参考来源 + 阶段切换门 + 显式模式切换                                         |
+| v1.10    | 2026-05-08 | 任务过大检测 + Agent 交接验证门 + 任务对齐检查                                     |
+| v1.9     | 2026-05-08 | Hooks 路由 + 整链路预算 + 三路线选择                                               |
+| v1.8     | 2026-05-08 | Schema 变更规则 + 5 个 Hook 脚本                                                   |
+| v1.7     | 2026-05-08 | 进度恢复 + 执行计划三要素 + 成本对比                                               |
 
 ### C. 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
 
 **提交 Issue**:
+
 - 描述问题现象
 - 提供复现步骤
 - 附上相关日志或截图
 
 **提交 PR**:
+
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
 3. 提交变更 (`git commit -m 'feat: add amazing feature'`)
@@ -985,6 +1122,7 @@ flow-kit/
 5. 创建 Pull Request
 
 **代码规范**:
+
 - 遵循现有代码风格
 - 添加必要的注释
 - 更新相关文档
