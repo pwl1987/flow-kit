@@ -34,12 +34,12 @@ EOF
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local summary_file="${1:-$TMP_DIR/dispatch-summary.json}"
-
-    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
         show_help
         exit 0
     fi
+
+    local summary_file="${1:-$TMP_DIR/dispatch-summary.json}"
 
     if [ ! -f "$summary_file" ]; then
         echo "[dispatch-aggregate] 错误: 文件不存在 $summary_file" >&2
@@ -92,12 +92,16 @@ main() {
     fi
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    # 收集所有修改的文件（单次 jq 聚合，减少子 shell 调用）
+    # 收集所有修改的文件（使用 jq 数组输入聚合）
     echo ""
     echo "修改文件清单:"
     local all_files
-    all_files=$(find "$TMP_DIR" -name 'subagent-*-result.json' -print0 2>/dev/null | \
-        xargs -0 -I{} jq -s '[.[].files_modified // []] | add | unique' {} 2>/dev/null || echo "[]")
+    local result_files=("$TMP_DIR"/subagent-*-result.json)
+    if [ ${#result_files[@]} -gt 0 ] && [ -f "${result_files[0]}" ]; then
+        all_files=$(cat "${result_files[@]}" 2>/dev/null | jq -s '[.[].files_modified // [] | flatten] | add | unique' 2>/dev/null || echo "[]")
+    else
+        all_files="[]"
+    fi
     echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
 
     echo ""

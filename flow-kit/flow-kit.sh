@@ -158,9 +158,7 @@ show_hooks_summary() {
 
     echo "最近 20 条执行记录："
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    tail -20 "$log_file" | while read -r line; do
-        echo "$line"
-    done
+    tail -20 "$log_file"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     # 统计
@@ -173,31 +171,6 @@ show_hooks_summary() {
 }
 
 #------------------------------------------------------------------------------
-# 命令路由映射表
-#------------------------------------------------------------------------------
-declare -rA COMMANDS=(
-    ["health"]="/flow-kit:health"
-    ["hooks"]="/flow-kit:hooks"
-    ["hooks-summary"]="/flow-kit:hooks-summary"
-    ["mode"]="/flow-kit:mode"
-    ["dispatch"]="/flow-kit:dispatch"
-    ["minimal"]="/flow-kit:minimal"
-    ["register"]="/flow-kit:register-commands"
-    ["archive"]="/flow-kit:archive"
-    ["status"]="/flow-kit:status"
-    ["uninstall"]="/flow-kit:uninstall"
-    ["scan"]="/flow-kit:scan"
-    ["cost-report"]="/flow-kit:cost-report"
-    ["estimate-tokens"]="/flow-kit:estimate-tokens"
-    ["check-expiry"]="/flow-kit:check-expiry"
-    ["update-context"]="/flow-kit:update-context"
-    ["pr-description"]="/flow-kit:pr-description"
-    ["p0"]="/flow-kit:p0"
-    ["share"]="/flow-kit:share-install"
-    ["map-codebase"]="/flow-kit:scan"
-)
-
-#------------------------------------------------------------------------------
 # 核心命令处理
 #------------------------------------------------------------------------------
 route_command() {
@@ -205,9 +178,39 @@ route_command() {
     shift
 
     case "$cmd" in
-        health|scan|cost-report|estimate-tokens|check-expiry|update-context|pr-description|p0)
+        health|scan|cost-report|estimate-tokens|check-expiry|update-context|p0)
             echo "[flow-kit] 路由到 $cmd..."
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:$cmd"
+            ;;
+
+        pr-description)
+            local pr_desc_script="$(dirname "$0")/scripts/pr-description.sh"
+            if [ -f "$pr_desc_script" ]; then
+                bash "$pr_desc_script" "$@"
+            else
+                echo "[flow-kit] 错误: pr-description.sh 不存在"
+                exit 1
+            fi
+            ;;
+
+        offline)
+            local offline_script="$(dirname "$0")/scripts/offline-mode.sh"
+            if [ -f "$offline_script" ]; then
+                bash "$offline_script" "$@"
+            else
+                echo "[flow-kit] 错误: offline-mode.sh 不存在"
+                exit 1
+            fi
+            ;;
+
+        online)
+            local offline_script="$(dirname "$0")/scripts/offline-mode.sh"
+            if [ -f "$offline_script" ]; then
+                bash "$offline_script" off
+            else
+                echo "[flow-kit] 错误: offline-mode.sh 不存在"
+                exit 1
+            fi
             ;;
 
         hooks)
@@ -261,6 +264,11 @@ route_command() {
             local gen_script="$(dirname "$0")/scripts/generate-commands.sh"
             if [ -f "$gen_script" ]; then
                 bash "$gen_script" --force
+                # 同步到项目根目录 .claude/commands
+                local src_dir="$(cd "$(dirname "$0")" && pwd)/.claude/commands"
+                if [ -d "$src_dir" ] && [ -d ".claude/commands" ]; then
+                    cp -f "$src_dir/"*.md ".claude/commands/" 2>/dev/null || true
+                fi
                 echo "[flow-kit] ✅ 斜杠命令注册完成"
             else
                 echo "[flow-kit] ⚠️ generate-commands.sh 不存在，请在 Claude Code 中执行: /flow-kit:register-commands"
@@ -345,6 +353,11 @@ perform_uninstall() {
     echo ""
 
     if [ "$confirm" != "--force" ]; then
+        # 非 TTY 检查：CI/管道环境下需要 --force 参数
+        if [ ! -t 0 ]; then
+            echo "[flow-kit] 错误：非交互式环境需要 --force 参数确认卸载" >&2
+            exit 1
+        fi
         echo "⚠️  警告：此操作将删除以下内容："
         echo "   • .git/hooks/*        — Git hooks"
         echo "   • .flow-kit/          — 配置和日志"

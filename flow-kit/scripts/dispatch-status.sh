@@ -32,12 +32,12 @@ EOF
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local summary_file="$TMP_DIR/dispatch-summary.json"
-
-    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
         show_help
         exit 0
     fi
+
+    local summary_file="${1:-$TMP_DIR/dispatch-summary.json}"
 
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

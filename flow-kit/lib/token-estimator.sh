@@ -17,7 +17,8 @@ fi
 # 配置
 #------------------------------------------------------------------------------
 readonly TOKEN_BUDGET="${TOKEN_BUDGET:-100000}"
-DEFAULT_TARGET="${1:-.planning/phases}"
+
+# v1.12.17 P2 修复: DEFAULT_TARGET 移入 main() 避免顶层 $1 引用
 
 #------------------------------------------------------------------------------
 # 统计函数
@@ -57,7 +58,7 @@ count_loc_in_dir() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local target_dir="${1:-$DEFAULT_TARGET}"
+    local target_dir="${1:-.planning/phases}"
 
     echo "=========================================="
     echo "Token Estimation Report"
@@ -110,4 +111,7 @@ main() {
     fi
 }
 
-main "$@"
+# v1.12.17 P0 修复: 添加 sourcing guard 防止 source 时误触发 main()
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

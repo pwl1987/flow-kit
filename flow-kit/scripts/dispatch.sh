@@ -17,13 +17,18 @@ source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 # 注意：LOCK_DIR 复用 paths.sh 中的 $LOCK_DIR 定义，无需重复定义
 readonly TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
-readonly AGENT_NAME="${AGENT_NAME:-agent-main}"
 
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
 CHILD_PIDS=(${CHILD_PIDS[@]:-})
 
 # v1.12.9 改进：并发池控制 - 最大并行子代理数
 MAX_CONCURRENT="${MAX_CONCURRENT:-5}"
+
+# v1.12.17 P0 修复：标记模拟模式（生产环境需替换为真实 Agent API）
+SIMULATION_MODE="${SIMULATION_MODE:-true}"
+if [[ "$SIMULATION_MODE" == "true" ]]; then
+    readonly SIMULATION_WARNING="⚠️  [SIMULATION MODE] dispatch.sh 当前为桩代码，未调用真实 Agent API"
+fi
 
 #------------------------------------------------------------------------------
 # 跨平台时间戳工具（v1.12.9 新增：macOS/Linux 兼容）
@@ -400,14 +405,20 @@ run_single_agent() {
     local tmp_dir="$5"
     local max_retries="${6:-2}"
     local retry_interval="${7:-10}"
+    local slot_num="${8:-}"  # v1.12.17: slot number passed explicitly
     local result_file="$tmp_dir/subagent-${agent_id}-result.json"
     local log_file="$tmp_dir/subagent-${agent_id}.log"
 
-    # 记录PID
-    echo $$ > "$tmp_dir/subagent-${agent_id}.pid"
+    # 记录PID（使用 $BASHPID 而非 $$，因为当前在子进程中）
+    echo $BASHPID > "$tmp_dir/subagent-${agent_id}.pid"
+
+    # v1.12.17 修复: 直接传递 slot 编号，不依赖文件查找
+    if [[ -n "$slot_num" ]]; then
+        echo "$slot_num" > "$tmp_dir/slot-$BASHPID.id"
+    fi
 
     # v1.12.9 改进：确保退出时释放并发槽位
-    trap 'release_slot' EXIT
+    trap 'release_slot_from_trap' EXIT
 
     {
         echo "[agent-$agent_id] 开始执行 ($role)"
@@ -446,7 +457,10 @@ EOF
             # 读取prompt内容
             local prompt_content=$(cat "$prompt_file")
 
-            # TODO: 模拟执行（实际环境中应替换为 Claude Code Task API 调用）
+            # v1.12.17 P0 修复：模拟模式警告
+            if [[ "$SIMULATION_MODE" == "true" ]]; then
+                echo "[agent-$agent_id] ⚠️  [SIMULATION] 模拟执行，调用 sleep 2 代替真实 API"
+            fi
             echo "[agent-$agent_id] 正在执行任务..."
             sleep 2  # 模拟执行时间（占位代码）
 
@@ -487,18 +501,16 @@ EOF
 #------------------------------------------------------------------------------
 acquire_slot() {
     local max_conc="$1"
+    local slot_num=""
     for ((i=0; i<max_conc; i++)); do
-        local lockfile="$TMP_DIR/slot-$i.lock"
-        # 打开 FD 200 指向锁文件（如果文件不存在会创建）
-        exec 200>"$lockfile" 2>/dev/null || continue
-        # 非阻塞获取排他锁
-        if flock -n 200 2>/dev/null; then
-            # 保存 slot 编号到临时文件（而非 FD）
+        local lockdir="$TMP_DIR/slot-$i.lock"
+        # 使用 mkdir 原子创建目录来实现锁（无需 FD）
+        if mkdir "$lockdir" 2>/dev/null; then
+            slot_num="$i"
+            # 保存 slot 编号到临时文件
             echo "$i" > "$TMP_DIR/slot-$$.id"
             return 0
         fi
-        # 获取失败，关闭 FD 并尝试下一个 slot
-        exec 200>&- 2>/dev/null
     done
     return 1
 }
@@ -509,13 +521,23 @@ release_slot() {
         local slot_num
         slot_num=$(cat "$slot_id_file" 2>/dev/null || echo "")
         if [[ -n "$slot_num" ]]; then
-            local lockfile="$TMP_DIR/slot-$slot_num.lock"
-            # 使用 FD 200 重新打开锁文件并释放锁
-            exec 200>"$lockfile" 2>/dev/null || true
-            flock -u 200 2>/dev/null || true
-            exec 200>&- 2>/dev/null || true
-            # 清理锁文件本身
-            rm -f "$lockfile"
+            local lockdir="$TMP_DIR/slot-$slot_num.lock"
+            # 使用 rmdir 释放锁（原子操作）
+            rmdir "$lockdir" 2>/dev/null || true
+        fi
+        rm -f "$slot_id_file"
+    fi
+}
+
+# v1.12.17 修复: 用于子进程 trap 的释放函数（使用 $BASHPID）
+release_slot_from_trap() {
+    local slot_id_file="$TMP_DIR/slot-$BASHPID.id"
+    if [[ -f "$slot_id_file" ]]; then
+        local slot_num
+        slot_num=$(cat "$slot_id_file" 2>/dev/null || echo "")
+        if [[ -n "$slot_num" ]]; then
+            local lockdir="$TMP_DIR/slot-$slot_num.lock"
+            rmdir "$lockdir" 2>/dev/null || true
         fi
         rm -f "$slot_id_file"
     fi
@@ -545,11 +567,12 @@ execute_subagents() {
     echo "[dispatch] 📁 工作目录: $(pwd)"
     echo "[dispatch] 📁 临时目录: $TMP_DIR"
     echo "[dispatch] 🔧 执行模式: 真正并行 (后台进程)"
+    if [[ "$SIMULATION_MODE" == "true" ]]; then
+        echo "[dispatch] $SIMULATION_WARNING"
+    fi
 
     # 生成launch manifest
     local launch_manifest="$TMP_DIR/launch-manifest.json"
-    local agents_array=""
-    local first=true
     local pids=()
     local agent_ids=()
 
@@ -557,21 +580,22 @@ execute_subagents() {
     declare -A PID_TO_AGENT=()
 
     # 启动所有子代理（后台并行执行）
-    # v1.12.10 P0 修复：初始化 agents 构建变量
-    local first=true
     local agents_array=""
-
+    local first=true
     while IFS= read -r agent_json; do
         local agent_id role prompt_file
         read -r agent_id role prompt_file <<< "$(echo "$agent_json" | jq -r '[.id, .role, .prompt_file] | join(" ")')"
 
         echo "[dispatch]  启动子代理: $agent_id ($role)"
 
-        # v1.12.9 改进：并发池控制 - 等待可用槽位
-        acquire_slot "$MAX_CONCURRENT"
+        # v1.12.17 修复: 获取槽位号并传递给子代理
+        local acquired_slot=""
+        if acquire_slot "$MAX_CONCURRENT"; then
+            acquired_slot=$(cat "$TMP_DIR/slot-$$.id" 2>/dev/null || echo "")
+        fi
 
-        # 在后台启动子代理
-        run_single_agent "$agent_id" "$role" "$prompt_file" "$orig_task_desc" "$TMP_DIR" &
+        # 在后台启动子代理，传递 slot 编号
+        run_single_agent "$agent_id" "$role" "$prompt_file" "$orig_task_desc" "$TMP_DIR" 2 10 "$acquired_slot" &
         local pid=$!
         pids+=($pid)
         agent_ids+=("$agent_id")

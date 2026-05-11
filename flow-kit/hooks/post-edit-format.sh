@@ -1,19 +1,37 @@
 #!/bin/bash
 set -euo pipefail
 # post-edit-format.sh — PostToolUse hook: 自动格式化代码
-# v1.12.8 P1 修复: prettier 错误写入日志而非丢弃 + set -euo pipefail
+# v1.12.17 P1 修复: 简化 PROJECT_DIR 解析 + date 兼容性
 # Reference: Claude Code hooks 社区最佳实践
 
 INPUT=$(cat)
 
-# 获取项目目录（基于 INPUT 中的 project_dir，优先使用 jq 结果，否则回退到脚本位置）
-PROJECT_DIR="${PROJECT_DIR:-$(echo "$INPUT" | jq -r '.project_dir // "'"$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"'"')}"
+# 获取项目目录
+if echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
+    PROJECT_DIR="${PROJECT_DIR:-$(echo "$INPUT" | jq -r '.project_dir // empty')}"
+    if [[ -z "$PROJECT_DIR" || "$PROJECT_DIR" == "empty" ]]; then
+        PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    fi
+else
+    PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+fi
 
 # 引入统一错误处理框架
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$PROJECT_DIR/flow-kit/lib/error-handler.sh"
 
-START_TIME=$(date +%s%3N)
+# 获取毫秒级时间戳（兼容 GNU date 和 macOS）
+get_epoch_ms() {
+    if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
+        date +%s%3N
+    elif python3 -c "import time; print(int(time.time() * 1000))" >/dev/null 2>&1; then
+        python3 -c "import time; print(int(time.time() * 1000))"
+    else
+        perl -MTime::HiRes -e 'printf "%d\n", int(Time::HiRes::time() * 1000)'
+    fi
+}
+
+START_TIME=$(get_epoch_ms)
 
 TOOL=$(echo "$INPUT" | jq -r '.tool_name')
 
@@ -78,7 +96,7 @@ detect_and_format() {
 detect_and_format "$FILE_PATH"
 
 # hooks 执行遥测
-END_TIME=$(date +%s%3N)
+END_TIME=$(get_epoch_ms)
 ELAPSED=$((END_TIME - START_TIME))
 mkdir -p "$PROJECT_DIR/.flow-kit/logs"
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$PROJECT_DIR/.flow-kit/logs/hooks-execution.log" 2>/dev/null || true

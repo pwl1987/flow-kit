@@ -5,11 +5,8 @@
 set -euo pipefail
 
 #------------------------------------------------------------------------------
-# 配置
+# 配置（不在此处设置，避免 source 时 $1 已固定）
 #------------------------------------------------------------------------------
-DEFAULT_CONTEXT="${1:-.planning/CONTEXT.md}"
-CHANGE_DESC="${2:-}"
-PHASE="${3:-unknown}"
 
 #------------------------------------------------------------------------------
 # 初始化上下文文件
@@ -56,9 +53,9 @@ has_change_log_header() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local context_file="${1:-$DEFAULT_CONTEXT}"
-    local change_desc="${2:-$CHANGE_DESC}"
-    local phase="${3:-$PHASE}"
+    local context_file="${1:-.planning/CONTEXT.md}"
+    local change_desc="${2:-}"
+    local phase="${3:-unknown}"
 
     if [ -z "$change_desc" ]; then
         echo "[ERROR] 变更描述不能为空"

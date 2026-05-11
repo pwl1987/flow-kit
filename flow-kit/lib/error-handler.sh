@@ -130,17 +130,24 @@ create_error_context() {
     local caller_script="${BASH_SOURCE[1]:-${BASH_SOURCE[0]:-unknown}}"
     local caller_line="${BASH_LINENO[0]:-0}"
 
-    cat > "$error_file" << EOF
-{
-  "type": "$error_type",
-  "context": "$context",
-  "timestamp": "$timestamp",
-  "script": "$caller_script",
-  "line": $caller_line,
-  "command": "$BASH_COMMAND",
-  "recovery_suggestions": []
-}
-EOF
+    # v1.12.17 使用 jq 生成 JSON，避免注入风险
+    jq -n \
+        --arg type "$error_type" \
+        --arg ctx "$context" \
+        --arg ts "$timestamp" \
+        --arg script "$caller_script" \
+        --arg cmd "$BASH_COMMAND" \
+        --arg line "$caller_line" \
+        '{
+          type: $type,
+          context: $ctx,
+          timestamp: $ts,
+          script: $script,
+          line: ($line | tonumber),
+          command: $cmd,
+          recovery_suggestions: []
+        }' > "$error_file"
+
     echo "$error_file"
 }
 
@@ -198,6 +205,7 @@ safe_exit() {
     exit "$exit_code"
 }
 
+# v1.12.17 P2 修复: 使用 jq 生成 JSON，避免注入风险
 aggregate_errors() {
     local error_log="$1"
     shift
@@ -207,24 +215,19 @@ aggregate_errors() {
         return 0
     fi
 
-    {
-        echo "{"
-        echo "  \"aggregated_at\": \"$(get_timestamp)\","
-        echo "  \"total_errors\": ${#errors[@]},"
-        echo "  \"errors\": ["
-        local first=true
-        for error in "${errors[@]}"; do
-            if [ "$first" = true ]; then
-                first=false
-            else
-                echo ","
-            fi
-            echo "    $error"
-        done
-        echo ""
-        echo "  ]"
-        echo "}"
-    } > "$error_log"
+    # 将错误数组转换为 JSON 数组（安全转义特殊字符）
+    local errors_json
+    errors_json=$(printf '%s\n' "${errors[@]}" | jq -Rs 'split("\n")[:-1]' 2>/dev/null || echo "[]")
+
+    jq -n \
+        --arg ts "$(get_timestamp)" \
+        --argjson total "${#errors[@]}" \
+        --argjson errs "$errors_json" \
+        '{
+          aggregated_at: $ts,
+          total_errors: $total,
+          errors: $errs
+        }' > "$error_log"
 }
 
 #------------------------------------------------------------------------------

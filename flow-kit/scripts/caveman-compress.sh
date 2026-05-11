@@ -33,6 +33,11 @@ extract_decisions() {
         return 1
     fi
 
+    # 使用临时文件避免子shell数组修改丢失问题
+    local tmpfile
+    tmpfile=$(mktemp)
+    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
+
     while IFS= read -r -d '' file; do
         local basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
@@ -44,7 +49,8 @@ extract_decisions() {
                 all_decisions+=("$line")
             fi
         done < "$file"
-    done < <(find "$input_dir" -name "*.md" -type f -print0 2>/dev/null)
+    done < "$tmpfile"
+    rm -f "$tmpfile"
 
     if [ ${#all_decisions[@]} -gt 0 ]; then
         echo "## Key Decisions" >> "$decisions_file"
@@ -69,6 +75,11 @@ extract_todos() {
         return 1
     fi
 
+    # 使用临时文件避免子shell数组修改丢失问题
+    local tmpfile
+    tmpfile=$(mktemp)
+    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
+
     while IFS= read -r -d '' file; do
         local basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
@@ -80,7 +91,8 @@ extract_todos() {
                 all_todos+=("$line")
             fi
         done < "$file"
-    done < <(find "$input_dir" -name "*.md" -type f -print0 2>/dev/null)
+    done < "$tmpfile"
+    rm -f "$tmpfile"
 
     if [ ${#all_todos[@]} -gt 0 ]; then
         echo "## Pending Items" >> "$output_file"
@@ -105,6 +117,11 @@ extract_file_changes() {
         return 1
     fi
 
+    # 使用临时文件避免子shell数组修改丢失问题
+    local tmpfile
+    tmpfile=$(mktemp)
+    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
+
     while IFS= read -r -d '' file; do
         local basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
@@ -116,7 +133,8 @@ extract_file_changes() {
                 all_changes+=("$line")
             fi
         done < "$file"
-    done < <(find "$input_dir" -name "*.md" -type f -print0 2>/dev/null)
+    done < "$tmpfile"
+    rm -f "$tmpfile"
 
     if [ ${#all_changes[@]} -gt 0 ]; then
         echo "## File Changes" >> "$output_file"

@@ -6,11 +6,11 @@ set -euo pipefail
 # 当 health-history.json 超过 500KB 时自动归档
 
 #------------------------------------------------------------------------------
-# 配置
+# 配置（v1.12.17 P2 修复：使用 readonly 防止意外修改）
 #------------------------------------------------------------------------------
-MAX_SIZE_KB=500
-HISTORY_FILE=".flow-kit/health-history.json"
-ARCHIVE_DIR=".flow-kit/health-archive"
+readonly MAX_SIZE_KB=500
+readonly HISTORY_FILE=".flow-kit/health-history.json"
+readonly ARCHIVE_DIR=".flow-kit/health-archive"
 
 #------------------------------------------------------------------------------
 # 获取文件大小（KB），Linux/BSD 兼容

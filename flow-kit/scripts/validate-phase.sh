@@ -16,13 +16,13 @@ fi
 
 # v1.12.10 改进：引入错误处理框架
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 
 #------------------------------------------------------------------------------
-# 配置
+# 配置（v1.12.17 P2 修复：使用 paths.sh 中的绝对路径常量）
 #------------------------------------------------------------------------------
-readonly SCHEMA_DIR="flow-kit/lib/validation/schemas"
-readonly OUTPUT_DIR=".planning/outputs"
+# SCHEMA_DIR 和 OUTPUT_DIR 从 paths.sh 获取（绝对路径）
 
 #------------------------------------------------------------------------------
 # 帮助信息
@@ -69,7 +69,7 @@ validate_required() {
     local required=$(jq -r '.required[]' "$schema_file" 2>/dev/null || echo "")
 
     for field in $required; do
-        local value=$(jq -r ".$field" "$json_file" 2>/dev/null || echo "null")
+        local value=$(jq -r --arg f "$field" '.[$f]' "$json_file" 2>/dev/null || echo "null")
         if [ "$value" = "null" ] || [ -z "$value" ]; then
             errors+=("缺少必填字段: $field")
         fi
@@ -89,9 +89,9 @@ validate_types() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local expected_type=$(jq -r ".properties.\"$prop\".type" "$schema_file" 2>/dev/null)
-        local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
-        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+        local expected_type=$(jq -r --arg p "$prop" '.properties[$p].type' "$schema_file" 2>/dev/null)
+        local actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
+        local actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
         if [ "$actual_value" != "null" ] && [ -n "$actual_value" ]; then
             case "$expected_type" in
@@ -138,12 +138,12 @@ validate_string_length() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
-        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+        local actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
+        local actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
         if [ "$actual_type" = "string" ] && [ "$actual_value" != "null" ]; then
-            local min_length=$(jq -r ".properties.\"$prop\".minLength // empty" "$schema_file" 2>/dev/null)
-            local max_length=$(jq -r ".properties.\"$prop\".maxLength // empty" "$schema_file" 2>/dev/null)
+            local min_length=$(jq -r --arg p "$prop" '.properties[$p].minLength // empty' "$schema_file" 2>/dev/null)
+            local max_length=$(jq -r --arg p "$prop" '.properties[$p].maxLength // empty' "$schema_file" 2>/dev/null)
             local str_length=${#actual_value}
 
             if [ -n "$min_length" ] && [ "$str_length" -lt "$min_length" ]; then
@@ -170,12 +170,12 @@ validate_number_range() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+        local actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
         if [ "$actual_type" = "number" ] || [ "$actual_type" = "integer" ]; then
-            local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
-            local minimum=$(jq -r ".properties.\"$prop\".minimum // empty" "$schema_file" 2>/dev/null)
-            local maximum=$(jq -r ".properties.\"$prop\".maximum // empty" "$schema_file" 2>/dev/null)
+            local actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
+            local minimum=$(jq -r --arg p "$prop" '.properties[$p].minimum // empty' "$schema_file" 2>/dev/null)
+            local maximum=$(jq -r --arg p "$prop" '.properties[$p].maximum // empty' "$schema_file" 2>/dev/null)
 
             if [ -n "$minimum" ]; then
                 local cmp_result
@@ -209,17 +209,17 @@ validate_array_items() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
+        local actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
         if [ "$actual_type" = "array" ]; then
-            local items_type=$(jq -r ".properties.\"$prop\".items.type // empty" "$schema_file" 2>/dev/null)
+            local items_type=$(jq -r --arg p "$prop" '.properties[$p].items.type // empty' "$schema_file" 2>/dev/null)
 
             if [ -n "$items_type" ]; then
-                local array_length=$(jq -r ".\"$prop\" | length" "$json_file" 2>/dev/null)
+                local array_length=$(jq -r --arg p "$prop" '.[$p] | length' "$json_file" 2>/dev/null)
 
                 for ((i=0; i<array_length; i++)); do
-                    local item_type=$(jq -r ".\"$prop\"[$i] | type" "$json_file" 2>/dev/null)
-                    local item_value=$(jq -r ".\"$prop\"[$i]" "$json_file" 2>/dev/null)
+                    local item_type=$(jq -r --arg p "$prop" --arg idx "$i" '.[$p][$idx | tonumber] | type' "$json_file" 2>/dev/null)
+                    local item_value=$(jq -r --arg p "$prop" --arg idx "$i" '.[$p][$idx | tonumber]' "$json_file" 2>/dev/null)
 
                     case "$items_type" in
                         string)
@@ -242,9 +242,9 @@ validate_array_items() {
             fi
 
             # 验证minItems/maxItems
-            local min_items=$(jq -r ".properties.\"$prop\".minItems // empty" "$schema_file" 2>/dev/null)
-            local max_items=$(jq -r ".properties.\"$prop\".maxItems // empty" "$schema_file" 2>/dev/null)
-            local array_length=$(jq -r ".\"$prop\" | length" "$json_file" 2>/dev/null)
+            local min_items=$(jq -r --arg p "$prop" '.properties[$p].minItems // empty' "$schema_file" 2>/dev/null)
+            local max_items=$(jq -r --arg p "$prop" '.properties[$p].maxItems // empty' "$schema_file" 2>/dev/null)
+            local array_length=$(jq -r --arg p "$prop" '.[$p] | length' "$json_file" 2>/dev/null)
 
             if [ -n "$min_items" ] && [ "$array_length" -lt "$min_items" ]; then
                 errors+=("字段 $prop: 数组长度 $array_length 小于最小项数 $min_items")
@@ -277,8 +277,8 @@ validate_nested_object() {
 
     for prop in $props; do
         local full_prop="${prefix}${prefix:+.}$prop"
-        local actual_type=$(jq -r ".\"$prop\" | type" "$json_file" 2>/dev/null || echo "null")
-        local expected_type=$(jq -r ".properties.\"$prop\".type" "$schema_file" 2>/dev/null)
+        local actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
+        local expected_type=$(jq -r --arg p "$prop" '.properties[$p].type' "$schema_file" 2>/dev/null)
 
         # 验证类型
         if [ "$actual_type" != "$expected_type" ] && [ "$actual_type" != "null" ]; then
@@ -288,8 +288,8 @@ validate_nested_object() {
 
         # 如果是object，递归验证
         if [ "$expected_type" = "object" ] && [ "$actual_type" = "object" ]; then
-            local nested_schema=$(jq -c ".properties.\"$prop\"" "$schema_file" 2>/dev/null)
-            local nested_json=$(jq -c ".\"$prop\"" "$json_file" 2>/dev/null)
+            local nested_schema=$(jq -c --arg p "$prop" '.properties[$p]' "$schema_file" 2>/dev/null)
+            local nested_json=$(jq -c --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
 
             # 使用临时目录中的文件进行递归验证
             local tmp_schema="$tmp_dir/schema-${prop}.json"
@@ -300,7 +300,7 @@ validate_nested_object() {
             # 验证nested required
             local nested_required=$(jq -r '.required[]' "$tmp_schema" 2>/dev/null || echo "")
             for field in $nested_required; do
-                local value=$(jq -r ".$field" "$tmp_json" 2>/dev/null || echo "null")
+                local value=$(jq -r --arg f "$field" '.[$f]' "$tmp_json" 2>/dev/null || echo "null")
                 if [ "$value" = "null" ] || [ -z "$value" ]; then
                     errors+=("字段 $full_prop.$field: 缺少必填字段")
                 fi
@@ -322,14 +322,14 @@ validate_enum() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local has_enum=$(jq -r '.properties."'$prop'".enum != null' "$schema_file" 2>/dev/null)
+        local has_enum=$(jq -r --arg p "$prop" '.properties[$p].enum != null' "$schema_file" 2>/dev/null)
         if [ "$has_enum" = "true" ]; then
-            local actual_value=$(jq -c ".\"$prop\"" "$json_file" 2>/dev/null)
-            local enum_count=$(jq -r '.properties."'$prop'".enum | length' "$schema_file" 2>/dev/null)
+            local actual_value=$(jq -c --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
+            local enum_count=$(jq -r --arg p "$prop" '.properties[$p].enum | length' "$schema_file" 2>/dev/null)
             local found=false
 
             for ((i=0; i<enum_count; i++)); do
-                local enum_val=$(jq -c ".properties.\"$prop\".enum[$i]" "$schema_file" 2>/dev/null)
+                local enum_val=$(jq -c --arg p "$prop" --arg idx "$i" '.properties[$p].enum[$idx | tonumber]' "$schema_file" 2>/dev/null)
                 if [ "$actual_value" = "$enum_val" ]; then
                     found=true
                     break
@@ -337,7 +337,7 @@ validate_enum() {
             done
 
             if [ "$found" = false ]; then
-                local allowed=$(jq -r '.properties."'$prop'".enum | join(", ")' "$schema_file" 2>/dev/null)
+                local allowed=$(jq -r --arg p "$prop" '.properties[$p].enum | join(", ")' "$schema_file" 2>/dev/null)
                 errors+=("字段 $prop: 值 '$actual_value' 不在允许的枚举值中 [$allowed]")
             fi
         fi
@@ -357,9 +357,9 @@ validate_patterns() {
     local props=$(jq -r '.properties | keys[]' "$schema_file" 2>/dev/null || echo "")
 
     for prop in $props; do
-        local pattern=$(jq -r ".properties.\"$prop\".pattern" "$schema_file" 2>/dev/null)
+        local pattern=$(jq -r --arg p "$prop" '.properties[$p].pattern' "$schema_file" 2>/dev/null)
         if [ "$pattern" != "null" ] && [ -n "$pattern" ]; then
-            local actual_value=$(jq -r ".\"$prop\"" "$json_file" 2>/dev/null)
+            local actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
             if [ -n "$actual_value" ] && [ "$actual_value" != "null" ]; then
                 if ! echo "$actual_value" | jq -e --arg p "$pattern" 'test($p)' >/dev/null 2>&1; then
                     errors+=("字段 $prop: 值 '$actual_value' 不匹配 pattern: $pattern")

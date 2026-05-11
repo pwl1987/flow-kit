@@ -6,7 +6,19 @@ set -euo pipefail
 # Reference: Claude Code hooks 社区最佳实践
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-START_TIME=$(date +%s%3N)
+
+# v1.12.17 修复: 跨平台毫秒时间戳
+get_epoch_ms() {
+    if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
+        date +%s%3N
+    elif python3 -c "import time; print(int(time.time() * 1000))" >/dev/null 2>&1; then
+        python3 -c "import time; print(int(time.time() * 1000))"
+    else
+        perl -MTime::HiRes -e 'printf "%d\n", int(Time::HiRes::time() * 1000)'
+    fi
+}
+
+START_TIME=$(get_epoch_ms)
 
 TITLE="${1:-flow-kit}"
 MESSAGE="${2:-Claude Code 需要你的关注}"
@@ -67,7 +79,7 @@ PSEOF
 fi
 
 # hooks 执行遥测
-END_TIME=$(date +%s%3N)
+END_TIME=$(get_epoch_ms)
 ELAPSED=$((END_TIME - START_TIME))
 mkdir -p "${SCRIPT_DIR}/../../.flow-kit/logs"
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [notification] [OK] [${ELAPSED}ms]" >> "${SCRIPT_DIR}/../../.flow-kit/logs/hooks-execution.log" 2>/dev/null || true

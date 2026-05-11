@@ -9,7 +9,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 
-START_TIME=$(date +%s%3N)
+# 获取毫秒级时间戳（兼容 GNU date 和 macOS）
+get_epoch_ms() {
+    if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
+        date +%s%3N
+    elif python3 -c "import time; print(int(time.time() * 1000))" >/dev/null 2>&1; then
+        python3 -c "import time; print(int(time.time() * 1000))"
+    else
+        perl -MTime::HiRes -e 'printf "%d\n", int(Time::HiRes::time() * 1000)'
+    fi
+}
+
+START_TIME=$(get_epoch_ms)
 
 INPUT=$(cat)
 
@@ -59,7 +70,7 @@ if [ "$TOOL" = "Edit" ] || [ "$TOOL" = "Write" ]; then
 fi
 
 # hooks 执行遥测
-END_TIME=$(date +%s%3N)
+END_TIME=$(get_epoch_ms)
 ELAPSED=$((END_TIME - START_TIME))
 mkdir -p "$SCRIPT_DIR/../../.flow-kit/logs"
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [pre-tool-guard] [OK] [${ELAPSED}ms]" >> "$SCRIPT_DIR/../../.flow-kit/logs/hooks-execution.log" 2>/dev/null || true

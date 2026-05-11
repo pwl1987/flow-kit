@@ -22,6 +22,7 @@ readonly NC='\033[0m'
 log_info()  { echo -e "${GREEN}[INFO]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_debug() { echo -e "${NC}[DEBUG] $1"; }
 
 #------------------------------------------------------------------------------
 # 检查文件是否为 P0

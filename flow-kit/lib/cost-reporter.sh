@@ -1,5 +1,6 @@
 #!/bin/bash
 # cost-reporter.sh — 成本报告生成
+# v1.12.17 P2 修复: 复用 token-estimator.sh 的 count_loc_in_dir 函数
 # v1.12.10 新增：实现 /flow-kit:cost-report 命令
 
 set -euo pipefail
@@ -13,36 +14,16 @@ if ! command -v jq &>/dev/null; then
 fi
 
 #------------------------------------------------------------------------------
+# 引入共享的 LOC 统计函数
+#------------------------------------------------------------------------------
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/token-estimator.sh"
+
+#------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 readonly DEFAULT_PHASES="${1:-.planning/phases}"
 readonly DEFAULT_OUTPUT="${2:-.flow-kit/reports/cost-report-$(date +%Y%m).md}"
-
-#------------------------------------------------------------------------------
-# 统计函数
-#------------------------------------------------------------------------------
-count_loc_in_dir() {
-    local target_dir="$1"
-
-    if [ ! -d "$target_dir" ]; then
-        return 1
-    fi
-
-    while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
-        if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
-            continue
-        fi
-
-        local loc
-        loc=$(grep -c '' "$file" 2>/dev/null || echo 0)
-
-        local phase
-        phase=$(echo "$file" | sed 's|.*/phases/||' | cut -d/ -f1 || echo "unknown")
-
-        echo "$phase:$loc"
-    done < <(find "$target_dir" -name "*.md" -type f -print0 2>/dev/null)
-}
 
 #------------------------------------------------------------------------------
 # 主函数

@@ -31,6 +31,7 @@ NC='\033[0m'
 log_info()  { echo -e "${GREEN}[INFO]${NC} $(basename "$SCAN_DIR"): $1"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_debug() { echo -e "${NC}[DEBUG] $1"; }
 
 #------------------------------------------------------------------------------
 # 扫描硬编码密钥

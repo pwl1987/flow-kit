@@ -11,7 +11,7 @@ set -euo pipefail
 readonly DEFAULT_BUDGET=100000
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly FLOW_KIT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-CAVEMAN_SCRIPT="$FLOW_KIT_ROOT/scripts/caveman-compress.sh"
+readonly CAVEMAN_SCRIPT="$FLOW_KIT_ROOT/scripts/caveman-compress.sh"
 
 # v1.12.9 改进：检测 bc 可用性，提供降级方案
 HAS_BC=false
@@ -67,7 +67,7 @@ declare -A MODEL_CONFIGS=(
 readonly MODEL_ORDER=(claude gpt4 gemini)
 
 # 当前使用的模型（默认claude）
-CURRENT_MODEL="${CONTEXT_BUDGET_MODEL:-claude}"
+readonly CURRENT_MODEL="${CONTEXT_BUDGET_MODEL:-claude}"
 
 #------------------------------------------------------------------------------
 # 获取当前模型的配置参数

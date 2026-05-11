@@ -1,24 +1,20 @@
 #!/bin/bash
-# generate-commands.sh — flow-kit 斜杠命令生成器
+# generate-commands.sh — flow-kit 斜杠命令生成器 v1.13
 #
 # 用法：
 #   ./generate-commands.sh [--dry-run] [--force] [--user-level]
 #
 # 功能：
-#   1. 扫描 flow-kit/commands/ 目录下所有 .md 文件
-#   2. 解析每个文件的 name/description（从 YAML frontmatter 或首行）
-#   3. 生成 .claude/commands/ 目录下的斜杠命令入口文件
+#   1. 扫描 flow-kit/commands/、skills/、hooks/ 目录
+#   2. 解析每个文件的 description（从第2行 > 块或标题提取）
+#   3. 生成 .claude/commands/ 目录下的分类斜杠命令入口文件
 #   4. 支持 --dry-run 只展示不写入，--force 覆盖，--user-level 输出到用户级目录
 #
-# 输出：
-#   每个命令生成一个 .md 文件，格式：
-#   ---
-#   description: 命令描述
-#   reference: flow-kit/commands/xxx.md
-#   ---
-#   [简要功能说明]
+# 输出格式：
+#   文件名：flow-kit:{category}-{command}.md
+#   命令格式：/flow-kit:{category}-{command}
 #
-# Reference: rihebty/flow-kit
+# Reference: pwl1987/flow-kit
 
 set -euo pipefail
 
@@ -27,6 +23,8 @@ DRY_RUN=false
 FORCE=false
 USER_LEVEL=false
 COMMANDS_DIR="commands"
+SKILLS_DIR="skills"
+HOOKS_DIR="hooks"
 OUTPUT_DIR=".claude/commands"
 
 # 解析参数
@@ -53,10 +51,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# 确定 commands 目录路径
+# 确定目录路径
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMMANDS_PATH="$REPO_ROOT/$COMMANDS_DIR"
+SKILLS_PATH="$REPO_ROOT/$SKILLS_DIR"
+HOOKS_PATH="$REPO_ROOT/$HOOKS_DIR"
 
 # 确定输出目录
 if [[ "$USER_LEVEL" == "true" ]]; then
@@ -75,97 +75,205 @@ if [[ "$DRY_RUN" == "false" ]]; then
   mkdir -p "$OUTPUT_PATH"
 fi
 
-# 解析 YAML frontmatter 或提取命令信息
-parse_command_info() {
+# ============================================================================
+# 命令分类映射表
+# ============================================================================
+
+# dev: 开发流程命令
+declare -A DEV_COMMANDS=(
+  ["health"]="M-health"
+  ["scan"]="I-intel-scan"
+  ["update-context"]="update-context"
+  ["sync-config"]="sync-team-config"
+  ["archive"]="archive"
+  ["minimal"]="minimal-mode"
+  ["offline"]="offline-mode"
+  ["check-expiry"]="check-expiry"
+  ["estimate-tokens"]="estimate-tokens"
+  ["cost-report"]="cost-report"
+  ["pr-description"]="pr-description"
+  ["skill-audit"]="skill-audit"
+  ["scale"]="scale-level"
+  ["project-type"]="project-type"
+  ["search-lessons"]="cross-session-search"
+  ["recovery"]="check-expiry"
+)
+
+# meta: 管理命令
+declare -A META_COMMANDS=(
+  ["mode"]=""
+  ["hooks"]="hooks-guide"
+  ["hooks-summary"]=""
+  ["status"]=""
+  ["share-install"]="share-install"
+  ["register"]="register-commands"
+  ["generate"]="generate-commands"
+  ["uninstall"]=""
+)
+
+# team: 多代理编排命令
+declare -A TEAM_COMMANDS=(
+  ["dispatch"]="team-dispatch"
+  ["team"]="team-roles"
+  ["strategy"]="strategy-first"
+  ["tmux-init"]="tmux-orchestrator"
+  ["tmux-run"]="tmux-orchestrator"
+  ["tmux-aggregate"]="tmux-orchestrator"
+)
+
+# ops: 运维护栏命令
+declare -A OPS_COMMANDS=(
+  ["careful"]="careful"
+  ["freeze"]="careful"
+  ["unfreeze"]="careful"
+  ["guard"]="careful"
+  ["lock"]="careful"
+  ["unlock"]="careful"
+  ["rollback"]="rollback"
+  ["p0-approval"]="p0-approval"
+)
+
+# ============================================================================
+# 描述提取函数
+# ============================================================================
+
+# 从源文件提取中文描述
+extract_description() {
   local file="$1"
-  local name=""
-  local description=""
-  local content=""
+  local default_desc="$2"
 
-  # 尝试从 YAML frontmatter 提取
-  if [[ -f "$file" ]]; then
-    # 读取文件内容
-    content=$(cat "$file")
+  if [[ ! -f "$file" ]]; then
+    echo "$default_desc"
+    return
+  fi
 
-    # 检查是否有 YAML frontmatter
-    if [[ "$content" =~ ^---[[:space:]]*$ ]]; then
-      # 提取 frontmatter 块
-      local frontmatter=""
-      local in_frontmatter=false
-      local line_num=0
-
-      while IFS= read -r line; do
-        ((line_num++))
-        if [[ "$line" =~ ^---$ ]] && [[ $line_num -eq 1 ]]; then
-          in_frontmatter=true
-          continue
-        fi
-        if [[ "$in_frontmatter" == "true" ]]; then
-          if [[ "$line" =~ ^---$ ]]; then
-            break
-          fi
-          frontmatter="$frontmatter"$'\n'"$line"
-        fi
-      done <<< "$content"
-
-      # 解析 frontmatter 中的 name 和 description
-      if [[ "$frontmatter" =~ name:[[:space:]]*[\"']?([^"'"$'\n']+)[\"']? ]]; then
-        name="${BASH_REMATCH[1]}"
+  # 方法1: 第2行 > 块中以"本"或"执行"开头的句子
+  local line2
+  line2=$(sed -n '2p' "$file" 2>/dev/null || echo "")
+  if [[ "$line2" =~ ^\>[[:space:]]*(.+) ]]; then
+    local desc="${BASH_REMATCH[1]}"
+    # 去除【CLAUDE CODE INSTRUCTION】等标记
+    desc=$(echo "$desc" | sed 's/【CLAUDE CODE INSTRUCTION 强制约束】//g' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+    if [[ -n "$desc" && "$desc" != "本命令"* && "$desc" != "本文件"* ]]; then
+      # 如果不是以"本命令"开头，尝试截取有意义的句子
+      if [[ "$desc" =~ ^(.+)。 ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return
       fi
-      if [[ "$frontmatter" =~ description:[[:space:]]*[\"']?([^"'"$'\n']+)[\"']? ]]; then
-        description="${BASH_REMATCH[1]}"
-      fi
-    fi
-
-    # 如果没有 frontmatter，尝试从首行提取 ## commandname 格式
-    if [[ -z "$name" ]]; then
-      local first_line
-      first_line=$(head -n 1 "$file")
-      if [[ "$first_line" =~ ^##[[:space:]]+(.+)$ ]]; then
-        name="${BASH_REMATCH[1]}"
-        # 去除可能的尾随说明
-        name=$(echo "$name" | sed 's/[[:space:]]*-.*$//')
-      fi
-    fi
-
-    # 如果没有 description，尝试从第二行或第三行提取
-    if [[ -z "$description" ]]; then
-      local lines
-      lines=$(tail -n +2 "$file" | head -n 2)
-      if [[ "$lines" =~ ^[[:space:]]*-[[:space:]]+(.+)$ ]]; then
-        description="${BASH_REMATCH[1]}"
-      fi
+    elif [[ -n "$desc" ]]; then
+      echo "$desc"
+      return
     fi
   fi
 
-  # 返回结果
-  echo "$name|$description"
+  # 方法2: 第一个 # 标题
+  local h1
+  h1=$(grep -m1 '^#' "$file" 2>/dev/null | sed 's/^#[[:space:]]*//' | sed 's/^[^a-zA-Z0-9一-龥]*//' | cut -d'[' -f1 | cut -d'(' -f1 | xargs)
+  if [[ -n "$h1" ]]; then
+    echo "$h1"
+    return
+  fi
+
+  # 回退
+  echo "$default_desc"
 }
 
-# 生成命令入口文件
-generate_entry() {
-  local cmd_name="$1"
-  local description="$2"
-  local source_file="$3"
-  local output_file="$4"
+# ============================================================================
+# 生成 entry 文件函数
+# ============================================================================
 
-  # 生成 entry 文件内容
+generate_entry() {
+  local category="$1"
+  local cmd_name="$2"
+  local description="$3"
+  local reference="$4"
+  local output_file="$5"
+
+  local full_cmd="${category}-${cmd_name}"
+  local slash_cmd="/flow-kit:${category}-${cmd_name}"
+
   cat > "$output_file" << EOF
 ---
 description: ${description}
-reference: ${source_file}
+category: ${category}
+reference: ${reference}
 ---
-$(basename "$source_file" .md): ${description}
+${slash_cmd}: ${description}
 EOF
 }
 
-# 统计信息
+# ============================================================================
+# 生成 phase 命令
+# ============================================================================
+
+generate_phase_commands() {
+  local phases=("0" "1" "2" "3" "4" "5" "6" "7" "8")
+  local phase_names=("变更立项" "需求澄清" "架构设计" "任务拆解" "开发执行" "测试验证" "代码审查" "集成归档" "变更回滚")
+
+  for i in "${!phases[@]}"; do
+    local phase="${phases[$i]}"
+    local phase_name="${phase_names[$i]}"
+    local output_file="$OUTPUT_PATH/flow-kit:dev-phase-${phase}.md"
+
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:dev-phase-${phase} (已存在)"
+      continue
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] 将生成: $output_file"
+    else
+      cat > "$output_file" << EOF
+---
+description: ${phase_name} - Phase ${phase}
+category: dev
+reference: flow-kit/phases/${phase}-*/
+---
+/flow-kit:phase-${phase}: ${phase_name}
+EOF
+      echo "[生成] flow-kit:dev-phase-${phase} -> $output_file"
+    fi
+  done
+}
+
+# ============================================================================
+# 生成 next 命令
+# ============================================================================
+
+generate_next_command() {
+  local output_file="$OUTPUT_PATH/flow-kit:dev-next.md"
+
+  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+    echo "[跳过] flow-kit:dev-next (已存在)"
+    return
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "[dry-run] 将生成: $output_file"
+    return
+  fi
+
+  cat > "$output_file" << 'EOF'
+---
+description: 推进到下一个工作流步骤（读取 .planning/phases/ 判断进度）
+category: dev
+reference: flow-kit/GO.md
+---
+/flow-kit:next: 读取 .planning/phases/ 目录，自动判断当前阶段并推进到下一步骤
+EOF
+  echo "[生成] flow-kit:dev-next -> $output_file"
+}
+
+# ============================================================================
+# 主流程
+# ============================================================================
+
 total=0
 generated=0
 skipped=0
 
 echo "=========================================="
-echo "flow-kit 斜杠命令生成器"
+echo "flow-kit 斜杠命令生成器 v1.13"
 echo "=========================================="
 echo "源目录: $COMMANDS_PATH"
 echo "输出目录: $OUTPUT_PATH"
@@ -173,48 +281,228 @@ echo "模式: $([ "$DRY_RUN" == "true" ] && echo "dry-run" || echo "live")$([ "$
 echo "=========================================="
 echo ""
 
-# 扫描所有 .md 文件
-while IFS= read -r -d '' file; do
-  total=$((total + 1))
+# ---- dev 命令扫描 ----
+echo "--- dev 开发流程命令 ---"
+for cmd in "${!DEV_COMMANDS[@]}"; do
+  target="${DEV_COMMANDS[$cmd]}"
+  source_file=""
+  description=""
 
-  # 获取相对于 commands 目录的路径
-  rel_path="${file#$COMMANDS_PATH/}"
-  cmd_name="${rel_path%.md}"
-
-  # 解析命令信息
-  IFS='|' read -r name description <<< "$(parse_command_info "$file")"
-
-  # 如果没有从文件解析到名称，使用文件名
-  if [[ -z "$name" ]]; then
-    name="$cmd_name"
-  fi
-  if [[ -z "$description" ]]; then
-    description="flow-kit 命令: $name"
+  if [[ -n "$target" ]]; then
+    source_file="$COMMANDS_PATH/${target}.md"
+  else
+    source_file="$COMMANDS_PATH/${cmd}.md"
   fi
 
-  # 确定输出文件路径
-  output_file="$OUTPUT_PATH/${name}.md"
+  if [[ -f "$source_file" ]]; then
+    description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
+  else
+    description="flow-kit ${cmd} 命令"
+  fi
 
-  # 检查文件是否已存在
+  ref_path=""
+  [[ -n "$target" ]] && ref_path="flow-kit/commands/${target}.md" || ref_path="flow-kit/commands/${cmd}.md"
+
+  output_file="$OUTPUT_PATH/flow-kit:dev-${cmd}.md"
+
   if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
-    echo "[跳过] $name (已存在, 使用 --force 覆盖)"
+    echo "[跳过] flow-kit:dev-${cmd} (已存在)"
     skipped=$((skipped + 1))
     continue
   fi
 
-  # 生成 entry 文件
   if [[ "$DRY_RUN" == "true" ]]; then
     echo "[dry-run] 将生成: $output_file"
     echo "  描述: $description"
-    echo "  来源: $rel_path"
   else
-    generate_entry "$name" "$description" "$rel_path" "$output_file"
-    echo "[生成] $name -> $OUTPUT_PATH/${name}.md"
+    generate_entry "dev" "$cmd" "$description" "$ref_path" "$output_file"
+    echo "[生成] flow-kit:dev-${cmd} -> $output_file"
+    generated=$((generated + 1))
+  fi
+  total=$((total + 1))
+done
+
+# ---- meta 命令扫描 ----
+echo ""
+echo "--- meta 管理命令 ---"
+for cmd in "${!META_COMMANDS[@]}"; do
+  target="${META_COMMANDS[$cmd]}"
+  source_file=""
+  description=""
+
+  if [[ -n "$target" ]]; then
+    source_file="$COMMANDS_PATH/${target}.md"
+    if [[ -f "$source_file" ]]; then
+      description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
+    else
+      description="flow-kit ${cmd} 命令"
+    fi
+  else
+    # 内建命令，无独立文件
+    case "$cmd" in
+      "mode") description="切换执行模式 (autopilot|team|ralph)" ;;
+      "hooks-summary") description="显示 hooks 执行摘要" ;;
+      "status") description="显示当前执行模式" ;;
+      "uninstall") description="卸载 flow-kit" ;;
+      *) description="flow-kit ${cmd} 命令" ;;
+    esac
   fi
 
-  generated=$((generated + 1))
+  ref_path=""
+  if [[ -n "$target" ]]; then
+    ref_path="flow-kit/commands/${target}.md"
+  else
+    ref_path="flow-kit/GO.md"
+  fi
 
-done < <(find "$COMMANDS_PATH" -name "*.md" -print0 | sort -z)
+  output_file="$OUTPUT_PATH/flow-kit:meta-${cmd}.md"
+
+  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+    echo "[跳过] flow-kit:meta-${cmd} (已存在)"
+    skipped=$((skipped + 1))
+    continue
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "[dry-run] 将生成: $output_file"
+    echo "  描述: $description"
+  else
+    generate_entry "meta" "$cmd" "$description" "$ref_path" "$output_file"
+    echo "[生成] flow-kit:meta-${cmd} -> $output_file"
+    generated=$((generated + 1))
+  fi
+  total=$((total + 1))
+done
+
+# ---- team 命令扫描 ----
+echo ""
+echo "--- team 多代理编排命令 ---"
+for cmd in "${!TEAM_COMMANDS[@]}"; do
+  target="${TEAM_COMMANDS[$cmd]}"
+  source_file="$COMMANDS_PATH/${target}.md"
+  description=""
+
+  if [[ -f "$source_file" ]]; then
+    description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
+  else
+    description="flow-kit ${cmd} 命令"
+  fi
+
+  ref_path="flow-kit/commands/${target}.md"
+  output_file="$OUTPUT_PATH/flow-kit:team-${cmd}.md"
+
+  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+    echo "[跳过] flow-kit:team-${cmd} (已存在)"
+    skipped=$((skipped + 1))
+    continue
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "[dry-run] 将生成: $output_file"
+    echo "  描述: $description"
+  else
+    generate_entry "team" "$cmd" "$description" "$ref_path" "$output_file"
+    echo "[生成] flow-kit:team-${cmd} -> $output_file"
+    generated=$((generated + 1))
+  fi
+  total=$((total + 1))
+done
+
+# ---- ops 命令扫描 ----
+echo ""
+echo "--- ops 运维护栏命令 ---"
+for cmd in "${!OPS_COMMANDS[@]}"; do
+  target="${OPS_COMMANDS[$cmd]}"
+  source_file="$COMMANDS_PATH/${target}.md"
+  description=""
+
+  if [[ -f "$source_file" ]]; then
+    description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
+  else
+    description="flow-kit ${cmd} 命令"
+  fi
+
+  ref_path="flow-kit/commands/${target}.md"
+  output_file="$OUTPUT_PATH/flow-kit:ops-${cmd}.md"
+
+  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+    echo "[跳过] flow-kit:ops-${cmd} (已存在)"
+    skipped=$((skipped + 1))
+    continue
+  fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    echo "[dry-run] 将生成: $output_file"
+    echo "  描述: $description"
+  else
+    generate_entry "ops" "$cmd" "$description" "$ref_path" "$output_file"
+    echo "[生成] flow-kit:ops-${cmd} -> $output_file"
+    generated=$((generated + 1))
+  fi
+  total=$((total + 1))
+done
+
+# ---- skills 扫描 ----
+echo ""
+echo "--- skills 技能扫描 ---"
+if [[ -d "$SKILLS_PATH" ]]; then
+  # 使用 process substitution 避免子shell变量修改丢失
+  while IFS= read -r -d '' file; do
+    skill_name="$(basename "${file}" .md)"
+    description=$(extract_description "$file" "flow-kit skill: ${skill_name}")
+    output_file="$OUTPUT_PATH/flow-kit:skill-${skill_name}.md"
+
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:skill-${skill_name} (已存在)"
+      skipped=$((skipped + 1))
+      continue
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] 将生成: $output_file"
+      echo "  描述: $description"
+    else
+      generate_entry "skill" "$skill_name" "$description" "flow-kit/skills/${skill_name}.md" "$output_file"
+      echo "[生成] flow-kit:skill-${skill_name} -> $output_file"
+      generated=$((generated + 1))
+    fi
+    total=$((total + 1))
+  done < <(find "$SKILLS_PATH" -name "*.md" -print0 | sort -z)
+fi
+
+# ---- hooks 扫描 ----
+echo ""
+echo "--- hooks 自动化钩子 ---"
+if [[ -d "$HOOKS_PATH" ]]; then
+  # 使用 process substitution 避免子shell变量修改丢失
+  while IFS= read -r -d '' file; do
+    hook_name="$(basename "${file}" .sh)"
+    description="flow-kit hooks ${hook_name} 钩子"
+    output_file="$OUTPUT_PATH/flow-kit:hooks-${hook_name}.md"
+
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:hooks-${hook_name} (已存在)"
+      skipped=$((skipped + 1))
+      continue
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] 将生成: $output_file"
+      echo "  描述: $description"
+    else
+      generate_entry "hooks" "$hook_name" "$description" "flow-kit/hooks/${hook_name}.sh" "$output_file"
+      echo "[生成] flow-kit:hooks-${hook_name} -> $output_file"
+      generated=$((generated + 1))
+    fi
+    total=$((total + 1))
+  done < <(find "$HOOKS_PATH" -name "*.sh" -print0 | sort -z)
+fi
+
+# ---- phase 命令生成 ----
+echo ""
+echo "--- Phase 工作流命令 ---"
+generate_phase_commands
+generate_next_command
 
 echo ""
 echo "=========================================="
