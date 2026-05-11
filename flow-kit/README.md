@@ -213,13 +213,25 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.12.7_
+_Generated with flow-kit v1.12.18_
 
 ---
 
 ## Changelog
 
-### v1.12.7 (2026-05-08)
+### v1.12.18 (2026-05-11)
+
+- **P0 修复**: dispatch.sh PID追踪($BASHPID)、caveman-compress 子shell、generate-commands 计数器、pre-tool-guard date兼容
+- **P1 修复**: dispatch slot泄漏(mkdir/rmdir)、FD200跨进程、post-edit-format、dispatch-aggregate、error-handler JSON、session-start、stop-quality-gate超时
+- **P2 修复**: validate-phase jq参数化(16处)、paths.sh绝对路径、token-estimator sourcing guard、context-updater、cost-reporter函数复用、health-rotation readonly、error-handler aggregate_errors
+- **回归修复**: dispatch-status/aggregate $#-eq 0阻塞、notification.sh BSD兼容、get_epoch_ms输出验证
+- **新增功能**: offline-mode.sh(离线模式+内置lint)、pr-description.sh(PR描述生成)
+- **新增命令**: /flow-kit:online、/flow-kit:pr-description、/flow-kit:offline
+
+### v1.12.17 (2026-05-11)
+
+- generate-commands.sh 斜杠命令全量注册(194个文件)
+- dispatch.sh 真正并行执行引擎修复
 
 - dispatch.sh: 真正并行执行引擎（后台进程+wait等待）+ 子代理重试机制（默认2次）+ 超时终止机制（300秒）+ 竞态条件修复（原子写入）
 - validate-phase.sh: 完善JSON Schema验证（字符串长度/数字范围/数组items/嵌套对象递归验证）
