@@ -1,6 +1,6 @@
 ---
-description: register-commands
+description: ```
 category: meta
 reference: flow-kit/commands/register-commands.md
 ---
-/flow-kit:meta-register: register-commands
+/flow-kit:meta-register: ```

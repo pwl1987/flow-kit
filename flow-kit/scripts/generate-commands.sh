@@ -97,6 +97,7 @@ declare -A DEV_COMMANDS=(
   ["project-type"]="project-type"
   ["search-lessons"]="cross-session-search"
   ["recovery"]="check-expiry"
+  ["change"]="init-change"
 )
 
 # meta: 管理命令
@@ -147,26 +148,39 @@ extract_description() {
     return
   fi
 
-  # 方法1: 第2行 > 块中以"本"或"执行"开头的句子
+  # 跳过 CLAUDE CODE INSTRUCTION 行和标题行，找实际内容
+  local content
+  content=$(sed '1,/^#/d' "$file" 2>/dev/null | grep -v "【CLAUDE CODE INSTRUCTION")
+
+  # 方法1: 找 ## 目的 后面的第一段非空行
+  local purpose
+  purpose=$(sed -n '/^## 目的/,/^##/p' "$file" 2>/dev/null | grep -v "^##" | grep -v "^$" | head -1)
+  if [[ -n "$purpose" ]]; then
+    echo "$purpose"
+    return
+  fi
+
+  # 方法2: 找 ## 命令 后面的第一行（通常是斜杠命令本身，跳过）
+  local cmd_usage
+  cmd_usage=$(sed -n '/^## 命令/,/^##/p' "$file" 2>/dev/null | grep -v "^##" | grep -v "^$" | grep -v "^/flow-kit:" | head -1)
+  if [[ -n "$cmd_usage" ]]; then
+    echo "$cmd_usage"
+    return
+  fi
+
+  # 方法3: 第2行 > 块中描述（去除标记）
   local line2
   line2=$(sed -n '2p' "$file" 2>/dev/null || echo "")
   if [[ "$line2" =~ ^\>[[:space:]]*(.+) ]]; then
     local desc="${BASH_REMATCH[1]}"
-    # 去除【CLAUDE CODE INSTRUCTION】等标记
-    desc=$(echo "$desc" | sed 's/【CLAUDE CODE INSTRUCTION 强制约束】//g' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-    if [[ -n "$desc" && "$desc" != "本命令"* && "$desc" != "本文件"* ]]; then
-      # 如果不是以"本命令"开头，尝试截取有意义的句子
-      if [[ "$desc" =~ ^(.+)。 ]]; then
-        echo "${BASH_REMATCH[1]}"
-        return
-      fi
-    elif [[ -n "$desc" ]]; then
+    desc=$(echo "$desc" | sed 's/【CLAUDE CODE INSTRUCTION[^】]*】//g' | sed 's/本文件实现//g' | sed 's/本命令//g' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    if [[ -n "$desc" && ${#desc} -gt 3 ]]; then
       echo "$desc"
       return
     fi
   fi
 
-  # 方法2: 第一个 # 标题
+  # 方法4: 第一个 # 标题（作为最后回退）
   local h1
   h1=$(grep -m1 '^#' "$file" 2>/dev/null | sed 's/^#[[:space:]]*//' | sed 's/^[^a-zA-Z0-9一-龥]*//' | cut -d'[' -f1 | cut -d'(' -f1 | xargs)
   if [[ -n "$h1" ]]; then

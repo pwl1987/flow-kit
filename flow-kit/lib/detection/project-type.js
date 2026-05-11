@@ -1,17 +1,52 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 const WHITELIST = [
-  'tsconfig.json', 'jsconfig.json', '.gitignore', '.eslintrc', '.prettierrc',
-  'package.json', 'requirements.txt', 'Pipfile', 'pyproject.toml',
-  'README.md', 'LICENSE', 'CHANGELOG.md', '.DS_Store', 'Thumbs.db'
+  "tsconfig.json",
+  "jsconfig.json",
+  ".gitignore",
+  ".eslintrc",
+  ".prettierrc",
+  "package.json",
+  "requirements.txt",
+  "Pipfile",
+  "pyproject.toml",
+  "README.md",
+  "LICENSE",
+  "CHANGELOG.md",
+  ".DS_Store",
+  "Thumbs.db",
 ];
 
-const CONFIG_EXTENSIONS = ['.config.js', '.config.ts', '.config.json', '.yaml', '.yml'];
+const CONFIG_EXTENSIONS = [
+  ".config.js",
+  ".config.ts",
+  ".config.json",
+  ".yaml",
+  ".yml",
+];
 
-const CODE_EXTENSIONS = ['.ts', '.js', '.jsx', '.tsx', '.py', '.java', '.go', '.rs', '.php'];
+const CODE_EXTENSIONS = [
+  ".ts",
+  ".js",
+  ".jsx",
+  ".tsx",
+  ".py",
+  ".java",
+  ".go",
+  ".rs",
+  ".php",
+];
 
-const SKIP_DIRS = ['node_modules', '.git', 'dist', 'build', '__pycache__', '.svn', '.hg'];
+const SKIP_DIRS = [
+  "node_modules",
+  ".git",
+  "dist",
+  "build",
+  "__pycache__",
+  ".svn",
+  ".hg",
+];
 
 const BROWNFIELD_LINE_THRESHOLD = 1000;
 
@@ -31,7 +66,7 @@ function countBusinessCode(cwd, whitelist) {
       const fullPath = path.join(dir, entry.name);
 
       if (entry.isDirectory()) {
-        if (SKIP_DIRS.includes(entry.name) || entry.name.startsWith('.')) {
+        if (SKIP_DIRS.includes(entry.name) || entry.name.startsWith(".")) {
           continue;
         }
         walkDir(fullPath);
@@ -50,8 +85,8 @@ function countBusinessCode(cwd, whitelist) {
         }
 
         try {
-          const content = fs.readFileSync(fullPath, 'utf8');
-          const lines = content.split('\n').length;
+          const content = fs.readFileSync(fullPath, "utf8");
+          const lines = content.split("\n").length;
           totalLines += lines;
         } catch (e) {
           console.warn(`Failed to read file: ${fullPath}`, e);
@@ -69,12 +104,17 @@ function detectProjectType(cwd) {
   const resolvedCwd = path.resolve(cwd);
 
   // Check .git/ exists
-  if (fs.existsSync(path.join(resolvedCwd, '.git'))) {
-    signals.push('.git exists');
+  if (fs.existsSync(path.join(resolvedCwd, ".git"))) {
+    signals.push(".git exists");
   }
 
   // Check lock files
-  const lockFiles = ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'Gemfile.lock'];
+  const lockFiles = [
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "Gemfile.lock",
+  ];
   for (const lockFile of lockFiles) {
     if (fs.existsSync(path.join(resolvedCwd, lockFile))) {
       signals.push(`lock: ${lockFile}`);
@@ -82,12 +122,12 @@ function detectProjectType(cwd) {
   }
 
   // Check git remote
-  const gitConfigPath = path.join(resolvedCwd, '.git', 'config');
+  const gitConfigPath = path.join(resolvedCwd, ".git", "config");
   if (fs.existsSync(gitConfigPath)) {
     try {
-      const gitConfig = fs.readFileSync(gitConfigPath, 'utf8');
+      const gitConfig = fs.readFileSync(gitConfigPath, "utf8");
       if (/\[remote\s+"origin"\]/i.test(gitConfig)) {
-        signals.push('git remote configured');
+        signals.push("git remote configured");
       }
     } catch {
       // Ignore
@@ -99,11 +139,13 @@ function detectProjectType(cwd) {
   signals.push(`business_code_lines: ${businessLines}`);
 
   // Determine project type
-  const isBrownfield = businessLines > BROWNFIELD_LINE_THRESHOLD || signals.some(s => s.startsWith('lock:'));
+  const isBrownfield =
+    businessLines > BROWNFIELD_LINE_THRESHOLD ||
+    signals.some((s) => s.startsWith("lock:"));
   if (isBrownfield) {
-    signals.push('threshold: brownfield');
+    signals.push("threshold: brownfield");
   } else {
-    signals.push('threshold: greenfield');
+    signals.push("threshold: greenfield");
   }
 
   return { isBrownfield, signals, businessLines };
@@ -111,15 +153,15 @@ function detectProjectType(cwd) {
 
 function writeProjectTypeFile(cwd, result) {
   const content = [
-    `project_type: ${result.isBrownfield ? 'brownfield' : 'greenfield'}`,
+    `project_type: ${result.isBrownfield ? "brownfield" : "greenfield"}`,
     `detected_at: ${new Date().toISOString()}`,
-    `detection_signals: ${result.signals.join(', ')}`,
-    `business_code_lines: ${result.businessLines}`
-  ].join('\n');
+    `detection_signals: ${result.signals.join(", ")}`,
+    `business_code_lines: ${result.businessLines}`,
+  ].join("\n");
 
-  const dir = path.join(cwd, '.flow-kit');
+  const dir = path.join(cwd, ".flow-kit");
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'project-type'), content, 'utf8');
+  fs.writeFileSync(path.join(dir, "project-type"), content, "utf8");
 }
 
 module.exports = {
@@ -128,5 +170,24 @@ module.exports = {
   CODE_EXTENSIONS,
   detectProjectType,
   countBusinessCode,
-  writeProjectTypeFile
+  writeProjectTypeFile,
 };
+
+// CLI interface
+if (require.main === module) {
+  const cwd = process.cwd();
+  const result = detectProjectType(cwd);
+  writeProjectTypeFile(cwd, result);
+  console.log(
+    JSON.stringify(
+      {
+        project_type: result.isBrownfield ? "brownfield" : "greenfield",
+        detected_at: new Date().toISOString(),
+        detection_signals: result.signals.join(", "),
+        business_code_lines: result.businessLines,
+      },
+      null,
+      2,
+    ),
+  );
+}

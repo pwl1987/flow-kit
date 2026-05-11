@@ -1,6 +1,6 @@
 ---
-description: flow-kit generate 命令
+description: **命令路径**: `flow-kit:generate-commands`
 category: meta
 reference: flow-kit/commands/generate-commands.md
 ---
-/flow-kit:meta-generate: flow-kit generate 命令
+/flow-kit:meta-generate: **命令路径**: `flow-kit:generate-commands`

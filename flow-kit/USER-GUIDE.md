@@ -447,9 +447,9 @@ flow-kit 支持四种调用方式，从"推荐"到"备用"依次介绍。
 使用 `@` 引用 flow-kit 中的文件：
 
 ```
-@flow-kit/GO.md                              # 启动完整开发流程
-@flow-kit/phases/4-dev/4-dev.md              # 开始开发阶段
-@flow-kit/skills/task-master.md              # 调用任务拆解技能
+/flow-kit:go                              # 启动完整开发流程
+/flow-kit:phase-4              # 开始开发阶段
+/flow-kit:skill-task-master              # 调用任务拆解技能
 ```
 
 **适用场景**：启动一个阶段或调用一个技能
@@ -479,10 +479,10 @@ $ ./.flow-kit/flow-kit.sh help
 
 ```bash
 # 先检查再启动
-$ /flow-kit:health && @flow-kit/GO.md
+$ /flow-kit:health && /flow-kit:go
 
 # 检查上下文再继续开发
-$ /flow-kit:dev-estimate-tokens && @flow-kit/phases/4-dev/4-dev.md
+$ /flow-kit:dev-estimate-tokens && /flow-kit:phase-4
 ```
 
 ---
@@ -504,8 +504,8 @@ $ /flow-kit:dev-estimate-tokens && @flow-kit/phases/4-dev/4-dev.md
 │          │                                                   │
 │          ▼                                                   │
 │   ┌─────────────────────────────────────┐                    │
-│   │ 2. @ 引用 `@flow-kit/xxx.md`        │ ◄── 启动流程       │
-│   │    示例: @flow-kit/GO.md            │                    │
+│   │ 2. 斜杠命令 `/flow-kit:xxx`        │ ◄── 启动流程       │
+│   │    示例: /flow-kit:go            │                    │
 │   └─────────────────────────────────────┘                    │
 │          │                                                   │
 │          ▼                                                   │
@@ -531,7 +531,7 @@ $ /flow-kit:register-commands
 $ /flow-kit:health
 
 # 步骤 3: 启动开发流程
-$ @flow-kit/GO.md
+$ /flow-kit:go
 ```
 
 #### 场景 2: 日常开发
@@ -544,7 +544,7 @@ $ /flow-kit:dev-health
 $ /flow-kit:dev-estimate-tokens
 
 # 继续开发阶段
-$ @flow-kit/phases/4-dev/4-dev.md
+$ /flow-kit:phase-4
 ```
 
 #### 场景 3: 遇到问题
@@ -887,7 +887,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 从 GO.md 入口启动：
 
 ```bash
-@flow-kit/GO.md
+/flow-kit:go
 ```
 
 GO.md 将自动执行：
@@ -1407,7 +1407,7 @@ $ /flow-kit:health
 $ mkdir -p .specs/$(date +%Y%m%d%H%M%S)
 
 # 步骤 3: 启动变更立项
-$ @flow-kit/phases/0-change/0-change.md
+$ /flow-kit:phase-0
 ```
 
 **棕地项目必做检查**：
@@ -1443,7 +1443,7 @@ $ /flow-kit:skill-requirement-clarify
 $ cat src/auth/*.ts | head -50
 
 # 步骤 3: 创建需求文档
-$ @flow-kit/phases/1-requirement/1-requirement.md
+$ /flow-kit:phase-1
 ```
 
 **棕地项目需求文档示例**：
@@ -1493,7 +1493,7 @@ $ @flow-kit/phases/1-requirement/1-requirement.md
 $ /flow-kit:skill-dag-resolver
 
 # 步骤 2: 设计扩展点
-$ @flow-kit/phases/2-design/2-design.md
+$ /flow-kit:phase-2
 
 # 步骤 3: 创建回滚方案（必须！）
 ```
@@ -1673,7 +1673,7 @@ $ /flow-kit:health
 $ /flow-kit:project-type greenfield
 
 # 步骤 4: 启动变更立项
-$ @flow-kit/phases/0-change/0-change.md
+$ /flow-kit:phase-0
 ```
 
 **绿地项目立项文档示例**：
@@ -1912,7 +1912,7 @@ $ /flow-kit:ops-guard enable B6  # 测试覆盖率（60% 即可）
 
 ```bash
 # 根据改动范围自动评估
-@flow-kit/commands/scale-level.md
+/flow-kit:scale
 ```
 
 ### 8.4 渐进披露原则
@@ -2070,7 +2070,7 @@ dispatch.sh --aggregate
 **执行中断恢复**:
 
 1. 查看进度文件：`cat .specs/{change-id}/PROGRESS.md`
-2. 使用进度恢复模板：`@flow-kit/skills/subagent-execution.md`
+2. 使用进度恢复模板：`/flow-kit:skill-subagent-execution`
 3. 从中断点继续执行
 
 **锁冲突恢复**:
@@ -2281,11 +2281,11 @@ vim .planning/PROJECT.md
 mkdir -p .specs/$(date +%Y%m%d%H%M%S)
 
 # 2. 启动变更立项
-@flow-kit/phases/0-change/0-change.md
+/flow-kit:phase-0
 
 # 3. 按顺序执行各阶段
-@flow-kit/phases/1-requirement/1-requirement.md  # 需求澄清
-@flow-kit/phases/2-design/2-design.md           # 架构设计
+/flow-kit:phase-1  # 需求澄清
+/flow-kit:phase-2           # 架构设计
 # ... 以此类推
 ```
 
@@ -2336,10 +2336,10 @@ Claude Code 开始"遗忘"之前讨论的内容，重复问同样的问题。
 # 查看 STATE.md 确认当前进度
 
 # 2. 如果在 Phase 1（需求澄清）之前，需要补做
-@flow-kit/phases/1-requirement/1-requirement.md
+/flow-kit:phase-1
 
 # 3. 如果在 Phase 2（架构设计）之前，需要补做
-@flow-kit/phases/2-design/2-design.md
+/flow-kit:phase-2
 ```
 
 **预防**：
@@ -2467,7 +2467,7 @@ cd .specs/20260511120000
 | `/flow-kit:health`              | 快速了解项目当前状态 |
 | `/flow-kit:dev-estimate-tokens` | 检查上下文使用率     |
 | `/flow-kit:ops-careful`         | 检查护栏状态         |
-| `@flow-kit/phases/X/X.md`       | 启动某个阶段         |
+| `/flow-kit:phase-X`             | 启动某个阶段         |
 | `/flow-kit:dev-recovery`        | 尝试恢复中断的工作   |
 
 #### F.2 紧急情况命令（救命的 3 个）

@@ -1,6 +1,6 @@
 ---
-description: 本文件实现上下文过期检测逻辑。
+description: | 命令 | 行为 |
 category: 
 reference: flow-kit/commands/check-expiry.md
 ---
-/flow-kit:check-expiry: 本文件实现上下文过期检测逻辑。
+/flow-kit:check-expiry: | 命令 | 行为 |

@@ -305,6 +305,32 @@ route_command() {
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:scan"
             ;;
 
+        change)
+            local action="${1:-init}"
+            case "$action" in
+                init)
+                    local desc="${2:-}"
+                    if [ -z "$desc" ]; then
+                        echo "[flow-kit] 用法: ./flow-kit.sh change init \"变更描述\""
+                        echo "[flow-kit] 示例: ./flow-kit.sh change init \"添加用户反馈中心\""
+                        exit 1
+                    fi
+                    local init_script="$(dirname "$0")/scripts/init-change.sh"
+                    if [ -f "$init_script" ]; then
+                        bash "$init_script" "$desc"
+                    else
+                        echo "[flow-kit] 错误: init-change.sh 不存在"
+                        exit 1
+                    fi
+                    ;;
+                *)
+                    echo "[flow-kit] 未知 change 操作: $action"
+                    echo "[flow-kit] 支持: ./flow-kit.sh change init \"描述\""
+                    exit 1
+                    ;;
+            esac
+            ;;
+
         uninstall)
             perform_uninstall
             exit 0

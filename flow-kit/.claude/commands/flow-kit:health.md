@@ -1,6 +1,6 @@
 ---
-description: 优先级加载（任何逻辑不得违反）
+description: 执行全面的代码健康扫描，检测技术栈、测试覆盖率、Lint 状态和依赖健康状况。按类别生成带评分的健康报告。
 category: 
 reference: flow-kit/commands/M-health.md
 ---
-/flow-kit:health: 优先级加载（任何逻辑不得违反）
+/flow-kit:health: 执行全面的代码健康扫描，检测技术栈、测试覆盖率、Lint 状态和依赖健康状况。按类别生成带评分的健康报告。
