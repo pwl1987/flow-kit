@@ -190,7 +190,12 @@ generate_entry() {
   local output_file="$5"
 
   local full_cmd="${category}-${cmd_name}"
-  local slash_cmd="/flow-kit:${category}-${cmd_name}"
+  # 无 category 前缀的命令（如 health）直接用 /flow-kit:xxx
+  if [[ -n "$category" ]]; then
+    local slash_cmd="/flow-kit:${category}-${cmd_name}"
+  else
+    local slash_cmd="/flow-kit:${cmd_name}"
+  fi
 
   cat > "$output_file" << EOF
 ---
@@ -496,6 +501,87 @@ if [[ -d "$HOOKS_PATH" ]]; then
     fi
     total=$((total + 1))
   done < <(find "$HOOKS_PATH" -name "*.sh" -print0 | sort -z)
+fi
+
+# ---- GO.md 直接路由命令（无 category 前缀）----
+# 处理 GO.md 中 Available Commands 表格里的命令
+# 这些命令路由到 /flow-kit:xxx（无 category 前缀）
+echo ""
+echo "--- GO.md 直接路由命令 ---"
+GO_MD="$REPO_ROOT/GO.md"
+if [[ -f "$GO_MD" ]]; then
+  # 解析 GO.md 中的 Available Commands 表格
+  # 格式: | `/flow-kit:xxx` | `@flow-kit/commands/xxx.md` |
+  while IFS= read -r line; do
+    # 提取命令名（使用 grep -oP 避免正则转义问题）
+    cmd_name=$(echo "$line" | grep -oP '(?<=/flow-kit:)[a-zA-Z0-9_-]+' | head -1)
+    if [[ -z "$cmd_name" ]]; then
+      continue
+    fi
+
+    # 从 line 中提取 target_path（@flow-kit/xxx.md 格式）
+    # 使用 grep -oP 提取，然后处理
+    target_path=$(echo "$line" | grep -oP '@flow-kit/\K[^`]+(?=\.md)' | sed 's/^commands\///' 2>/dev/null || echo "")
+
+    # 如果没有 target_path，尝试从描述中提取（适用于"解除 freeze 限制"等）
+    if [[ -z "$target_path" ]]; then
+      # 提取第三列作为描述
+      description=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+/,"",$3); gsub(/[ \t]+$/,"",$3); print $3}')
+      if [[ -n "$description" ]]; then
+        # 生成无引用的命令
+        output_file="$OUTPUT_PATH/flow-kit:${cmd_name}.md"
+        if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+          echo "[跳过] flow-kit:${cmd_name} (已存在)"
+          skipped=$((skipped + 1))
+          continue
+        fi
+        if [[ "$DRY_RUN" == "true" ]]; then
+          echo "[dry-run] 将生成: $output_file"
+          echo "  描述: $description"
+        else
+          generate_entry "" "$cmd_name" "$description" "" "$output_file"
+          echo "[生成] flow-kit:${cmd_name} -> $output_file"
+          generated=$((generated + 1))
+        fi
+        total=$((total + 1))
+        continue
+      fi
+      continue
+    fi
+
+    # 跳过已带 category 前缀的命令（已在其他数组中处理）
+    if [[ "$cmd_name" =~ ^(dev-|meta-|team-|ops-|skill-|hooks-) ]]; then
+      continue
+    fi
+
+    # 构建源文件路径
+    source_file="$REPO_ROOT/commands/${target_path}.md"
+
+    # 提取描述
+    if [[ -f "$source_file" ]]; then
+      description=$(extract_description "$source_file" "flow-kit ${cmd_name} 命令")
+    else
+      description="flow-kit ${cmd_name} 命令"
+    fi
+
+    output_file="$OUTPUT_PATH/flow-kit:${cmd_name}.md"
+
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:${cmd_name} (已存在)"
+      skipped=$((skipped + 1))
+      continue
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+      echo "[dry-run] 将生成: $output_file"
+      echo "  描述: $description"
+    else
+      generate_entry "" "$cmd_name" "$description" "flow-kit/commands/${target_path}.md" "$output_file"
+      echo "[生成] flow-kit:${cmd_name} -> $output_file"
+      generated=$((generated + 1))
+    fi
+    total=$((total + 1))
+  done < <(grep -E '\| `/flow-kit:' "$GO_MD" | grep -v -- ' -- ' | grep -v 'mode autopilot\|mode team\|mode ralph')
 fi
 
 # ---- phase 命令生成 ----
