@@ -2,6 +2,6 @@
 description: 变更立项 - phase-0
 category: dev
 reference: flow-kit/phases/phase-0/
-execute: cd ${FLOW_KIT_DIR} && bash scripts/phase-executor.sh phase-0
+execute: bash scripts/phase-executor.sh phase-0
 ---
 /flow-kit:phase-0: 变更立项

@@ -1,6 +1,6 @@
 ---
-description: 提供三级生产安全护栏，激活破坏性命令警告，限制文件编辑范围。
-category: 
+description: flow-kit guard 命令
+category: dev
 reference: flow-kit/commands/careful.md
 ---
-/flow-kit:guard: 提供三级生产安全护栏，激活破坏性命令警告，限制文件编辑范围。
+/flow-kit:guard: flow-kit guard 命令

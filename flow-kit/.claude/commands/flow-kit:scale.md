@@ -1,6 +1,6 @@
 ---
-description: CLAUDE CODE INSTRUCTION 强制约束】
-category: 
+description: flow-kit scale 命令
+category: dev
 reference: flow-kit/commands/scale-level.md
 ---
-/flow-kit:scale: CLAUDE CODE INSTRUCTION 强制约束】
+/flow-kit:scale: flow-kit scale 命令
