@@ -1,6 +1,6 @@
 #!/bin/bash
 # e2e-test-harness.sh — E2E 测试骨架
-# v1.12.6 P2 更新
+# v2.5.0 更新
 # 提供基础 E2E 测试框架
 
 set -euo pipefail

@@ -481,16 +481,27 @@ perform_uninstall() {
         echo "[flow-kit] ✓ 已删除 .flow-kit/"
     fi
 
-    # 删除斜杠命令（保留 .claude 目录本身）
+    # 删除斜杠命令（仅删除 flow-kit 生成的文件，保留非 flow-kit 命令）
     if [ -d ".claude/commands" ]; then
-        rm -rf .claude/commands
-        echo "[flow-kit] ✓ 已删除 .claude/commands/"
+        local removed=0
+        for f in .claude/commands/flow-kit:*.md; do
+            [ -f "$f" ] || continue
+            rm -f "$f"
+            removed=$((removed + 1))
+        done
+        [ "$removed" -gt 0 ] && echo "[flow-kit] ✓ 已删除 ${removed} 个 flow-kit 命令"
     fi
 
-    # 删除 settings.json（如果存在）
-    if [ -f ".claude/settings.json" ]; then
-        rm -f .claude/settings.json
-        echo "[flow-kit] ✓ 已删除 .claude/settings.json"
+    # 删除 settings.json 中的 flow-kit hooks（保留其他配置）
+    if [ -f ".claude/settings.json" ] && command -v jq &>/dev/null; then
+        local tmp_settings
+        tmp_settings=$(mktemp)
+        if jq 'del(.hooks)' ".claude/settings.json" > "$tmp_settings" 2>/dev/null; then
+            mv "$tmp_settings" ".claude/settings.json"
+            echo "[flow-kit] ✓ 已移除 flow-kit hooks 配置"
+        else
+            rm -f "$tmp_settings"
+        fi
     fi
 
     echo ""

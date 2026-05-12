@@ -308,11 +308,11 @@ cat .flow-kit/current-phase
 
 ```bash
 # 自动检测（基于锁文件、git history、代码行数）
-/flow-kit:project-type detect
+# Phase 0 自动执行，无需手动命令
 
-# 手动设置
-/flow-kit:project-type brownfield
-/flow-kit:project-type greenfield
+# 手动设置（写入 .flow-kit/project-type）
+echo "project_type: brownfield" > .flow-kit/project-type
+echo "project_type: greenfield" > .flow-kit/project-type
 ```
 
 ### 工作流文件结构

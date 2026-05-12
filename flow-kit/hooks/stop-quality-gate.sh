@@ -41,6 +41,10 @@ check_test_coverage() {
     local incremental_covered
     incremental_covered=$(grep "incremental.covered" "$coverage_file" 2>/dev/null | cut -d: -f2 || echo "0")
 
+    # 校验数字
+    [[ "$incremental_lines" =~ ^[0-9]+$ ]] || incremental_lines=0
+    [[ "$incremental_covered" =~ ^[0-9]+$ ]] || incremental_covered=0
+
     # P0 修复：防止除零错误
     if [ "$incremental_lines" -eq 0 ]; then
         echo "[stop-quality-gate] ⚠️  无新增代码，跳过覆盖率检查"

@@ -26,9 +26,9 @@ MESSAGE="${2:-Claude Code 需要你的关注}"
 # v1.12.10 修复：声明变量（不能在函数外使用 local）
 ps_script=""
 
-# macOS
+# macOS — 用 -e [参数] 传递，避免字符串拼接注入
 if command -v osascript &> /dev/null; then
-    osascript -e "display notification \"${MESSAGE}\" with title \"${TITLE}\""
+    osascript -e 'display notification "'"${MESSAGE//\"/\\\"}"'" with title "'"${TITLE//\"/\\\"}"'"'
 # Linux
 elif command -v notify-send &> /dev/null; then
     notify-send "${TITLE}" "${MESSAGE}"
@@ -71,8 +71,9 @@ PSEOF
         echo "[notification] ✅ Windows Toast 通知已发送"
     else
         echo "[notification] ⚠️ Windows 通知失败，使用回退方案"
-        # 回退：使用 PowerShell 弹窗
-        powershell -Command "Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show('${MESSAGE}', '${TITLE}')" 2>/dev/null || true
+        # 回退：使用 PowerShell 弹窗（通过环境变量传递，避免注入）
+        NOTIFY_MSG="${MESSAGE}" NOTIFY_TITLE="${TITLE}" \
+            powershell -Command "Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show(\$env:NOTIFY_MSG, \$env:NOTIFY_TITLE)" 2>/dev/null || true
     fi
 
     rm -f "${ps_script}"

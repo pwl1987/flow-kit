@@ -8,7 +8,7 @@
 
 ### 手动激活
 
-- 命令：`/flow-kit:guardrails` 或 `@flow-kit/guardrails`
+- 命令：`/flow-kit:guard full` 或 `@flow-kit/guardrails`
 - 场景：用户显式请求护栏检查
 
 ### 自动检测

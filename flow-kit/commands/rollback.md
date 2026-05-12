@@ -12,34 +12,35 @@
 ## 命令格式
 
 ```
-/flow-kit:rollback --phase=<phase-id> [--trigger=<manual|auto|monitor>] [--force] [--adjust=<promote|demote|remove>]
+/flow-kit:phase-8 --phase=<phase-id> [--trigger=<manual|auto|monitor>] [--force] [--adjust=<promote|demote|remove>]
 ```
 
 ## 参数说明
 
-| 参数 | 必需 | 默认值 | 说明 |
-|------|------|--------|------|
-| `--phase` | 是 | - | 指定要回滚的阶段ID |
-| `--trigger` | 否 | manual | 触发方式：manual / auto / monitor |
-| `--force` | 否 | false | 跳过所有安全护栏（危险） |
-| `--adjust` | 否 | - | 调整稳定点标记：promote / demote / remove |
+| 参数        | 必需 | 默认值 | 说明                                      |
+| ----------- | ---- | ------ | ----------------------------------------- |
+| `--phase`   | 是   | -      | 指定要回滚的阶段ID                        |
+| `--trigger` | 否   | manual | 触发方式：manual / auto / monitor         |
+| `--force`   | 否   | false  | 跳过所有安全护栏（危险）                  |
+| `--adjust`  | 否   | -      | 调整稳定点标记：promote / demote / remove |
 
 ## 状态跟踪
 
-| 状态字段 | 类型 | 默认值 | 说明 |
-|---------|------|--------|------|
-| `canRollback` | boolean | false | 是否有可回滚的稳定点 |
-| `lastRollbackAt` | string | null | 上次回滚时间 |
+| 状态字段         | 类型    | 默认值 | 说明                 |
+| ---------------- | ------- | ------ | -------------------- |
+| `canRollback`    | boolean | false  | 是否有可回滚的稳定点 |
+| `lastRollbackAt` | string  | null   | 上次回滚时间         |
 
 ## 触发方式
 
 ### 手动触发
 
 ```
-/flow-kit:rollback --phase=<phase-id> --trigger=manual
+/flow-kit:phase-8 --phase=<phase-id> --trigger=manual
 ```
 
 效果：
+
 - 加载 `.planning/checkpoints/{phase}-stable.json`
 - 验证存在可回滚的稳定点
 - 执行安全护栏检查
@@ -47,11 +48,13 @@
 ### 自动触发
 
 当以下条件满足时自动触发：
+
 - 监控检测到阶段状态异常
 - 连续3次验证失败
 - 标记为 `auto-trigger-enabled` 的阶段
 
 效果：
+
 - 设置 `lastRollbackAt = now()`
 - 记录 `rollbackReason = "auto-trigger"`
 - 写入 LESSONS.md
@@ -59,10 +62,11 @@
 ### 监控触发
 
 ```
-/flow-kit:rollback --phase=<phase-id> --trigger=monitor
+/flow-kit:phase-8 --phase=<phase-id> --trigger=monitor
 ```
 
 用于持续监控场景：
+
 - 定期检查阶段健康状态
 - 异常时发送告警并等待确认
 - 确认后执行回滚
@@ -72,6 +76,7 @@
 ### 1. 确认提示
 
 回滚前必须确认：
+
 ```
 [WARNING] Rollback Phase {phase-id}
 Impact Preview:
@@ -85,6 +90,7 @@ Type 'yes' to confirm:
 ### 2. 备份创建
 
 执行回滚前自动创建备份：
+
 ```
 backup/{phase}-{YYYY-MM-DD-HHMMSS}/
 ├── commits/
@@ -93,6 +99,7 @@ backup/{phase}-{YYYY-MM-DD-HHMMSS}/
 ```
 
 备份内容：
+
 - 从稳定点以来的所有 commit
 - 受影响文件的完整副本
 - 回滚操作的元数据
@@ -100,6 +107,7 @@ backup/{phase}-{YYYY-MM-DD-HHMMSS}/
 ### 3. 影响范围预览
 
 列出将回滚的文件和变更：
+
 ```
 Impact Analysis:
   Files: [file1, file2, ...]
@@ -113,22 +121,25 @@ Impact Analysis:
 ### promote
 
 将当前状态标记为新的稳定点：
+
 ```
-/flow-kit:rollback --phase=<phase-id> --adjust=promote
+/flow-kit:phase-8 --phase=<phase-id> --adjust=promote
 ```
 
 ### demote
 
 移除现有稳定点标记（不回滚文件）：
+
 ```
-/flow-kit:rollback --phase=<phase-id> --adjust=demote
+/flow-kit:phase-8 --phase=<phase-id> --adjust=demote
 ```
 
 ### remove
 
 删除指定稳定点文件：
+
 ```
-/flow-kit:rollback --phase=<phase-id> --adjust=remove
+/flow-kit:phase-8 --phase=<phase-id> --adjust=remove
 ```
 
 ## 与phase-executor集成
@@ -153,6 +164,7 @@ Impact Analysis:
 ## 稳定点文件格式
 
 `.planning/checkpoints/{phase}-stable.json`:
+
 ```json
 {
   "phase": "12",
@@ -169,6 +181,7 @@ Impact Analysis:
 ### 自动写入 LESSONS.md
 
 回滚完成后自动追加到 `.planning/phases/{phase}/LESSONS.md`:
+
 ```markdown
 ## Rollback Log - {timestamp}
 
@@ -180,16 +193,17 @@ Impact Analysis:
 
 ## 使用场景
 
-| 场景 | 触发方式 | 行为 |
-|------|----------|------|
-| 手动回退到稳定点 | manual | 全安全护栏 |
-| 监控自动恢复 | auto | 静默执行 + 日志 |
+| 场景             | 触发方式       | 行为             |
+| ---------------- | -------------- | ---------------- |
+| 手动回退到稳定点 | manual         | 全安全护栏       |
+| 监控自动恢复     | auto           | 静默执行 + 日志  |
 | 批量回滚多个阶段 | manual --force | 跳过确认（危险） |
-| 调整标记优先级 | adjust | 仅修改标记 |
+| 调整标记优先级   | adjust         | 仅修改标记       |
 
 ---
 
 **关联文件**：
+
 - `@flow-kit/GO.md` (命令路由)
 - `@flow-kit/lib/phase-executor.md` (执行器集成)
 - `.planning/checkpoints/` (稳定点存储)

@@ -446,18 +446,9 @@ run_single_agent() {
             # 验证prompt文件存在
             if [ ! -f "$prompt_file" ]; then
                 echo "[agent-$agent_id] ❌ Prompt文件不存在: $prompt_file"
-                cat > "$result_file" << EOF
-{
-  "id": "$agent_id",
-  "role": "$role",
-  "status": "FAILED",
-  "summary": "Prompt文件不存在",
-  "files_modified": [],
-  "issues": ["Prompt文件不存在: $prompt_file"],
-  "context_consumed_pct": "0%",
-  "attempts": $attempt
-}
-EOF
+                jq -n --arg id "$agent_id" --arg role "$role" --arg pf "$prompt_file" --argjson att "$attempt" \
+                  '{id: $id, role: $role, status: "FAILED", summary: "Prompt文件不存在", files_modified: [], issues: ["Prompt文件不存在: \($pf)"], context_consumed_pct: "0%", attempts: $att}' \
+                  > "$result_file"
                 break
             fi
 
@@ -598,6 +589,18 @@ execute_subagents() {
         # v1.12.17 修复: 获取槽位号并传递给子代理
         local acquired_slot=""
         if acquire_slot "$MAX_CONCURRENT"; then
+            acquired_slot=$(cat "$TMP_DIR/slot-$$.id" 2>/dev/null || echo "")
+        else
+            echo "[dispatch]  ⚠️  获取并发槽位失败，等待释放..."
+            local slot_wait=0
+            while [ $slot_wait -lt 30 ] && ! acquire_slot "$MAX_CONCURRENT"; do
+                sleep 1
+                slot_wait=$((slot_wait + 1))
+            done
+            if [ $slot_wait -ge 30 ]; then
+                echo "[dispatch]  ❌ 获取槽位超时，跳过 agent: $agent_id" >&2
+                continue
+            fi
             acquired_slot=$(cat "$TMP_DIR/slot-$$.id" 2>/dev/null || echo "")
         fi
 
@@ -802,23 +805,15 @@ EOF
         fi
     done
 
-    cat > "$summary_file" << EOF
-{
-  "task_id": "$orig_task_id",
-  "task_desc": "$orig_task_desc",
-  "parallel_n": $orig_parallel_n,
-  "agents": [$agents_json],
-  "created_at": "$orig_created_at",
-  "executed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "status": "COMPLETED",
-  "summary": {
-    "total": $total,
-    "successful": $success,
-    "failed": $failed,
-    "partial": $partial
-  }
-}
-EOF
+    local executed_at
+    executed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    jq -n --arg tid "$orig_task_id" --arg tdesc "$orig_task_desc" \
+         --argjson pn "$orig_parallel_n" --argjson aj "[$agents_json]" \
+         --arg ca "$orig_created_at" --arg ea "$executed_at" \
+         --argjson tot "$total" --argjson suc "$success" \
+         --argjson fail "$failed" --argjson part "$partial" \
+         '{task_id: $tid, task_desc: $tdesc, parallel_n: $pn, agents: $aj, created_at: $ca, executed_at: $ea, status: "COMPLETED", summary: {total: $tot, successful: $suc, failed: $fail, partial: $part}}' \
+         > "$summary_file"
 
     echo ""
     echo "[dispatch] 📊 执行摘要:"

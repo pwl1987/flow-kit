@@ -54,10 +54,11 @@ main() {
     timestamp=$(date -u +%Y%m%d%H%M%S)
     local archive_file="$ARCHIVE_DIR/health-history-${timestamp}.json"
 
-    mv "$HISTORY_FILE" "$archive_file"
+    # 先创建新文件，再归档旧文件（原子操作，避免崩溃丢失）
     local tmp_file
     tmp_file=$(mktemp "${HISTORY_FILE}.tmp.XXXXXX")
     printf '{}\n' > "$tmp_file"
+    mv "$HISTORY_FILE" "$archive_file"
     mv "$tmp_file" "$HISTORY_FILE"
 
     echo "[health-rotation] 已归档到: $archive_file"
@@ -69,7 +70,7 @@ main() {
         if [ "$count" -gt 5 ]; then
             rm -f "$archive"
         fi
-    done < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name 'health-history-*.json' -printf '%T@ %p\n' 2>/dev/null | sort -rn | cut -d' ' -f2-)
+    done < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name 'health-history-*.json' -exec stat --format='%Y %n' {} \; 2>/dev/null | sort -rn | cut -d' ' -f2-)
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

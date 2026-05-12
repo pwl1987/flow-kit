@@ -272,6 +272,12 @@ check_budget() {
     local used_tokens="${1:-0}"
     local total_budget="${2:-$DEFAULT_BUDGET}"
 
+    # 防止除零
+    if [ "$total_budget" -eq 0 ] 2>/dev/null; then
+        echo "[context-budget] total_budget=0，跳过预算检查"
+        return 0
+    fi
+
     local usage_pct
     usage_pct=$(float_scale "$(awk "BEGIN {printf \"%.2f\", $used_tokens * 100 / $total_budget}" 2>/dev/null || echo "0")")
     local remaining_tokens=$((total_budget - used_tokens))

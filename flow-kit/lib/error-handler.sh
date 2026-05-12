@@ -6,12 +6,15 @@ set -euo pipefail
 # 提供标准化日志和错误码
 
 #------------------------------------------------------------------------------
-# 错误码常量
+# 错误码常量（防重复 source）
 #------------------------------------------------------------------------------
+if [ -z "${_ERROR_HANDLER_LOADED:-}" ]; then
 readonly EXIT_SUCCESS=0
 readonly EXIT_GENERAL_ERROR=1
 readonly EXIT_GUARD_BLOCK=2
 readonly EXIT_MISSING_DEPS=3
+readonly _ERROR_HANDLER_LOADED=1
+fi
 
 #------------------------------------------------------------------------------
 # 获取 ISO 8601 时间戳（POSIX 兼容）

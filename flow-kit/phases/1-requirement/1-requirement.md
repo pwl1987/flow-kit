@@ -26,7 +26,7 @@
 ### 何时激活
 - 复杂功能（涉及多个模块/系统）
 - 高风险变更（涉及数据库/安全/公共 API）
-- 用户显式调用 /flow-kit:strategy
+- 用户显式调用 /flow-kit:guard
 
 ### STRATEGY.md 锚点作用
 STRATEGY.md 生成后：
@@ -112,29 +112,31 @@ STRATEGY.md 生成后：
 ```bash
 # 检测 1: package.json + lock 文件 → brownfield
 if [ -f "package.json" ] && [ -f "package-lock.json" -o -f "yarn.lock" -o -f "pnpm-lock.yaml" ]; then
-  echo "brownfield" > .flow-kit/project-type
+  echo "project_type: brownfield" > .flow-kit/project-type
   return
 fi
 
 # 检测 2: git remote → brownfield
 if git remote get-url origin &>/dev/null; then
-  echo "brownfield" > .flow-kit/project-type
+  echo "project_type: brownfield" > .flow-kit/project-type
   return
 fi
 
 # 检测 3: src/ LOC < 5000 + 无 git remote → greenfield
 SRC_LOC=$(find src/ -name "*.ts" -o -name "*.js" -o -name "*.tsx" -o -name "*.jsx" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
 if [ "$SRC_LOC" -lt 5000 ] && ! git remote get-url origin &>/dev/null; then
-  echo "greenfield" > .flow-kit/project-type
+  echo "project_type: greenfield" > .flow-kit/project-type
   return
 fi
 
 # 默认: brownfield（保守策略）
-echo "brownfield" > .flow-kit/project-type
+echo "project_type: brownfield" > .flow-kit/project-type
 ```
 
 ### Guardrails 联动
-- 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
+- 棕地项目：提示 `建议使用 /flow-kit:guard full 启用棕地护栏`
 - 绿地项目：提示 `建议使用标准开发流程`
 
---- END flow-kit/phases/1-requirement/1-requirement.md ---
+---
+
+END flow-kit/phases/1-requirement/1-requirement.md ---

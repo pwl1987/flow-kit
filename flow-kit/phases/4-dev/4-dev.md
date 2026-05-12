@@ -92,7 +92,6 @@ _核心理念：任务完成 = 完成标志达成，不是任务列表走完。_
 
 ## 边界情况
 
-
 - **测试失败**：测试不通过时，优先修复测试或代码
 - **任务阻塞**：遇到阻塞时，标记并跳过，继续执行其他任务
 - **范围偏差**：开发中发现设计问题时，回溯到设计阶段
@@ -100,7 +99,6 @@ _核心理念：任务完成 = 完成标志达成，不是任务列表走完。_
 - **合并冲突**：多人协作时处理合并冲突
 
 ## 输出物
-
 
 - **可运行代码**：通过基本测试的功能代码
 - **测试套件**：覆盖核心功能的测试用例
@@ -144,30 +142,30 @@ _核心理念：任务完成 = 完成标志达成，不是任务列表走完。_
 ```bash
 # 检测 1: package.json + lock 文件 → brownfield
 if [ -f "package.json" ] && [ -f "package-lock.json" -o -f "yarn.lock" -o -f "pnpm-lock.yaml" ]; then
-  echo "brownfield" > .flow-kit/project-type
+  echo "project_type: brownfield" > .flow-kit/project-type
   return
 fi
 
 # 检测 2: git remote → brownfield
 if git remote get-url origin &>/dev/null; then
-  echo "brownfield" > .flow-kit/project-type
+  echo "project_type: brownfield" > .flow-kit/project-type
   return
 fi
 
 # 检测 3: src/ LOC < 5000 + 无 git remote → greenfield
 SRC_LOC=$(find src/ -name "*.ts" -o -name "*.js" -o -name "*.tsx" -o -name "*.jsx" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}')
 if [ "$SRC_LOC" -lt 5000 ] && ! git remote get-url origin &>/dev/null; then
-  echo "greenfield" > .flow-kit/project-type
+  echo "project_type: greenfield" > .flow-kit/project-type
   return
 fi
 
 # 默认: brownfield（保守策略）
-echo "brownfield" > .flow-kit/project-type
+echo "project_type: brownfield" > .flow-kit/project-type
 ```
 
 ### Guardrails 联动
 
-- 棕地项目：提示 `建议使用 /flow-kit:guardrails 启用棕地护栏`
+- 棕地项目：提示 `建议使用 /flow-kit:guard full 启用棕地护栏`
 - 绿地项目：提示 `建议使用标准开发流程`
 
 --- END flow-kit/phases/4-dev/4-dev.md ---

@@ -15,14 +15,14 @@
 ## 用法
 
 ```bash
-/flow-kit:change:init "变更描述"
+/flow-kit:init "变更描述"
 ```
 
 ## 示例
 
 ```bash
 # 初始化一个用户反馈功能变更
-/flow-kit:change:init "添加用户反馈中心模块"
+/flow-kit:init "添加用户反馈中心模块"
 
 # 预期输出：
 # 📋 项目类型: brownfield

@@ -131,15 +131,15 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 
 ## 命令参考
 
-| 命令                       | 描述                       |
-| -------------------------- | -------------------------- |
-| `/flow-kit:health`         | 代码健康度扫描             |
-| `/flow-kit:scan`           | 技术债务扫描（TODO/FIXME） |
-| `/flow-kit:update-context` | 更新项目上下文             |
-| `/flow-kit:sync-config`    | 同步团队配置               |
-| `/flow-kit:archive`        | 归档完成变更               |
-| `/flow-kit:minimal`        | 启用极简模式               |
-| `/flow-kit:offline`        | 启用离线模式               |
+| 命令                | 描述                       |
+| ------------------- | -------------------------- |
+| `/flow-kit:health`  | 代码健康度扫描             |
+| `/flow-kit:scan`    | 技术债务扫描（TODO/FIXME） |
+| `/flow-kit:archive` | 归档完成变更               |
+| `/flow-kit:guard`   | 护栏管理（full/minimal）   |
+| `/flow-kit:status`  | 显示当前状态               |
+| `/flow-kit:next`    | 推进到下一阶段             |
+| `/flow-kit:scale`   | 扩展级别评估               |
 
 详细命令文档请参阅 [GO.md](./GO.md)。
 

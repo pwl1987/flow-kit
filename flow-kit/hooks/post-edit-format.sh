@@ -93,7 +93,7 @@ detect_and_format() {
     return 1
 }
 
-detect_and_format "$FILE_PATH"
+detect_and_format "$FILE_PATH" || true
 
 # hooks 执行遥测
 END_TIME=$(get_epoch_ms)

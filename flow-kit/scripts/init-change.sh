@@ -33,7 +33,7 @@ main() {
     create_skeleton_files "$specs_dir" "$change_id"
     local escaped_change_id
     escaped_change_id=$(printf '%s\n' "$change_id" | sed 's/[&\\/]/\\&/g')
-    sed -i "s/{{change_id}}/${escaped_change_id}/g" "$specs_dir"/*.md
+    sed -i.bak "s/{{change_id}}/${escaped_change_id}/g" "$specs_dir"/*.md
 
     # 4. 检测项目类型
     local project_type
@@ -43,6 +43,7 @@ main() {
     print_guardrail_recommendation "$project_type"
 
     # 6. 写入初始阶段状态
+    mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
     echo "0" > "$CURRENT_PHASE_FILE"
     echo "💾 当前阶段已记录: Phase 0"
 
