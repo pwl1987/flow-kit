@@ -21,7 +21,7 @@ PATHS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATHS_FLOW_KIT_DIR="$(dirname "$PATHS_SCRIPT_DIR")"
 # 项目根目录（优先 CLAUDE_PROJECT_DIR，回退向上两级）
 # CLAUDE_PROJECT_DIR 由 Claude Code 设置，总是指向项目根目录
-PATHS_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$PATHS_FLOW_KIT_DIR/.." && pwd)}"
+PATHS_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$PATHS_FLOW_KIT_DIR/../.." && pwd)}"
 
 #------------------------------------------------------------------------------
 # 导出路径常量
