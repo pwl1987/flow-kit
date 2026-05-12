@@ -290,11 +290,6 @@ route_command() {
             fi
             ;;
 
-        status)
-            show_status
-            exit 0
-            ;;
-
         share)
             show_share
             exit 0
@@ -329,6 +324,39 @@ route_command() {
                     exit 1
                     ;;
             esac
+            ;;
+
+        next)
+            local next_script="$(dirname "$0")/scripts/next-phase.sh"
+            if [ -f "$next_script" ]; then
+                bash "$next_script"
+            else
+                echo "[flow-kit] 错误: next-phase.sh 不存在"
+                exit 1
+            fi
+            ;;
+
+        status)
+            show_status
+            echo ""
+            echo "=========================================="
+            echo "flow-kit 项目状态"
+            echo "=========================================="
+            local phase_file="$(dirname "$0")/../.flow-kit/current-phase"
+            if [ -f "$phase_file" ]; then
+                local phase=$(cat "$phase_file")
+                echo "📍 当前阶段: Phase $phase"
+            else
+                echo "📍 当前阶段: 未初始化（请先运行 /flow-kit:init）"
+            fi
+            local type_file="$(dirname "$0")/../.flow-kit/project-type"
+            if [ -f "$type_file" ]; then
+                local ptype=$(grep "^project_type:" "$type_file" | cut -d' ' -f2)
+                echo "📋 项目类型: $ptype"
+            else
+                echo "📋 项目类型: 未检测（请先运行 /flow-kit:health）"
+            fi
+            exit 0
             ;;
 
         uninstall)

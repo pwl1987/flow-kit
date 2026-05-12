@@ -40,7 +40,11 @@ main() {
     # 5. 输出护栏推荐
     print_guardrail_recommendation "$project_type"
 
-    # 6. 输出下一步建议
+    # 6. 写入初始阶段状态
+    echo "0" > "$PROJECT_DIR/.flow-kit/current-phase"
+    echo "💾 当前阶段已记录: Phase 0"
+
+    # 7. 输出下一步建议
     print_next_steps "$change_id"
 }
 
@@ -55,9 +59,9 @@ generate_change_id() {
     local date=$(date +%Y%m%d)
     local slug=""
 
-    # 提取中文词语（使用预定义的中文字符范围）
+    # 提取中文词语（alternation 匹配）
     local chinese
-    chinese=$(echo "$desc" | grep -oE "一|二|三|四|五|六|七|八|九|十|登|录|添|加|用|户|功|能|中|国|开|发|设|计|模|块|商|城|论|坛|博|客|资|料|配|置|管|理|统|统|数|据|接|口|前|端|后|端" | head -4 | tr -d '\n')
+    chinese=$(echo "$desc" | grep -oE '测试|变更|添加|用户|功能|开发|设计|模块|配置|管理|数据|接口|前端|后端|商务|论坛|博客|系统|新增|删除|修改|查询|列表|详情|登录|注册|退出' | head -4 | tr -d '\n')
 
     if [ -n "$chinese" ]; then
         slug="$chinese"

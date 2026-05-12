@@ -1,0 +1,4 @@
+project_type: greenfield
+detected_at: 2026-05-11T12:37:09.493Z
+detection_signals: business_code_lines: 776, threshold: greenfield
+business_code_lines: 776
