@@ -326,6 +326,17 @@ route_command() {
             esac
             ;;
 
+        phase-*)
+            local phase_num="${cmd#phase-}"
+            local executor_script="$(dirname "$0")/scripts/phase-executor.sh"
+            if [ -f "$executor_script" ]; then
+                bash "$executor_script" "$phase_num"
+            else
+                echo "[flow-kit] 错误: phase-executor.sh 不存在"
+                exit 1
+            fi
+            ;;
+
         next)
             local next_script="$(dirname "$0")/scripts/next-phase.sh"
             if [ -f "$next_script" ]; then

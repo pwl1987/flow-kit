@@ -155,6 +155,7 @@ for phase in "${!PHASE_COMMANDS[@]}"; do
 description: ${name} - ${phase}
 category: dev
 reference: flow-kit/phases/${phase}/
+execute: bash scripts/phase-executor.sh ${phase}
 ---
 /flow-kit:${phase}: ${name}
 EOF

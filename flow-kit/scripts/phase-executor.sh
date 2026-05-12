@@ -83,6 +83,17 @@ main() {
 
     # 加载工作流文件内容
     cat "$workflow_file"
+
+    echo ""
+    echo "=========================================="
+    if [ "$project_type" = "brownfield" ]; then
+        echo "🛡️  棕地项目建议: /flow-kit:guard full"
+        echo "   启用全部护栏 B1-B6，保护现有代码库"
+    else
+        echo "🛡️  绿地项目建议: /flow-kit:guard minimal"
+        echo "   启用核心护栏 B2/B4/B6"
+    fi
+    echo "=========================================="
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
