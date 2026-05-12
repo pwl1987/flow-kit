@@ -6,9 +6,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 
-# 读取当前阶段
-CURRENT_PHASE_FILE="$PROJECT_DIR/.flow-kit/current-phase"
-
 get_current_phase() {
     if [ -f "$CURRENT_PHASE_FILE" ]; then
         cat "$CURRENT_PHASE_FILE"

@@ -97,6 +97,9 @@ readonly CHECKPOINT_FILE="$PROJECT_DIR/.flow-kit/checkpoint-state.json"
 # 项目类型文件
 readonly PROJECT_TYPE_FILE="$PROJECT_DIR/.flow-kit/project-type"
 
+# 当前阶段文件
+readonly CURRENT_PHASE_FILE="$PROJECT_DIR/.flow-kit/current-phase"
+
 # 模式文件
 readonly MODE_FILE="$PROJECT_DIR/.flow-kit/mode"
 

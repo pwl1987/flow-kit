@@ -41,7 +41,7 @@ main() {
     print_guardrail_recommendation "$project_type"
 
     # 6. 写入初始阶段状态
-    echo "0" > "$PROJECT_DIR/.flow-kit/current-phase"
+    echo "0" > "$CURRENT_PHASE_FILE"
     echo "💾 当前阶段已记录: Phase 0"
 
     # 7. 输出下一步建议
