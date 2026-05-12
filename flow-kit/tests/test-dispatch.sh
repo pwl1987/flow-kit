@@ -142,7 +142,7 @@ test_split_task() {
     result=$(bash -c '
         source "'"$FLOW_KIT_DIR"'/lib/paths.sh"
         source "'"$FLOW_KIT_DIR"'/scripts/dispatch.sh"
-        split_task "测试任务" 3
+        split_task "测试任务" 3 >/dev/null
         find "$TMP_DIR" -name "subagent-*-prompt.txt" 2>/dev/null | wc -l
     ' 2>/dev/null)
     [ "$result" = "3" ]
@@ -154,7 +154,7 @@ test_check_lock_conflicts_no_locks() {
     result=$(bash -c '
         source "'"$FLOW_KIT_DIR"'/lib/paths.sh"
         source "'"$FLOW_KIT_DIR"'/scripts/dispatch.sh"
-        check_lock_conflicts && echo "OK" || echo "FAIL"
+        check_lock_conflicts >/dev/null && echo "OK" || echo "FAIL"
     ' 2>/dev/null)
     [ "$result" = "OK" ]
 }

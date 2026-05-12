@@ -1,7 +1,7 @@
 #!/bin/bash
-# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.0)
+# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.5.0)
 #
-# 只生成 17 个核心命令，移除所有 dev-/meta-/team-/ops- 前缀变体
+# 生成 21 个核心命令，移除所有 dev-/meta-/team-/ops- 前缀变体
 
 set -euo pipefail
 
@@ -16,7 +16,11 @@ declare -A CORE_COMMANDS=(
   ["scan"]="flow-kit/commands/I-intel-scan.md"
   ["next"]="flow-kit/GO.md"
   ["status"]="flow-kit/GO.md"
+  ["mode"]="flow-kit/GO.md"
   ["guard"]="flow-kit/commands/careful.md"
+  ["hooks"]="flow-kit/commands/hooks-guide.md"
+  ["register-commands"]="flow-kit/commands/register-commands.md"
+  ["generate-commands"]="flow-kit/commands/generate-commands.md"
   ["archive"]="flow-kit/commands/archive.md"
   ["scale"]="flow-kit/commands/scale-level.md"
 )
@@ -31,6 +35,18 @@ declare -A PHASE_COMMANDS=(
   ["phase-6"]="代码审查"
   ["phase-7"]="集成归档"
   ["phase-8"]="变更回滚"
+)
+
+declare -A PHASE_DIRS=(
+  ["phase-0"]="0-change"
+  ["phase-1"]="1-requirement"
+  ["phase-2"]="2-design"
+  ["phase-3"]="3-task"
+  ["phase-4"]="4-dev"
+  ["phase-5"]="5-test"
+  ["phase-6"]="6-review"
+  ["phase-7"]="7-integration"
+  ["phase-8"]="8-rollback"
 )
 
 parse_args() {
@@ -92,14 +108,16 @@ generate_entry() {
 generate_phase_entry() {
   local phase="$1"
   local name="$2"
-  local output_file="$3"
+  local phase_dir="$3"
+  local output_file="$4"
+  local phase_num="${phase#phase-}"
 
   {
     printf '%s\n' '---'
     printf 'description: %s - %s\n' "$name" "$phase"
     printf '%s\n' 'category: dev'
-    printf 'reference: flow-kit/phases/%s/\n' "$phase"
-    printf 'execute: bash scripts/phase-executor.sh %s\n' "$phase"
+    printf 'reference: flow-kit/phases/%s/\n' "$phase_dir"
+    printf 'execute: bash flow-kit/scripts/phase-executor.sh %s\n' "$phase_num"
     printf '%s\n' '---'
     printf '/flow-kit:%s: %s\n' "$phase" "$name"
   } > "$output_file"
@@ -109,7 +127,7 @@ main() {
   parse_args "$@"
 
   echo "=========================================="
-  echo "flow-kit 斜杠命令生成器 v2.0 (精简版)"
+  echo "flow-kit 斜杠命令生成器 v2.5.0 (精简版)"
   echo "=========================================="
   echo "输出目录: $OUTPUT_PATH"
   echo "模式: $([ "$FORCE" == "true" ] && echo "force" || echo "incremental")"
@@ -145,13 +163,15 @@ main() {
       continue
     fi
 
-    generate_phase_entry "$phase" "$name" "$output_file"
+    local phase_dir="${PHASE_DIRS[$phase]}"
+    generate_phase_entry "$phase" "$name" "$phase_dir" "$output_file"
     echo "[生成] flow-kit:${phase} -> $output_file"
   done
 
   echo ""
   echo "=========================================="
-  echo "完成: 17 个核心命令已生成"
+  local total_commands=$((${#CORE_COMMANDS[@]} + ${#PHASE_COMMANDS[@]}))
+  echo "完成: $total_commands 个核心命令已生成"
   echo "=========================================="
 }
 

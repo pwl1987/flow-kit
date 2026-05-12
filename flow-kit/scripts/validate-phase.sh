@@ -402,7 +402,7 @@ validate_patterns() {
             local actual_value
             actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
             if [ -n "$actual_value" ] && [ "$actual_value" != "null" ]; then
-                if ! echo "$actual_value" | jq -e --arg p "$pattern" 'test($p)' >/dev/null 2>&1; then
+                if ! jq -n -e --arg value "$actual_value" --arg pattern "$pattern" '$value | test($pattern)' >/dev/null 2>&1; then
                     errors+=("字段 $prop: 值 '$actual_value' 不匹配 pattern: $pattern")
                 fi
             fi

@@ -1,7 +1,7 @@
 ---
 description: 任务拆解 - phase-3
 category: dev
-reference: flow-kit/phases/phase-3/
-execute: bash scripts/phase-executor.sh phase-3
+reference: flow-kit/phases/3-task/
+execute: bash flow-kit/scripts/phase-executor.sh 3
 ---
 /flow-kit:phase-3: 任务拆解

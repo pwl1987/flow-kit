@@ -1,19 +1,23 @@
 # flow-kit v2.x 入口文档
 
-> flow-kit v2.x — 精简版入口，17 个核心命令
+> flow-kit v2.x — 精简版入口，21 个核心命令
 
-## 17 个核心命令
+## 21 个核心命令
 
-| 命令                | 说明         | Phase |
-| ------------------- | ------------ | ----- |
-| `/flow-kit:init`    | 初始化变更   | -     |
-| `/flow-kit:health`  | 健康扫描     | -     |
-| `/flow-kit:scan`    | 代码库扫描   | -     |
-| `/flow-kit:scale`   | 评估变更规模 | -     |
-| `/flow-kit:guard`   | 启用护栏     | -     |
-| `/flow-kit:archive` | 归档变更     | -     |
-| `/flow-kit:next`    | 进入下一阶段 | -     |
-| `/flow-kit:status`  | 查看状态     | -     |
+| 命令                          | 说明         | Phase |
+| ----------------------------- | ------------ | ----- |
+| `/flow-kit:init`              | 初始化变更   | -     |
+| `/flow-kit:health`            | 健康扫描     | -     |
+| `/flow-kit:scan`              | 代码库扫描   | -     |
+| `/flow-kit:scale`             | 评估变更规模 | -     |
+| `/flow-kit:mode`              | 切换执行模式 | -     |
+| `/flow-kit:guard`             | 启用护栏     | -     |
+| `/flow-kit:hooks`             | Hooks 指南   | -     |
+| `/flow-kit:register-commands` | 注册命令     | -     |
+| `/flow-kit:generate-commands` | 生成命令     | -     |
+| `/flow-kit:archive`           | 归档变更     | -     |
+| `/flow-kit:next`              | 进入下一阶段 | -     |
+| `/flow-kit:status`            | 查看状态     | -     |
 
 ### Phase 工作流命令
 
@@ -100,7 +104,7 @@ Phase 执行时自动检测项目类型，加载差异化工作流：
 
 ## v2.x 改进
 
-- **精简命令**：154 → 17 个核心命令
+- **精简命令**：154 → 21 个核心命令
 - **条件路由**：phase-executor.sh 根据项目类型加载不同工作流
 - **护栏建议**：自动输出棕地/绿地护栏建议
 - **Phase 自动路由**：`./flow-kit.sh phase-N` 自动路由到对应工作流

@@ -5,13 +5,12 @@
 
 set -euo pipefail
 
-#------------------------------------------------------------------------------
-# 依赖检查
-#------------------------------------------------------------------------------
-if ! command -v jq &>/dev/null; then
-    printf '[错误] jq 未安装，无法执行成本报告。\n' >&2
-    exit 1
-fi
+check_dependencies() {
+    if ! command -v jq &>/dev/null; then
+        printf '[错误] jq 未安装，无法执行成本报告。\n' >&2
+        return 1
+    fi
+}
 
 #------------------------------------------------------------------------------
 # 引入共享的 LOC 统计函数
@@ -29,6 +28,8 @@ readonly DEFAULT_OUTPUT_DIR=".flow-kit/reports"
 # 主函数
 #------------------------------------------------------------------------------
 main() {
+    check_dependencies || return 1
+
     local phases_dir="${1:-$DEFAULT_PHASES}"
     local report_file="${2:-$DEFAULT_OUTPUT_DIR/cost-report-$(date +%Y%m).md}"
 

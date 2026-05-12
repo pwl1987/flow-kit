@@ -213,11 +213,18 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v1.12.18_
+_Generated with flow-kit v2.5.0_
 
 ---
 
 ## Changelog
+
+### v2.5.0 (2026-05-12)
+
+- 精简斜杠命令体系，注册 21 个核心命令。
+- 修复 Phase 斜杠命令映射，确保 `/flow-kit:phase-0..8` 指向真实 Phase 目录。
+- 修复测试体系，新增 `flow-kit/tests/run-tests.sh` 统一入口。
+- 清理运行态目录追踪，`.flow-kit/` 改为本地运行态。
 
 ### v1.12.18 (2026-05-11)
 

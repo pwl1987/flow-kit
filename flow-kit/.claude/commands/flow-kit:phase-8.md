@@ -1,7 +1,7 @@
 ---
 description: 变更回滚 - phase-8
 category: dev
-reference: flow-kit/phases/phase-8/
-execute: bash scripts/phase-executor.sh phase-8
+reference: flow-kit/phases/8-rollback/
+execute: bash flow-kit/scripts/phase-executor.sh 8
 ---
 /flow-kit:phase-8: 变更回滚

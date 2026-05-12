@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-# init-change.sh — flow-kit 变更初始化脚本 v1.13
+# init-change.sh — flow-kit 变更初始化脚本 v2.5.0
 # 功能: 自动创建变更规格目录 + change-id + 项目类型检测 + 护栏推荐 + 下一步建议
 # 用法: ./init-change.sh "变更描述"
 
@@ -234,12 +234,12 @@ print_guardrail_recommendation() {
         echo ""
         echo "🛡️  推荐护栏配置: 棕地项目 - 启用全部护栏 B1-B6"
         echo "   原因: 已有代码库，需保护现有功能不破坏"
-        echo "   命令: /flow-kit:ops-guard full"
+        echo "   命令: /flow-kit:guard full"
     else
         echo ""
         echo "🛡️  推荐护栏配置: 绿地项目 - 启用核心护栏"
         echo "   原因: 新项目无历史包袱，可适度放宽，重点关注 B2/B4"
-        echo "   命令: /flow-kit:ops-guard minimal"
+        echo "   命令: /flow-kit:guard minimal"
     fi
 }
 

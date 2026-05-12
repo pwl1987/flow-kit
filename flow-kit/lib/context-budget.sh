@@ -110,8 +110,8 @@ detect_language_type() {
     # 检测 UTF-8 中文字符范围：一-龥 (U+4E00-U+9FFF)
     local chinese_count
     if command -v perl &>/dev/null; then
-        chinese_count=$(printf '%s' "$text" | perl -0777 -ne '
-            my $count = () = $_ =~ /[\x{4E00}-\x{9FFF}]/g;
+        chinese_count=$(printf '%s' "$text" | perl -CS -0777 -ne '
+            my $count = () = $_ =~ /\p{Han}/g;
             print $count;
         ' 2>/dev/null || echo "0")
     elif command -v grep &>/dev/null; then
@@ -144,16 +144,14 @@ detect_language_type() {
 detect_content_type() {
     local text="$1"
 
-    # 检测代码特征（增强：支持更多语言关键字）
-    if echo "$text" | grep -qE '(function|class|import|export|const|let|var|if|for|while|return|def |func |package |pub fn |impl |struct |interface |module |use |async |await |fn )' 2>/dev/null; then
+    if [[ "$text" == *'```'* ]]; then
+        echo "code"
+    elif [[ "$text" =~ [\;\{\}\(\)] ]]; then
+        echo "code"
+    elif [[ "$text" =~ ^[[:space:]]*(function|class|import|export|const|let|var|if|for|while|return|def|func|package|pub[[:space:]]+fn|impl|struct|interface|module|use|async|await|fn)[[:space:]] ]]; then
         echo "code"
     else
-        # 补充：检查代码块标记（允许前导空格）
-        if echo "$text" | grep -qE '^\s*\`\`\`' 2>/dev/null; then
-            echo "code"
-        else
-            echo "text"
-        fi
+        echo "text"
     fi
 }
 

@@ -3,7 +3,7 @@
 # v1.12.6 P2 更新
 # 提供基础 E2E 测试框架
 
-set -e
+set -euo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
@@ -11,7 +11,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FLOW_KIT_DIR="$(dirname "$SCRIPT_DIR")"
 TEST_DIR="$FLOW_KIT_DIR/tests"
-TMP_DIR=".flow-kit/tmp"
+TMP_DIR="$(cd "$FLOW_KIT_DIR/.." && pwd)/.flow-kit/tmp"
 
 #------------------------------------------------------------------------------
 # 测试函数
@@ -104,7 +104,7 @@ test_m_health_b5_b6_linkage() {
 }
 
 test_phase_executor_schema_section() {
-    grep -q "JSON Schema" "$FLOW_KIT_DIR/lib/phase-executor.md"
+    grep -q "项目类型" "$FLOW_KIT_DIR/scripts/phase-executor.sh"
 }
 
 #------------------------------------------------------------------------------

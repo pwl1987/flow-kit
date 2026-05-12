@@ -1,7 +1,7 @@
 ---
 description: 变更立项 - phase-0
 category: dev
-reference: flow-kit/phases/phase-0/
-execute: bash scripts/phase-executor.sh phase-0
+reference: flow-kit/phases/0-change/
+execute: bash flow-kit/scripts/phase-executor.sh 0
 ---
 /flow-kit:phase-0: 变更立项
