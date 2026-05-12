@@ -2,9 +2,9 @@
 
 ## 项目概述
 
-flow-kit v1.12.10 — 面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、技能包、模板和工程参考材料。
+flow-kit v2.5.0 — 面向 Claude Code 的结构化开发流程工具包，提供精简命令体系、8 阶段开发工作流、棕地/绿地条件路由、护栏建议、Phase 状态持久化和单元测试。
 
-**当前阶段：** v1.12.10
+**当前版本：** v2.5.0
 
 ## 工作流配置
 
@@ -18,16 +18,22 @@ flow-kit v1.12.10 — 面向 Claude Code 的结构化开发流程工具包，提
 | Plan Check      | 启用                 |
 | Verifier        | 启用                 |
 
-## 下一阶段
+## 核心能力
 
-执行 `/gsd-discuss-phase 1` 收集上下文并明确方法。
+- 17 个核心斜杠命令
+- Phase 0-8 工作流
+- 棕地/绿地差异化工作流
+- 自动护栏建议
+- `.flow-kit/current-phase` 状态持久化
+- 单元测试覆盖核心脚本
 
 ## 相关文件
 
-- `.planning/PROJECT.md` — 项目上下文
-- `.planning/REQUIREMENTS.md` — 需求清单
-- `.planning/ROADMAP.md` — 阶段路线图
-- `.planning/STATE.md` — 当前状态
+- `flow-kit/GO.md` — 入口文档
+- `flow-kit/VERSION` — 当前版本
+- `flow-kit/phases/` — Phase 工作流
+- `flow-kit/scripts/phase-executor.sh` — 条件路由执行器
+- `flow-kit/scripts/generate-commands.sh` — 命令生成器
 
 ## 使用 flow-kit
 
@@ -38,7 +44,7 @@ flow-kit v1.12.10 — 面向 Claude Code 的结构化开发流程工具包，提
 
 ## 首次使用引导
 
-flow-kit v1.6+ 支持原生斜杠命令。若未检测到命令注册，启动时会提示：
+flow-kit v2.x 支持原生斜杠命令。若未检测到命令注册，启动时会提示：
 
 ```
 [flow-kit] 检测到斜杠命令未注册
@@ -53,4 +59,4 @@ flow-kit v1.6+ 支持原生斜杠命令。若未检测到命令注册，启动�
 
 ---
 
-_Generated: 2026-05-06_
+_Generated: 2026-05-12_

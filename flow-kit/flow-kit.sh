@@ -21,7 +21,14 @@ read_version() {
     if [ -f "$version_file" ]; then
         cat "$version_file"
     else
-        echo "v1.12.4"
+        echo "v2.5.0"
+    fi
+}
+
+load_paths() {
+    local paths_file="$(dirname "$0")/lib/paths.sh"
+    if [ -f "$paths_file" ]; then
+        source "$paths_file"
     fi
 }
 
@@ -349,20 +356,19 @@ route_command() {
 
         status)
             show_status
+            load_paths
             echo ""
             echo "=========================================="
             echo "flow-kit 项目状态"
             echo "=========================================="
-            local phase_file="$(dirname "$0")/../.flow-kit/current-phase"
-            if [ -f "$phase_file" ]; then
-                local phase=$(cat "$phase_file")
+            if [ -f "$CURRENT_PHASE_FILE" ]; then
+                local phase=$(cat "$CURRENT_PHASE_FILE")
                 echo "📍 当前阶段: Phase $phase"
             else
                 echo "📍 当前阶段: 未初始化（请先运行 /flow-kit:init）"
             fi
-            local type_file="$(dirname "$0")/../.flow-kit/project-type"
-            if [ -f "$type_file" ]; then
-                local ptype=$(grep "^project_type:" "$type_file" | cut -d' ' -f2)
+            if [ -f "$PROJECT_TYPE_FILE" ]; then
+                local ptype=$(grep "^project_type:" "$PROJECT_TYPE_FILE" | cut -d' ' -f2)
                 echo "📋 项目类型: $ptype"
             else
                 echo "📋 项目类型: 未检测（请先运行 /flow-kit:health）"
