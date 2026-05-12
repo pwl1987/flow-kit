@@ -290,11 +290,6 @@ route_command() {
             local gen_script="$(dirname "$0")/scripts/generate-commands.sh"
             if [ -f "$gen_script" ]; then
                 bash "$gen_script" --force
-                # 同步到项目根目录 .claude/commands
-                local src_dir="$(cd "$(dirname "$0")" && pwd)/.claude/commands"
-                if [ -d "$src_dir" ] && [ -d ".claude/commands" ]; then
-                    cp -f "$src_dir/"*.md ".claude/commands/" 2>/dev/null || true
-                fi
                 echo "[flow-kit] ✅ 斜杠命令注册完成"
             else
                 echo "[flow-kit] ⚠️ generate-commands.sh 不存在，请在 Claude Code 中执行: /flow-kit:register-commands"

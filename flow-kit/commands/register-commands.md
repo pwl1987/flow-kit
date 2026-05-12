@@ -1,6 +1,6 @@
 # register-commands
 
-> flow-kit v2.5.0 命令
+> flow-kit v2.5.1 命令
 
 生成 flow-kit 精简斜杠命令入口到 `flow-kit/.claude/commands/`。
 
@@ -57,9 +57,34 @@ bash flow-kit/scripts/generate-commands.sh --force
 - `--force`：覆盖重生成。
 - Phase 命令传递数字参数给 `phase-executor.sh`，避免 `phase-0` 与 `0-change` 目录名不匹配。
 
+## 安装方式
+
+### 方式一：子模块安装（推荐）
+
+```bash
+# 添加 flow-kit 作为 Git 子模块
+git submodule add https://github.com/pwl1987/flow-kit.git .flow-kit
+
+# 注册斜杠命令（输出到项目根目录 .claude/commands/）
+bash .flow-kit/scripts/generate-commands.sh --force
+```
+
+### 方式二：插件安装（Phase 3）
+
+```bash
+# 安装为 Claude Code 插件
+claude plugin install --dir .flow-kit
+```
+
+插件安装后，hooks 和命令自动注册，无需手动执行 `generate-commands.sh`。
+
 ## 验证
 
 ```bash
-bash flow-kit/scripts/generate-commands.sh --force
-bash flow-kit/tests/run-tests.sh
+# 检查命令数量
+ls .claude/commands/flow-kit:*.md | wc -l   # 应为 21
+
+# 测试斜杠命令
+/flow-kit:health
+/flow-kit:phase-0
 ```

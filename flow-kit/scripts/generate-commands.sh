@@ -7,8 +7,12 @@ set -euo pipefail
 
 FORCE=false
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# REPO_ROOT: flow-kit 根目录（scripts/ → flow-kit/）
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-readonly OUTPUT_PATH="$REPO_ROOT/.claude/commands"
+# OUTPUT_PATH: 项目根目录 .claude/commands/（优先 CLAUDE_PROJECT_DIR，回退向上两级）
+# CLAUDE_PROJECT_DIR 由 Claude Code 设置，总是指向项目根目录
+# 回退处理子模块场景：scripts/ → flow-kit/ → project-root/
+readonly OUTPUT_PATH="${CLAUDE_PROJECT_DIR:-$(cd "$REPO_ROOT/.." && pwd)}/.claude/commands"
 
 declare -A CORE_COMMANDS=(
   ["init"]="flow-kit/commands/init-change.md"
@@ -135,6 +139,47 @@ main() {
   echo ""
 
   mkdir -p "$OUTPUT_PATH"
+
+  # Phase 2: 清理旧格式命令（dash 前缀 + 无前缀重复）
+  echo ""
+  echo "--- 清理旧格式命令 ---"
+  local cleaned=0
+
+  # 删除 dash 前缀旧格式（flow-kit-scan.md → 已有 flow-kit:scan.md）
+  while IFS= read -r -d '' f; do
+    rm -f "$f"
+    echo "[清理] $(basename "$f")"
+    cleaned=$((cleaned + 1))
+  done < <(find "$OUTPUT_PATH" -maxdepth 1 -name "flow-kit-*.md" ! -name "flow-kit:*" -print0 2>/dev/null || true)
+
+  # 删除旧命名空间变体（flow-kit:dev-*, flow-kit:team-*, flow-kit:meta-*, flow-kit:ops-*）
+  while IFS= read -r -d '' f; do
+    rm -f "$f"
+    echo "[清理] $(basename "$f")"
+    cleaned=$((cleaned + 1))
+  done < <(find "$OUTPUT_PATH" -maxdepth 1 \( -name "flow-kit:dev-*.md" -o -name "flow-kit:team-*.md" -o -name "flow-kit:meta-*.md" -o -name "flow-kit:ops-*.md" \) -print0 2>/dev/null || true)
+
+  # 删除无前缀重复命令（careful.md → 已有 flow-kit:careful.md）
+  declare -a LEGACY_NAMES=(
+    "careful" "health" "scan" "guard" "mode" "archive" "scale" "next" "status"
+    "check-expiry" "cost-report" "cross-session-search" "estimate-tokens"
+    "freeze" "generate-commands" "hooks-guide" "lock" "minimal" "minimal-mode"
+    "offline-mode" "online" "p0" "p0-approval" "pr-description" "project-type"
+    "recovery" "register-commands" "rollback" "scale-level" "share-install"
+    "strategy" "strategy-first" "sync-team-config" "team" "team-roles"
+    "tmux-aggregate" "tmux-init" "tmux-orchestrator" "tmux-run"
+    "unfreeze" "unlock" "update-context"
+  )
+  for name in "${LEGACY_NAMES[@]}"; do
+    if [[ -f "$OUTPUT_PATH/${name}.md" ]] && [[ -f "$OUTPUT_PATH/flow-kit:${name}.md" ]]; then
+      rm -f "$OUTPUT_PATH/${name}.md"
+      echo "[清理] ${name}.md (已有 flow-kit:${name}.md)"
+      cleaned=$((cleaned + 1))
+    fi
+  done
+
+  [[ "$cleaned" -gt 0 ]] && echo "共清理 $cleaned 个旧命令"
+  echo ""
 
   for cmd in "${!CORE_COMMANDS[@]}"; do
     local ref="${CORE_COMMANDS[$cmd]}"
