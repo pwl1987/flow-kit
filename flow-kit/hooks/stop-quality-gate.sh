@@ -6,8 +6,20 @@ set -euo pipefail
 
 INPUT=$(cat)
 
+if [ -z "$INPUT" ]; then
+    exit 0
+fi
+
+if command -v jq >/dev/null 2>&1; then
+    if ! echo "$INPUT" | jq -e . >/dev/null 2>&1; then
+        exit 0
+    fi
+else
+    exit 0
+fi
+
 # 防止无限循环
-if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
+if [ "$(echo "$INPUT" | jq -r '.stop_hook_active // false')" = "true" ]; then
     exit 0
 fi
 
@@ -53,7 +65,7 @@ if [ -f "package.json" ] && grep -q '"test"' package.json; then
     # v1.12.17 P1 修复: 添加 120s 超时避免挂起
     if command -v timeout &>/dev/null; then
         timeout 120 npm test 2>&1 || {
-            local exit_code=$?
+            exit_code=$?
             if [ $exit_code -eq 124 ]; then
                 echo "[stop-quality-gate] ⏱️  测试超时（120s），请优化测试套件" >&2
             fi

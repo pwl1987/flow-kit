@@ -10,7 +10,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
-TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
+# 注意：TMP_DIR 复用 paths.sh 中的定义
 
 #------------------------------------------------------------------------------
 # 帮助信息
@@ -57,10 +57,14 @@ main() {
     echo "执行时间: $(jq -r '.executed_at // "未执行"' "$summary_file")"
     echo ""
 
-    local total=$(jq -r '.summary.total // 0' "$summary_file")
-    local successful=$(jq -r '.summary.successful // 0' "$summary_file")
-    local failed=$(jq -r '.summary.failed // 0' "$summary_file")
-    local partial=$(jq -r '.summary.partial // 0' "$summary_file")
+    local total
+    total=$(jq -r '.summary.total // 0' "$summary_file")
+    local successful
+    successful=$(jq -r '.summary.successful // 0' "$summary_file")
+    local failed
+    failed=$(jq -r '.summary.failed // 0' "$summary_file")
+    local partial
+    partial=$(jq -r '.summary.partial // 0' "$summary_file")
 
     echo "执行统计:"
     echo "  总代理数: $total"
@@ -74,9 +78,12 @@ main() {
     local has_agents=false
     while read -r agent_json; do
         has_agents=true
-        local id=$(echo "$agent_json" | jq -r '.id')
-        local role=$(echo "$agent_json" | jq -r '.role')
-        local status=$(echo "$agent_json" | jq -r '.status')
+        local id
+        id=$(echo "$agent_json" | jq -r '.id')
+        local role
+        role=$(echo "$agent_json" | jq -r '.role')
+        local status
+        status=$(echo "$agent_json" | jq -r '.status')
         local status_icon="⚪"
         case "$status" in
             SUCCESS) status_icon="✅" ;;
@@ -98,7 +105,7 @@ main() {
     local all_files
     local result_files=("$TMP_DIR"/subagent-*-result.json)
     if [ ${#result_files[@]} -gt 0 ] && [ -f "${result_files[0]}" ]; then
-        all_files=$(cat "${result_files[@]}" 2>/dev/null | jq -s '[.[].files_modified // [] | flatten] | add | unique' 2>/dev/null || echo "[]")
+        all_files=$(jq -s '[.[].files_modified // [] | flatten] | add | unique' "${result_files[@]}" 2>/dev/null || echo "[]")
     else
         all_files="[]"
     fi

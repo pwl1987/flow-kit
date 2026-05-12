@@ -34,7 +34,8 @@ count_loc_in_dir() {
     fi
 
     while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
+        local basename
+        basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi

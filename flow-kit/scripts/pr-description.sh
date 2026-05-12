@@ -38,12 +38,14 @@ EOF
 get_git_info() {
     local branch="${1:-}"
 
+    local commits
+    local changed_files
     if [ -n "$branch" ]; then
-        local commits=$(git log --oneline -20 "$branch" 2>/dev/null || echo "")
-        local changed_files=$(git diff --stat "origin/main..$branch" 2>/dev/null || echo "")
+        commits=$(git log --oneline -20 "$branch" 2>/dev/null || echo "")
+        changed_files=$(git diff --stat "origin/main..$branch" 2>/dev/null || echo "")
     else
-        local commits=$(git log --oneline -20 2>/dev/null || echo "")
-        local changed_files=$(git diff --stat HEAD~5..HEAD 2>/dev/null || echo "")
+        commits=$(git log --oneline -20 2>/dev/null || echo "")
+        changed_files=$(git diff --stat HEAD~5..HEAD 2>/dev/null || echo "")
     fi
 
     echo "$commits"
@@ -80,8 +82,10 @@ generate_pr_description() {
     local git_info
     git_info=$(get_git_info "$branch")
 
-    local commits=$(echo "$git_info" | head -1)
-    local changed_files=$(echo "$git_info" | tail -n +3)
+    local commits
+    local changed_files
+    commits=$(printf '%s\n' "$git_info" | sed '/^---$/,$d')
+    changed_files=$(printf '%s\n' "$git_info" | sed '1,/^---$/d')
 
     echo "Recent Commits:"
     echo "$commits" | head -10
@@ -157,4 +161,6 @@ main() {
     generate_pr_description "$branch" "$preview"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

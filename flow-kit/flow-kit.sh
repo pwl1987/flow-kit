@@ -50,7 +50,8 @@ check_dependencies() {
 # 帮助信息
 #------------------------------------------------------------------------------
 show_help() {
-    local ver=$(read_version)
+    local ver
+    ver=$(read_version)
     cat << EOF
 flow-kit $ver — 结构化开发流程 CLI
 
@@ -101,7 +102,8 @@ EOF
 # 状态显示
 #------------------------------------------------------------------------------
 show_status() {
-    local ver=$(read_version)
+    local ver
+    ver=$(read_version)
     local mode_file=".flow-kit/mode"
     local current_mode="autopilot"
 
@@ -125,7 +127,8 @@ show_status() {
 # 团队共享安装
 #------------------------------------------------------------------------------
 show_share() {
-    local ver=$(read_version)
+    local ver
+    ver=$(read_version)
     local project_name
     project_name=$(basename "$(pwd)")
 
@@ -169,9 +172,12 @@ show_hooks_summary() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     # 统计
-    local total=$(wc -l < "$log_file" 2>/dev/null || echo 0)
-    local ok_count=$(grep -c "\[OK\]" "$log_file" 2>/dev/null || echo 0)
-    local fail_count=$(grep -c "\[FAIL\]" "$log_file" 2>/dev/null || echo 0)
+    local total
+    local ok_count
+    local fail_count
+    total=$(wc -l < "$log_file" 2>/dev/null || echo 0)
+    ok_count=$(grep -c "\[OK\]" "$log_file" 2>/dev/null || echo 0)
+    fail_count=$(grep -c "\[FAIL\]" "$log_file" 2>/dev/null || echo 0)
 
     echo ""
     echo "统计: 总执行 $total 次 | 成功 $ok_count | 失败 $fail_count"
@@ -238,6 +244,15 @@ route_command() {
                 echo "[flow-kit] 示例: ./flow-kit.sh mode team"
                 exit 1
             fi
+            case "$mode" in
+                autopilot|team|ralph)
+                    ;;
+                *)
+                    echo "[flow-kit] 错误: 不支持的 mode: $mode"
+                    echo "[flow-kit] 支持: autopilot|team|ralph"
+                    exit 1
+                    ;;
+            esac
             echo "[flow-kit] 切换执行模式: $mode"
             echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:mode $mode"
             ;;
@@ -248,6 +263,10 @@ route_command() {
             if [ -z "$n" ] || [ -z "$task" ]; then
                 echo "[flow-kit] 错误: dispatch 需要 executor 数量和任务描述"
                 echo "[flow-kit] 示例: ./flow-kit.sh dispatch 3 \"实现用户认证模块\""
+                exit 1
+            fi
+            if [[ ! "$n" =~ ^[1-9][0-9]*$ ]]; then
+                echo "[flow-kit] 错误: executor 数量必须是正整数"
                 exit 1
             fi
             # 直接调用 dispatch.sh 执行（--execute 模式）
@@ -362,13 +381,15 @@ route_command() {
             echo "flow-kit 项目状态"
             echo "=========================================="
             if [ -f "$CURRENT_PHASE_FILE" ]; then
-                local phase=$(cat "$CURRENT_PHASE_FILE")
+                local phase
+                phase=$(cat "$CURRENT_PHASE_FILE")
                 echo "📍 当前阶段: Phase $phase"
             else
                 echo "📍 当前阶段: 未初始化（请先运行 /flow-kit:init）"
             fi
             if [ -f "$PROJECT_TYPE_FILE" ]; then
-                local ptype=$(grep "^project_type:" "$PROJECT_TYPE_FILE" | cut -d' ' -f2)
+                local ptype
+                ptype=$(grep "^project_type:" "$PROJECT_TYPE_FILE" | cut -d' ' -f2)
                 echo "📋 项目类型: $ptype"
             else
                 echo "📋 项目类型: 未检测（请先运行 /flow-kit:health）"

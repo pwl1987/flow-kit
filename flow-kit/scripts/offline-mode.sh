@@ -111,7 +111,14 @@ lint_yaml_json_format() {
             *.yaml|*.yml)
                 if ! command -v python3 >/dev/null 2>&1; then
                     errors+=("YAML 验证需要 python3: $file")
-                elif ! python3 -c "import yaml; yaml.safe_load(open('$file'))" 2>/dev/null; then
+                elif ! python3 - "$file" << 'PY' 2>/dev/null
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as fh:
+    yaml.safe_load(fh)
+PY
+                then
                     errors+=("YAML 语法错误: $file")
                 fi
                 ;;
@@ -154,8 +161,10 @@ main() {
 
     case "$action" in
         status)
-            local status=$(is_offline)
-            local reason=$(cat "$OFFLINE_FLAG" 2>/dev/null || echo "unknown")
+            local status
+            local reason
+            status=$(is_offline)
+            reason=$(cat "$OFFLINE_FLAG" 2>/dev/null || echo "unknown")
             echo "Offline: $status"
             echo "Reason: $reason"
             ;;
@@ -193,4 +202,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

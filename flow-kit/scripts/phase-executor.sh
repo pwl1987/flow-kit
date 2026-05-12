@@ -14,11 +14,16 @@ PHASE_NUM="${1:-}"
 get_project_type() {
     local type_file="$PROJECT_DIR/.flow-kit/project-type"
     if [ -f "$type_file" ]; then
-        grep -m1 "^project_type:" "$type_file" | cut -d' ' -f2
-    else
-        # 未检测，默认棕地（保守策略）
-        echo "brownfield"
+        local project_type
+        project_type=$(grep -m1 "^project_type:" "$type_file" 2>/dev/null | cut -d' ' -f2 || true)
+        if [ -n "$project_type" ]; then
+            echo "$project_type"
+            return
+        fi
     fi
+
+    # 未检测，默认棕地（保守策略）
+    echo "brownfield"
 }
 
 # 加载工作流文件
@@ -29,7 +34,7 @@ load_workflow() {
 
     # 查找 Phase 目录（支持 0-change, 1-requirement 等格式）
     local phase_dir
-    phase_dir=$(find "$PHASES_DIR" -maxdepth 1 -name "${phase}" -o -name "${phase}-*" 2>/dev/null | head -1)
+    phase_dir=$(find "$PHASES_DIR" -maxdepth 1 \( -name "${phase}" -o -name "${phase}-*" \) 2>/dev/null | head -1)
 
     if [ -z "$phase_dir" ]; then
         echo ""

@@ -31,7 +31,9 @@ main() {
 
     # 3. 创建标准文件骨架
     create_skeleton_files "$specs_dir" "$change_id"
-    sed -i "s/{{change_id}}/${change_id}/g" "$specs_dir"/*.md
+    local escaped_change_id
+    escaped_change_id=$(printf '%s\n' "$change_id" | sed 's/[&\\/]/\\&/g')
+    sed -i "s/{{change_id}}/${escaped_change_id}/g" "$specs_dir"/*.md
 
     # 4. 检测项目类型
     local project_type
@@ -56,7 +58,8 @@ main() {
 # 格式: {slugified-description}-{YYYYMMDD}
 generate_change_id() {
     local desc="$1"
-    local date=$(date +%Y%m%d)
+    local date
+    date=$(date +%Y%m%d)
     local slug=""
 
     # 提取中文词语（alternation 匹配）
@@ -204,11 +207,16 @@ EOF
 # 检测项目类型
 detect_project_type() {
     if [ -f "$PROJECT_TYPE_FILE" ]; then
-        grep -m1 "^project_type:" "$PROJECT_TYPE_FILE" | cut -d' ' -f2
-    else
-        # 默认棕地（保守策略）
-        echo "brownfield"
+        local project_type
+        project_type=$(grep -m1 "^project_type:" "$PROJECT_TYPE_FILE" 2>/dev/null | cut -d' ' -f2 || true)
+        if [ -n "$project_type" ]; then
+            echo "$project_type"
+            return
+        fi
     fi
+
+    # 默认棕地（保守策略）
+    echo "brownfield"
 }
 
 # 输出护栏推荐

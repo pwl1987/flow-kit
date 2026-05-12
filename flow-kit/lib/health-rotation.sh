@@ -55,21 +55,23 @@ main() {
     local archive_file="$ARCHIVE_DIR/health-history-${timestamp}.json"
 
     mv "$HISTORY_FILE" "$archive_file"
-    echo "{}" > "$HISTORY_FILE"
+    local tmp_file
+    tmp_file=$(mktemp "${HISTORY_FILE}.tmp.XXXXXX")
+    printf '{}\n' > "$tmp_file"
+    mv "$tmp_file" "$HISTORY_FILE"
 
     echo "[health-rotation] 已归档到: $archive_file"
     echo "[health-rotation] 新文件已创建: $HISTORY_FILE"
 
-    # 保留最近 5 个归档
-    local archives
-    archives=$(ls -t "$ARCHIVE_DIR"/health-history-*.json 2>/dev/null | tail -n +6 || echo "")
-    if [ -n "$archives" ]; then
-        echo "[health-rotation] 清理旧归档..."
-        # P2 修复：变量引用加引号
-        echo "$archives" | while IFS= read -r archive; do
+    local count=0
+    while IFS= read -r archive; do
+        count=$((count + 1))
+        if [ "$count" -gt 5 ]; then
             rm -f "$archive"
-        done
-    fi
+        fi
+    done < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name 'health-history-*.json' -printf '%T@ %p\n' 2>/dev/null | sort -rn | cut -d' ' -f2-)
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

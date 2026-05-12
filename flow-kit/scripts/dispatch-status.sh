@@ -10,8 +10,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
-TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
-LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"
+# 注意：TMP_DIR/LOCK_DIR 复用 paths.sh 中的定义
 
 #------------------------------------------------------------------------------
 # 帮助信息
@@ -54,21 +53,32 @@ main() {
         return
     fi
 
+    if ! jq -e . "$summary_file" >/dev/null 2>&1; then
+        echo "  (dispatch 状态文件不是有效 JSON: $summary_file)"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        return 1
+    fi
+
     # 基本信息
     echo "任务ID:   $(jq -r '.task_id' "$summary_file")"
     echo "任务描述: $(jq -r '.task_desc' "$summary_file")"
     echo "并行数:   $(jq -r '.parallel_n' "$summary_file")"
     echo "创建时间: $(jq -r '.created_at' "$summary_file")"
 
-    local executed_at=$(jq -r '.executed_at // "未执行"' "$summary_file")
+    local executed_at
+    executed_at=$(jq -r '.executed_at // "未执行"' "$summary_file")
     echo "执行时间: $executed_at"
     echo ""
 
     # 执行统计
-    local total=$(jq -r '.summary.total // 0' "$summary_file")
-    local successful=$(jq -r '.summary.successful // 0' "$summary_file")
-    local failed=$(jq -r '.summary.failed // 0' "$summary_file")
-    local partial=$(jq -r '.summary.partial // 0' "$summary_file")
+    local total
+    total=$(jq -r '.summary.total // 0' "$summary_file")
+    local successful
+    successful=$(jq -r '.summary.successful // 0' "$summary_file")
+    local failed
+    failed=$(jq -r '.summary.failed // 0' "$summary_file")
+    local partial
+    partial=$(jq -r '.summary.partial // 0' "$summary_file")
 
     echo "执行统计:"
     echo "  总代理数: $total"
@@ -86,9 +96,14 @@ main() {
     local has_agents=false
     while read -r agent_json; do
         has_agents=true
-        local id=$(echo "$agent_json" | jq -r '.id')
-        local role=$(echo "$agent_json" | jq -r '.role')
-        local status=$(echo "$agent_json" | jq -r '.status')
+        local id
+        id=$(echo "$agent_json" | jq -r '.id')
+        local role
+        role=$(echo "$agent_json" | jq -r '.role')
+        local status
+        status=$(echo "$agent_json" | jq -r '.status')
+        local duration
+        duration=$(echo "$agent_json" | jq -r '.duration // "-"')
         local status_text=""
         case "$status" in
             SUCCESS) status_text="✅ 成功" ;;
@@ -98,7 +113,7 @@ main() {
             RUNNING) status_text="🔄 运行中" ;;
             *) status_text="$status" ;;
         esac
-        printf "%-12s %-18s %-10s\n" "$id" "$role" "$status_text"
+        printf "%-12s %-18s %-10s %s\n" "$id" "$role" "$status_text" "${duration:-}"
     done < <(jq -c '.agents[]' "$summary_file" 2>/dev/null)
 
     if [ "$has_agents" != true ]; then

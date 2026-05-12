@@ -27,8 +27,8 @@
 1. **代码回滚**
 
    ```bash
-   git checkout HEAD~1
-   git push --force
+   git revert <commit-sha>
+   git push
    ```
 
 2. **数据库回滚**

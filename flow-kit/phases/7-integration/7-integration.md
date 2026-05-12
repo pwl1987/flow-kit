@@ -64,4 +64,4 @@
 
 ---
 
-END flow-kit/phases/7-integration/7-integration.md ---
+--- END flow-kit/phases/7-integration/7-integration.md ---

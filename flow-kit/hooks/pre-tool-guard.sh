@@ -49,9 +49,15 @@ fi
 # 阻止危险的 Bash 命令
 if [ "$TOOL" = "Bash" ]; then
     # 高危模式（必须拦截）
-    if echo "$COMMAND" | grep -qE 'rm -rf|git push --force|git reset --hard|DROP TABLE|dd if='; then
+    if echo "$COMMAND" | grep -qE 'git[[:space:]]+push[[:space:]]+--force|git[[:space:]]+reset[[:space:]]+--hard|DROP[[:space:]]+TABLE|dd[[:space:]]+if='; then
         echo "BLOCKED: 危险命令被 flow-kit 护栏拦截。请确认后重试。" >&2
         exit 2
+    fi
+    if echo "$COMMAND" | grep -qE '(^|[;&|[:space:]])rm[[:space:]]+([^;&|]*[[:space:]])?(-[^;&|]*r[^;&|]*f|-f[[:space:]]+-r|-r[[:space:]]+-f|--recursive[[:space:]]+--force|--force[[:space:]]+--recursive)([[:space:]]|$)'; then
+        if ! echo "$COMMAND" | grep -qE '(^|[[:space:]])rm[[:space:]]+(-[^[:space:]]+[[:space:]]+)*(-rf|-fr|-r[[:space:]]+-f|-f[[:space:]]+-r)[[:space:]]+(\./)?(node_modules|dist|build|\.next)(/)?([[:space:]]|$)'; then
+            echo "BLOCKED: 递归强制删除命令被 flow-kit 护栏拦截。请确认目标路径后重试。" >&2
+            exit 2
+        fi
     fi
     # P1 修复：DDL 高危操作（补全 RENAME TO 格式）
     # v1.12.16 修复：SQL 关键字间支持任意空白（DROP[[:space:]]+COLUMN 等）

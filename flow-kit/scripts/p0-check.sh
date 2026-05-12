@@ -29,7 +29,8 @@ log_debug() { echo -e "${NC}[DEBUG] $1"; }
 #------------------------------------------------------------------------------
 is_p0_file() {
     local file="$1"
-    local basename=$(basename "$file")
+    local basename
+    basename=$(basename "$file")
 
     if [[ "$basename" =~ BREAKING-CHANGE|breaking-change|BREAKING\.CHANGE ]]; then
         return 0

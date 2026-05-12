@@ -7,11 +7,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 
 get_current_phase() {
+    local current
     if [ -f "$CURRENT_PHASE_FILE" ]; then
-        cat "$CURRENT_PHASE_FILE"
+        current=$(cat "$CURRENT_PHASE_FILE")
     else
-        echo "0"
+        current="0"
     fi
+
+    if [[ ! "$current" =~ ^[0-9]+$ ]]; then
+        echo "错误: 阶段文件内容非法: $current" >&2
+        exit 1
+    fi
+
+    echo "$current"
 }
 
 advance_phase() {
@@ -21,10 +29,11 @@ advance_phase() {
     if [ $next -gt 8 ]; then
         echo "已经是最后一个 Phase (8)"
         echo "流程完成！"
-        return 1
+        return 0
     fi
 
     # 更新状态文件
+    mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
     echo "$next" > "$CURRENT_PHASE_FILE"
 
     echo ""

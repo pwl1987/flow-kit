@@ -115,4 +115,6 @@ main() {
     echo "*Generated at $(date '+%Y-%m-%d %H:%M:%S')*"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

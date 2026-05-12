@@ -1,8 +1,0 @@
-{
-  "id": "agent-2",
-  "role": "Code Reviewer",
-  "status": "SUCCESS",
-  "summary": "Code Reviewer 执行完成",
-  "files_modified": ["src/code-reviewer.ts"],
-  "context_consumed_pct": "25%"
-}

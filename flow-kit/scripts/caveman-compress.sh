@@ -25,7 +25,6 @@ readonly NC='\033[0m'
 #------------------------------------------------------------------------------
 extract_decisions() {
     local input_dir="$1"
-    local decisions_file="$2"
 
     local all_decisions=()
 
@@ -33,13 +32,9 @@ extract_decisions() {
         return 1
     fi
 
-    # 使用临时文件避免子shell数组修改丢失问题
-    local tmpfile
-    tmpfile=$(mktemp)
-    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
-
     while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
+        local basename
+        basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi
@@ -49,16 +44,15 @@ extract_decisions() {
                 all_decisions+=("$line")
             fi
         done < "$file"
-    done < "$tmpfile"
-    rm -f "$tmpfile"
+    done < <(find "$input_dir" -name "*.md" -type f -print0)
 
     if [ ${#all_decisions[@]} -gt 0 ]; then
-        echo "## Key Decisions" >> "$decisions_file"
-        echo "" >> "$decisions_file"
+        echo "## Key Decisions"
+        echo ""
         for decision in "${all_decisions[@]}"; do
-            echo "- $decision" >> "$decisions_file"
+            echo "- $decision"
         done
-        echo "" >> "$decisions_file"
+        echo ""
     fi
 }
 
@@ -67,7 +61,6 @@ extract_decisions() {
 #------------------------------------------------------------------------------
 extract_todos() {
     local input_dir="$1"
-    local output_file="$2"
 
     local all_todos=()
 
@@ -75,13 +68,9 @@ extract_todos() {
         return 1
     fi
 
-    # 使用临时文件避免子shell数组修改丢失问题
-    local tmpfile
-    tmpfile=$(mktemp)
-    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
-
     while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
+        local basename
+        basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi
@@ -91,16 +80,15 @@ extract_todos() {
                 all_todos+=("$line")
             fi
         done < "$file"
-    done < "$tmpfile"
-    rm -f "$tmpfile"
+    done < <(find "$input_dir" -name "*.md" -type f -print0)
 
     if [ ${#all_todos[@]} -gt 0 ]; then
-        echo "## Pending Items" >> "$output_file"
-        echo "" >> "$output_file"
+        echo "## Pending Items"
+        echo ""
         for todo in "${all_todos[@]}"; do
-            echo "$todo" >> "$output_file"
+            echo "$todo"
         done
-        echo "" >> "$output_file"
+        echo ""
     fi
 }
 
@@ -109,7 +97,6 @@ extract_todos() {
 #------------------------------------------------------------------------------
 extract_file_changes() {
     local input_dir="$1"
-    local output_file="$2"
 
     local all_changes=()
 
@@ -117,13 +104,9 @@ extract_file_changes() {
         return 1
     fi
 
-    # 使用临时文件避免子shell数组修改丢失问题
-    local tmpfile
-    tmpfile=$(mktemp)
-    find "$input_dir" -name "*.md" -type f -print0 > "$tmpfile"
-
     while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
+        local basename
+        basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi
@@ -133,16 +116,15 @@ extract_file_changes() {
                 all_changes+=("$line")
             fi
         done < "$file"
-    done < "$tmpfile"
-    rm -f "$tmpfile"
+    done < <(find "$input_dir" -name "*.md" -type f -print0)
 
     if [ ${#all_changes[@]} -gt 0 ]; then
-        echo "## File Changes" >> "$output_file"
-        echo "" >> "$output_file"
+        echo "## File Changes"
+        echo ""
         for change in "${all_changes[@]}"; do
-            echo "$change" >> "$output_file"
+            echo "$change"
         done
-        echo "" >> "$output_file"
+        echo ""
     fi
 }
 
@@ -174,9 +156,9 @@ main() {
         echo "*Original files are preserved in: $input_dir*"
         echo ""
 
-        extract_decisions "$input_dir" "$output_file"
-        extract_todos "$input_dir" "$output_file"
-        extract_file_changes "$input_dir" "$output_file"
+        extract_decisions "$input_dir"
+        extract_todos "$input_dir"
+        extract_file_changes "$input_dir"
 
         echo "---"
         echo "*End of compressed context*"
@@ -193,4 +175,6 @@ main() {
     fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

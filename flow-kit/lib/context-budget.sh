@@ -19,38 +19,60 @@ if command -v bc &>/dev/null; then
     HAS_BC=true
 fi
 
+is_number() {
+    [[ "$1" =~ ^-?[0-9]+([.][0-9]+)?$ ]]
+}
+
+is_cmp_op() {
+    case "$1" in
+        '<'|'>'|'<='|'>='|'=='|'!=') return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 # 浮点运算封装（支持 bc 降级）
 float_cmp() {
     local a="$1"
     local op="$2"
     local b="$3"
+    if ! is_number "$a" || ! is_number "$b" || ! is_cmp_op "$op"; then
+        return 1
+    fi
     if [ "$HAS_BC" = true ]; then
-        [ "$(echo "$a $op $b" | bc -l 2>/dev/null)" = "1" ]
+        [ "$(printf '%s %s %s\n' "$a" "$op" "$b" | bc -l 2>/dev/null)" = "1" ]
     else
         # 降级：使用 awk 进行浮点比较
-        awk "BEGIN {exit !($a $op $b)}" 2>/dev/null
+        awk -v a="$a" -v b="$b" "BEGIN {exit !(a $op b)}" 2>/dev/null
     fi
 }
 
 float_mul() {
     local a="$1"
     local b="$2"
+    if ! is_number "$a" || ! is_number "$b"; then
+        echo "0"
+        return
+    fi
     if [ "$HAS_BC" = true ]; then
-        echo "$a * $b" | bc -l 2>/dev/null | cut -d. -f1
+        printf '%s * %s\n' "$a" "$b" | bc -l 2>/dev/null | cut -d. -f1
     else
         # 降级：使用 awk
-        awk "BEGIN {printf \"%d\", $a * $b}" 2>/dev/null || echo "0"
+        awk -v a="$a" -v b="$b" 'BEGIN {printf "%d", a * b}' 2>/dev/null || echo "0"
     fi
 }
 
 float_scale() {
     local a="$1"
     local scale="${2:-2}"
+    if ! is_number "$a" || [[ ! "$scale" =~ ^[0-9]+$ ]]; then
+        echo "$a"
+        return
+    fi
     if [ "$HAS_BC" = true ]; then
-        echo "scale=$scale; $a" | bc -l 2>/dev/null
+        printf 'scale=%s; %s\n' "$scale" "$a" | bc -l 2>/dev/null
     else
         # 降级：使用 awk
-        awk "BEGIN {printf \"%.${scale}f\", $a}" 2>/dev/null || echo "$a"
+        awk -v a="$a" -v scale="$scale" 'BEGIN {printf "%.*f", scale, a}' 2>/dev/null || echo "$a"
     fi
 }
 
@@ -151,14 +173,20 @@ estimate_tokens() {
     fi
 
     # 获取当前模型配置
-    local config=$(get_model_params "$CURRENT_MODEL")
-    local english_factor=$(echo "$config" | cut -d: -f1)
-    local chinese_factor=$(echo "$config" | cut -d: -f2)
-    local code_factor=$(echo "$config" | cut -d: -f3)
+    local config
+    config=$(get_model_params "$CURRENT_MODEL")
+    local english_factor
+    english_factor=$(echo "$config" | cut -d: -f1)
+    local chinese_factor
+    chinese_factor=$(echo "$config" | cut -d: -f2)
+    local code_factor
+    code_factor=$(echo "$config" | cut -d: -f3)
 
     # 检测语言和 content 类型
-    local lang_type=$(detect_language_type "$text")
-    local content_type=$(detect_content_type "$text")
+    local lang_type
+    lang_type=$(detect_language_type "$text")
+    local content_type
+    content_type=$(detect_content_type "$text")
 
     # 选择合适的系数
     local factor
@@ -209,12 +237,14 @@ estimate_file_tokens() {
             ;;
         md|txt|log)
             # 文本文件，需要检测语言
-            local content=$(cat "$file" 2>/dev/null || echo "")
+            local content
+            content=$(cat "$file" 2>/dev/null || echo "")
             estimate_tokens "$content"
             ;;
         *)
             # 默认估算
-            local char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
+            local char_count
+            char_count=$(wc -c < "$file" 2>/dev/null || echo 0)
             echo "$((char_count / 4))"
             ;;
     esac
@@ -285,10 +315,12 @@ get_budget_status() {
     local project_dir="${1:-.}"
 
     # 估算 .planning 目录的 token
-    local planning_tokens=$(estimate_dir_tokens "$project_dir/.planning" 2>/dev/null || echo 0)
+    local planning_tokens
+    planning_tokens=$(estimate_dir_tokens "$project_dir/.planning" 2>/dev/null || echo 0)
 
     # 估算 flow-kit 目录的 token（排除 hooks/scripts 等）
-    local flowkit_tokens=$(estimate_dir_tokens "$project_dir/flow-kit" 2>/dev/null || echo 0)
+    local flowkit_tokens
+    flowkit_tokens=$(estimate_dir_tokens "$project_dir/flow-kit" 2>/dev/null || echo 0)
 
     # 估算当前会话上下文的 token（粗略估算）
     local context_file="$project_dir/.flow-kit/context/current.md"
@@ -412,9 +444,12 @@ main() {
             echo "[context-budget] 支持的模型:"
             for model in "${MODEL_ORDER[@]}"; do
                 local config="${MODEL_CONFIGS[$model]}"
-                local english_factor=$(echo "$config" | cut -d: -f1)
-                local chinese_factor=$(echo "$config" | cut -d: -f2)
-                local code_factor=$(echo "$config" | cut -d: -f3)
+                local english_factor
+                english_factor=$(echo "$config" | cut -d: -f1)
+                local chinese_factor
+                chinese_factor=$(echo "$config" | cut -d: -f2)
+                local code_factor
+                code_factor=$(echo "$config" | cut -d: -f3)
                 echo "  - $model (英文: ${english_factor}x, 中文: ${chinese_factor}x, 代码: ${code_factor}x)"
             done
             echo ""
@@ -432,4 +467,6 @@ main() {
     esac
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

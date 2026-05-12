@@ -15,8 +15,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v1.12.9 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
-# 注意：LOCK_DIR 复用 paths.sh 中的 $LOCK_DIR 定义，无需重复定义
-readonly TMP_DIR="$PROJECT_DIR/.flow-kit/tmp"
+# 注意：LOCK_DIR/TMP_DIR 复用 paths.sh 中的定义，无需重复定义
 
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
 CHILD_PIDS=(${CHILD_PIDS[@]:-})
@@ -335,20 +334,28 @@ ROLE_EOF
 
         echo "[dispatch] ✅ 子任务已创建: $AGENT_ID ($ROLE) -> $PROMPT_FILE"
 
-        SUBTASKS+=("{\"id\":\"$AGENT_ID\",\"role\":\"$ROLE\",\"status\":\"QUEUED\",\"prompt_file\":\"$PROMPT_FILE\"}")
+        local subtask_json
+        subtask_json=$(jq -n \
+            --arg id "$AGENT_ID" \
+            --arg role "$ROLE" \
+            --arg status "QUEUED" \
+            --arg prompt_file "$PROMPT_FILE" \
+            '{id: $id, role: $role, status: $status, prompt_file: $prompt_file}')
+        SUBTASKS+=("$subtask_json")
     done
 
     # 生成汇总 JSON
     local SUMMARY_FILE="$TMP_DIR/dispatch-summary.json"
-    cat > "$SUMMARY_FILE" << EOF
-{
-  "task_id": "$TASK_ID",
-  "task_desc": "$task",
-  "parallel_n": $n,
-  "agents": [$(IFS=,; echo "${SUBTASKS[*]}")],
-  "created_at": "$CREATED_AT"
-}
-EOF
+    local agents_json
+    agents_json=$(printf '%s\n' "${SUBTASKS[@]}" | jq -s '.')
+    jq -n \
+        --arg task_id "$TASK_ID" \
+        --arg task_desc "$task" \
+        --argjson parallel_n "$n" \
+        --argjson agents "$agents_json" \
+        --arg created_at "$CREATED_AT" \
+        '{task_id: $task_id, task_desc: $task_desc, parallel_n: $parallel_n, agents: $agents, created_at: $created_at}' \
+        > "$SUMMARY_FILE"
 
     echo "[dispatch] ✅ 汇总已生成: $SUMMARY_FILE"
 }
@@ -613,34 +620,34 @@ execute_subagents() {
         fi
 
         # 标记为RUNNING
-        cat > "$TMP_DIR/subagent-${agent_id}-status.json" << EOF
-{
-  "id": "$agent_id",
-  "role": "$role",
-  "status": "RUNNING",
-  "pid": $pid,
-  "prompt_file": "$prompt_file",
-  "started_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-}
-EOF
+        jq -n \
+            --arg id "$agent_id" \
+            --arg role "$role" \
+            --arg status "RUNNING" \
+            --argjson pid "$pid" \
+            --arg prompt_file "$prompt_file" \
+            --arg started_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{id: $id, role: $role, status: $status, pid: $pid, prompt_file: $prompt_file, started_at: $started_at}' \
+            > "$TMP_DIR/subagent-${agent_id}-status.json"
     done < <(jq -c '.agents[]' "$summary_file")
 
     # 生成launch manifest
-    cat > "$launch_manifest" << EOF
-{
-  "task_id": "$orig_task_id",
-  "task_desc": "$orig_task_desc",
-  "parallel_n": $orig_parallel_n,
-  "status": "RUNNING",
-  "launched_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "agents": [$agents_array],
-  "pids": [$(IFS=,; echo "${pids[*]}")],
-  "execution_mode": "PARALLEL",
-  "timeout_seconds": 300,
-  "retry_attempts": 2,
-  "retry_interval_seconds": 10
-}
-EOF
+    local pids_json
+    pids_json=$(printf '%s\n' "${pids[@]}" | jq -R 'tonumber' | jq -s '.')
+    jq -n \
+        --arg task_id "$orig_task_id" \
+        --arg task_desc "$orig_task_desc" \
+        --argjson parallel_n "$orig_parallel_n" \
+        --arg status "RUNNING" \
+        --arg launched_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --argjson agents "[$agents_array]" \
+        --argjson pids "$pids_json" \
+        --arg execution_mode "PARALLEL" \
+        --argjson timeout_seconds 300 \
+        --argjson retry_attempts 2 \
+        --argjson retry_interval_seconds 10 \
+        '{task_id: $task_id, task_desc: $task_desc, parallel_n: $parallel_n, status: $status, launched_at: $launched_at, agents: $agents, pids: $pids, execution_mode: $execution_mode, timeout_seconds: $timeout_seconds, retry_attempts: $retry_attempts, retry_interval_seconds: $retry_interval_seconds}' \
+        > "$launch_manifest"
 
     echo ""
     echo "[dispatch] 📊 已启动 ${#pids[@]} 个子代理（并行执行中）"
@@ -1029,7 +1036,7 @@ EOF
         for result_file in "$TMP_DIR"/subagent-*-result.json; do
             if [ -f "$result_file" ]; then
                 local files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
-                all_files=$(jq -s '[.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
+                all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
             fi
         done
         echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
@@ -1083,7 +1090,7 @@ main() {
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         echo "📋 子任务拆分结果:"
-        cat "$TMP_DIR/dispatch-summary.json" | jq '.agents'
+        jq '.agents' "$TMP_DIR/dispatch-summary.json"
         echo ""
         echo "⏳ 使用以下命令执行子代理:"
         echo "   bash flow-kit/scripts/dispatch.sh --execute"

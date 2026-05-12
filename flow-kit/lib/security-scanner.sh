@@ -4,20 +4,16 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SECURITY_SCANNER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v1.12.10 修复：复用统一错误处理框架
-source "$SCRIPT_DIR/error-handler.sh"
+source "$SECURITY_SCANNER_SCRIPT_DIR/error-handler.sh"
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-SCAN_DIR="${1:-.}"
+# 扫描目录由 main() 设置，source 本文件时不读取调用方参数
+SCAN_DIR="."
 SEVERITY_THRESHOLD="${SEVERITY_THRESHOLD:-medium}"
-
-# 验证 SCAN_DIR
-if [ ! -d "$SCAN_DIR" ]; then
-    die "$EXIT_MISSING_DEPS" "security-scanner" "扫描目录不存在: $SCAN_DIR"
-fi
 
 #------------------------------------------------------------------------------
 # 颜色输出
@@ -50,9 +46,6 @@ scan_hardcoded_secrets() {
         'AWS_SECRET_KEY'
         'sk-[0-9a-zA-Z]{20,}'
     )
-
-    # 排除文件类型，避免匹配文档和测试中的示例 token
-    local exclude_grep="grep -v -E '(\.md|\.txt|test_|_test\.|spec\.)'"
 
     for pattern in "${patterns[@]}"; do
         while IFS= read -r file; do
@@ -168,6 +161,12 @@ scan_dangerous_shell() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
+    SCAN_DIR="${1:-.}"
+
+    if [ ! -d "$SCAN_DIR" ]; then
+        die "$EXIT_MISSING_DEPS" "security-scanner" "扫描目录不存在: $SCAN_DIR"
+    fi
+
     echo "=========================================="
     echo "Security Scanner"
     echo "=========================================="
@@ -193,4 +192,6 @@ main() {
     fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

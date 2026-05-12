@@ -1,4 +1,0 @@
-project_type: greenfield
-detected_at: 2026-05-06T22:40:01.329Z
-detection_signals: .git exists, git remote configured, business_code_lines: 484, threshold: greenfield
-business_code_lines: 484

@@ -139,22 +139,23 @@ rotate_logs() {
         local file_size
         file_size=$(wc -c < "$log_file" 2>/dev/null || echo "0")
         if [ "$file_size" -gt "$threshold_bytes" ]; then
-            local basename=$(basename "$log_file")
-            local timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || echo "0000")
+            local basename
+            basename=$(basename "$log_file")
+            local timestamp
+            timestamp=$(date +%Y%m%d%H%M%S%N 2>/dev/null || printf '%s.%s' "$$" "$RANDOM")
             mv "$log_file" "$archive_dir/${basename%.log}.${timestamp}.log"
         fi
     done
 
     # 清理超过保留数量的归档文件
-    local archived_files
-    archived_files=$(ls -t "$archive_dir"/*.log 2>/dev/null || true)
     local count=0
-    for archived in $archived_files; do
+    while IFS= read -r archived; do
+        [ -n "$archived" ] || continue
         count=$((count + 1))
         if [ "$count" -gt "$keep_count" ]; then
             rm -f "$archived" 2>/dev/null || true
         fi
-    done
+    done < <(find "$archive_dir" -maxdepth 1 -type f -name "*.log" -printf '%T@ %p\n' 2>/dev/null | sort -rn | cut -d' ' -f2-)
 }
 
 #------------------------------------------------------------------------------

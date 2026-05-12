@@ -77,8 +77,6 @@ npm install
 
 设置功能开关 `FEATURE_X_ENABLED=false`
 
-```
-
 ## 输出物
 
 - `.specs/{change-id}/DESIGN.md` — 设计文档
@@ -89,4 +87,3 @@ npm install
 
 - `/flow-kit:phase-3` — 任务拆解
 - `/flow-kit:next` — 自动推进
-```

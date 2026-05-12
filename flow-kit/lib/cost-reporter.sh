@@ -16,21 +16,21 @@ fi
 #------------------------------------------------------------------------------
 # 引入共享的 LOC 统计函数
 #------------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/token-estimator.sh"
+COST_REPORTER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$COST_REPORTER_SCRIPT_DIR/token-estimator.sh"
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-readonly DEFAULT_PHASES="${1:-.planning/phases}"
-readonly DEFAULT_OUTPUT="${2:-.flow-kit/reports/cost-report-$(date +%Y%m).md}"
+readonly DEFAULT_PHASES=".planning/phases"
+readonly DEFAULT_OUTPUT_DIR=".flow-kit/reports"
 
 #------------------------------------------------------------------------------
 # 主函数
 #------------------------------------------------------------------------------
 main() {
     local phases_dir="${1:-$DEFAULT_PHASES}"
-    local report_file="${2:-$DEFAULT_OUTPUT}"
+    local report_file="${2:-$DEFAULT_OUTPUT_DIR/cost-report-$(date +%Y%m).md}"
 
     echo "=========================================="
     echo "Cost Report Generator"
@@ -116,4 +116,6 @@ main() {
     echo "  Phases: ${#phase_totals[@]}"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

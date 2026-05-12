@@ -2,13 +2,6 @@
 # generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.0)
 #
 # 只生成 17 个核心命令，移除所有 dev-/meta-/team-/ops- 前缀变体
-#
-# 核心命令：
-#   init, health, scan - 初始化和扫描
-#   phase-0 ~ phase-8  - 9 个阶段命令
-#   next, status       - 状态推进
-#   guard, archive     - 护栏和归档
-#   scale              - 扩展级别
 
 set -euo pipefail
 
@@ -16,23 +9,6 @@ FORCE=false
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly OUTPUT_PATH="$REPO_ROOT/.claude/commands"
-
-# 解析参数
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --force)
-      FORCE=true
-      shift
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
-
-# ============================================================================
-# 核心命令定义
-# ============================================================================
 
 declare -A CORE_COMMANDS=(
   ["init"]="flow-kit/commands/init-change.md"
@@ -57,40 +33,45 @@ declare -A PHASE_COMMANDS=(
   ["phase-8"]="变更回滚"
 )
 
-# ============================================================================
-# 描述提取
-# ============================================================================
+parse_args() {
+  FORCE=false
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --force)
+        FORCE=true
+        shift
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+}
 
 extract_description() {
   local file="$1"
   local default="$2"
 
   if [[ ! -f "$file" ]]; then
-    echo "$default"
+    printf '%s\n' "$default"
     return
   fi
 
-  # 优先从 ## 目的 提取
   local desc
   desc=$(sed -n '/^## 目的/,/^##/p' "$file" 2>/dev/null | grep -v "^##" | grep -v "^$" | head -1 | xargs)
   if [[ -n "$desc" ]]; then
-    echo "$desc"
+    printf '%s\n' "$desc"
     return
   fi
 
-  # 回退到第2行
   desc=$(sed -n '2p' "$file" 2>/dev/null | sed 's/^>[[:space:]]*//' | sed 's/【[^】]*】//g')
   if [[ -n "$desc" && ${#desc} -gt 3 ]]; then
-    echo "$desc"
+    printf '%s\n' "$desc"
     return
   fi
 
-  echo "$default"
+  printf '%s\n' "$default"
 }
-
-# ============================================================================
-# 生成入口文件
-# ============================================================================
 
 generate_entry() {
   local cmd_name="$1"
@@ -98,71 +79,82 @@ generate_entry() {
   local reference="$3"
   local output_file="$4"
 
-  cat > "$output_file" << EOF
----
-description: ${description}
-category: dev
-reference: ${reference}
----
-/flow-kit:${cmd_name}: ${description}
-EOF
+  {
+    printf '%s\n' '---'
+    printf 'description: %s\n' "$description"
+    printf '%s\n' 'category: dev'
+    printf 'reference: %s\n' "$reference"
+    printf '%s\n' '---'
+    printf '/flow-kit:%s: %s\n' "$cmd_name" "$description"
+  } > "$output_file"
 }
 
-# ============================================================================
-# 主流程
-# ============================================================================
+generate_phase_entry() {
+  local phase="$1"
+  local name="$2"
+  local output_file="$3"
 
-echo "=========================================="
-echo "flow-kit 斜杠命令生成器 v2.0 (精简版)"
-echo "=========================================="
-echo "输出目录: $OUTPUT_PATH"
-echo "模式: $([ "$FORCE" == "true" ] && echo "force" || echo "incremental")"
-echo "=========================================="
-echo ""
+  {
+    printf '%s\n' '---'
+    printf 'description: %s - %s\n' "$name" "$phase"
+    printf '%s\n' 'category: dev'
+    printf 'reference: flow-kit/phases/%s/\n' "$phase"
+    printf 'execute: bash scripts/phase-executor.sh %s\n' "$phase"
+    printf '%s\n' '---'
+    printf '/flow-kit:%s: %s\n' "$phase" "$name"
+  } > "$output_file"
+}
 
-mkdir -p "$OUTPUT_PATH"
+main() {
+  parse_args "$@"
 
-# 生成核心命令
-for cmd in "${!CORE_COMMANDS[@]}"; do
-  ref="${CORE_COMMANDS[$cmd]}"
-  source_file="$REPO_ROOT/$ref"
-  description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
-  output_file="$OUTPUT_PATH/flow-kit:${cmd}.md"
+  echo "=========================================="
+  echo "flow-kit 斜杠命令生成器 v2.0 (精简版)"
+  echo "=========================================="
+  echo "输出目录: $OUTPUT_PATH"
+  echo "模式: $([ "$FORCE" == "true" ] && echo "force" || echo "incremental")"
+  echo "=========================================="
+  echo ""
 
-  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
-    echo "[跳过] flow-kit:${cmd} (已存在)"
-    continue
-  fi
+  mkdir -p "$OUTPUT_PATH"
 
-  generate_entry "$cmd" "$description" "$ref" "$output_file"
-  echo "[生成] flow-kit:${cmd} -> $output_file"
-done
+  for cmd in "${!CORE_COMMANDS[@]}"; do
+    local ref="${CORE_COMMANDS[$cmd]}"
+    local source_file="$REPO_ROOT/$ref"
+    local description
+    description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
+    local output_file="$OUTPUT_PATH/flow-kit:${cmd}.md"
 
-# 生成 phase 命令
-echo ""
-echo "--- Phase 工作流命令 ---"
-for phase in "${!PHASE_COMMANDS[@]}"; do
-  name="${PHASE_COMMANDS[$phase]}"
-  output_file="$OUTPUT_PATH/flow-kit:${phase}.md"
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:${cmd} (已存在)"
+      continue
+    fi
 
-  if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
-    echo "[跳过] flow-kit:${phase} (已存在)"
-    continue
-  fi
+    generate_entry "$cmd" "$description" "$ref" "$output_file"
+    echo "[生成] flow-kit:${cmd} -> $output_file"
+  done
 
-  cat > "$output_file" << EOF
----
-description: ${name} - ${phase}
-category: dev
-reference: flow-kit/phases/${phase}/
-execute: bash scripts/phase-executor.sh ${phase}
----
-/flow-kit:${phase}: ${name}
-EOF
-  echo "[生成] flow-kit:${phase} -> $output_file"
-done
+  echo ""
+  echo "--- Phase 工作流命令 ---"
+  for phase in "${!PHASE_COMMANDS[@]}"; do
+    local name="${PHASE_COMMANDS[$phase]}"
+    local output_file="$OUTPUT_PATH/flow-kit:${phase}.md"
 
-echo ""
-echo "=========================================="
-echo "完成: 17 个核心命令已生成"
-echo "=========================================="
+    if [[ -f "$output_file" ]] && [[ "$FORCE" == "false" ]]; then
+      echo "[跳过] flow-kit:${phase} (已存在)"
+      continue
+    fi
+
+    generate_phase_entry "$phase" "$name" "$output_file"
+    echo "[生成] flow-kit:${phase} -> $output_file"
+  done
+
+  echo ""
+  echo "=========================================="
+  echo "完成: 17 个核心命令已生成"
+  echo "=========================================="
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi

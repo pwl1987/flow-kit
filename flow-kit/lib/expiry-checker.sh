@@ -9,7 +9,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 readonly WARNING_DAYS=15
 readonly BLOCK_DAYS=30
-DEFAULT_TARGET="${1:-.planning/phases}"
+readonly DEFAULT_TARGET=".planning/phases"
 
 #------------------------------------------------------------------------------
 # 获取文件最新修改时间
@@ -24,7 +24,8 @@ get_newest_mtime() {
     fi
 
     while IFS= read -r -d '' file; do
-        local basename=$(basename "$file")
+        local basename
+        basename=$(basename "$file")
         if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
             continue
         fi
@@ -112,4 +113,6 @@ main() {
     fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
