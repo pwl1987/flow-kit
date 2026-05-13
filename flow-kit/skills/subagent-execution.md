@@ -82,7 +82,7 @@ Task({
 
 **归档**：
 - 执行日志归档到 `.planning/archive/execution-{date}.json`
-- 命令：`/flow-kit:cost-report` 导入成本报告
+- 命令：`bash flow-kit/lib/cost-reporter.sh`` 导入成本报告
 
 **资源限制**：
 - 并发数配置：`maxParallel: N`

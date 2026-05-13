@@ -16,7 +16,7 @@
 ### 手动触发
 
 ```
-/flow-kit:minimal
+/flow-kit:mode minimal
 ```
 
 效果：

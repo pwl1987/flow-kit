@@ -1,7 +1,7 @@
 # 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本命令在进入 1-requirement 之前可选激活，生成 STRATEGY.md 作为策略锚点。
 
-## 执行 /flow-kit:strategy
+## 执行 Phase 1 自动步骤
 
 ### 何时使用
 
@@ -40,7 +40,7 @@
 
 ### 使用流程
 
-1. 用户调用 `/flow-kit:strategy` 或 AI 自动检测到复杂变更
+1. 用户调用 `Phase 1 自动步骤` 或 AI 自动检测到复杂变更
 2. AI 生成 STRATEGY.md 草稿
 3. AI 反问用户确认：
    - 目标问题是否准确？

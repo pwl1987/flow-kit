@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-paths.sh — paths.sh 测试
-# v1.12.10 新增
+# v2.7.0 新增
 
 set -euo pipefail
 

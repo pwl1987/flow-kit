@@ -1,18 +1,18 @@
 #!/bin/bash
 # dispatch.sh — 多代理并行编排脚本
-# v1.12.8 P0 修复：移除 set -e + 添加 trap 清理 + 锁冲突 blocking + result validation
+# v2.7.0 P0 修复：移除 set -e + 添加 trap 清理 + 锁冲突 blocking + result validation
 # 用法: ./dispatch.sh [N] "任务描述"
 
 # P0 修复：移除 set -e，改用显式错误处理
 # set -e 与 jq 回退模式冲突，导致不可预测的脚本终止
-# v1.12.9 改进：启用 -u（未定义变量检测）和 -o pipefail（管道错误传递）
+# v2.7.0 改进：启用 -u（未定义变量检测）和 -o pipefail（管道错误传递）
 set -uo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# v1.12.9 改进：使用统一路径管理
+# v2.7.0 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 # 注意：LOCK_DIR/TMP_DIR 复用 paths.sh 中的定义，无需重复定义
@@ -20,17 +20,17 @@ source "$SCRIPT_DIR/../lib/error-handler.sh"
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
 CHILD_PIDS=(${CHILD_PIDS[@]:-})
 
-# v1.12.9 改进：并发池控制 - 最大并行子代理数
+# v2.7.0 改进：并发池控制 - 最大并行子代理数
 MAX_CONCURRENT="${MAX_CONCURRENT:-5}"
 
-# v1.12.17 P0 修复：标记模拟模式（生产环境需替换为真实 Agent API）
+# v2.7.0 P0 修复：标记模拟模式（生产环境需替换为真实 Agent API）
 SIMULATION_MODE="${SIMULATION_MODE:-true}"
 if [[ "$SIMULATION_MODE" == "true" ]]; then
     readonly SIMULATION_WARNING="⚠️  [SIMULATION MODE] dispatch.sh 当前为桩代码，未调用真实 Agent API"
 fi
 
 #------------------------------------------------------------------------------
-# 跨平台时间戳工具（v1.12.9 新增：macOS/Linux 兼容）
+# 跨平台时间戳工具（v2.7.0 新增：macOS/Linux 兼容）
 #------------------------------------------------------------------------------
 get_epoch_ms() {
     # macOS: date 不支持 %3N，使用 python/perl 回退
@@ -100,7 +100,7 @@ cleanup_children() {
             fi
         done
     fi
-    # v1.12.9 改进：清理临时文件（仅在错误退出时删除结果文件）
+    # v2.7.0 改进：清理临时文件（仅在错误退出时删除结果文件）
     if [ "$exit_code" -ne 0 ]; then
         # 错误退出：清理所有临时文件包括结果文件
         if [ -d "$TMP_DIR" ]; then
@@ -112,7 +112,7 @@ cleanup_children() {
             rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
         fi
     fi
-    # v1.12.10 改进：清理 slot 锁文件（始终执行）
+    # v2.7.0 改进：清理 slot 锁文件（始终执行）
     if [ -d "$LOCK_DIR" ]; then
         rm -f "$LOCK_DIR"/slot-*.lock 2>/dev/null || true
     fi
@@ -206,6 +206,12 @@ parse_args() {
         TASK_DESC=""
         PARALLEL_N=0
         return 0
+    fi
+
+    # 空数组保护
+    if [ ${#args[@]} -eq 0 ]; then
+        echo "[dispatch] 错误: 缺少任务描述参数" >&2
+        return 1
     fi
 
     # 从过滤后的参数中解析数字
@@ -369,7 +375,7 @@ ROLE_EOF
 }
 
 #------------------------------------------------------------------------------
-# 锁冲突检测（v1.12.8 修复：改为 blocking 等待而非仅警告）
+# 锁冲突检测（v2.7.0 修复：改为 blocking 等待而非仅警告）
 #------------------------------------------------------------------------------
 check_lock_conflicts() {
     echo "[dispatch] 🔒 检查锁冲突..."
@@ -420,19 +426,19 @@ run_single_agent() {
     local tmp_dir="$5"
     local max_retries="${6:-2}"
     local retry_interval="${7:-10}"
-    local slot_num="${8:-}"  # v1.12.17: slot number passed explicitly
+    local slot_num="${8:-}"  # v2.7.0: slot number passed explicitly
     local result_file="$tmp_dir/subagent-${agent_id}-result.json"
     local log_file="$tmp_dir/subagent-${agent_id}.log"
 
     # 记录PID（使用 $BASHPID 而非 $$，因为当前在子进程中）
     echo $BASHPID > "$tmp_dir/subagent-${agent_id}.pid"
 
-    # v1.12.17 修复: 直接传递 slot 编号，不依赖文件查找
+    # v2.7.0 修复: 直接传递 slot 编号，不依赖文件查找
     if [[ -n "$slot_num" ]]; then
         echo "$slot_num" > "$tmp_dir/slot-$BASHPID.id"
     fi
 
-    # v1.12.9 改进：确保退出时释放并发槽位
+    # v2.7.0 改进：确保退出时释放并发槽位
     trap 'release_slot_from_trap' EXIT
 
     {
@@ -463,7 +469,7 @@ run_single_agent() {
             # 读取prompt内容
             local prompt_content=$(cat "$prompt_file")
 
-            # v1.12.17 P0 修复：模拟模式警告
+            # v2.7.0 P0 修复：模拟模式警告
             if [[ "$SIMULATION_MODE" == "true" ]]; then
                 echo "[agent-$agent_id] ⚠️  [SIMULATION] 模拟执行，调用 sleep 2 代替真实 API"
             fi
@@ -503,7 +509,7 @@ EOF
 }
 
 #------------------------------------------------------------------------------
-# 并发池控制（v1.12.10 改进：使用 flock 消除竞态 + 防止 FD/文件泄漏）
+# 并发池控制（v2.7.0 改进：使用 flock 消除竞态 + 防止 FD/文件泄漏）
 #------------------------------------------------------------------------------
 acquire_slot() {
     local max_conc="$1"
@@ -535,7 +541,7 @@ release_slot() {
     fi
 }
 
-# v1.12.17 修复: 用于子进程 trap 的释放函数（使用 $BASHPID）
+# v2.7.0 修复: 用于子进程 trap 的释放函数（使用 $BASHPID）
 release_slot_from_trap() {
     local slot_id_file="$TMP_DIR/slot-$BASHPID.id"
     if [[ -f "$slot_id_file" ]]; then
@@ -550,8 +556,8 @@ release_slot_from_trap() {
 }
 
 #------------------------------------------------------------------------------
-# 执行子代理（v1.12.7 真正并行执行引擎）
-# v1.12.9 改进：并发池控制
+# 执行子代理（v2.7.0 真正并行执行引擎）
+# v2.7.0 改进：并发池控制
 #------------------------------------------------------------------------------
 execute_subagents() {
     local summary_file="$TMP_DIR/dispatch-summary.json"
@@ -594,7 +600,7 @@ execute_subagents() {
 
         echo "[dispatch]  启动子代理: $agent_id ($role)"
 
-        # v1.12.17 修复: 获取槽位号并传递给子代理
+        # v2.7.0 修复: 获取槽位号并传递给子代理
         local acquired_slot=""
         if acquire_slot "$MAX_CONCURRENT"; then
             acquired_slot=$(cat "$TMP_DIR/slot-$$.id" 2>/dev/null || echo "")
@@ -676,7 +682,7 @@ execute_subagents() {
     local remaining_pids=("${pids[@]}")
     local check_interval=2
 
-    # v1.12.10 P0 修复：正确轮询子进程状态
+    # v2.7.0 P0 修复：正确轮询子进程状态
     # wait -n 不返回 PID（仅返回退出码），不能用 $! 获取完成进程的 PID
     # 因此使用 kill -0 轮询方案，间隔 2 秒在精度与 CPU 之间权衡
     while [ ${#remaining_pids[@]} -gt 0 ]; do
@@ -763,7 +769,7 @@ EOF
         fi
     done
 
-    # v1.12.10 fix: 无超时代理时跳过提示
+    # v2.7.0 fix: 无超时代理时跳过提示
     if [ ${#timed_out_agents[@]} -gt 0 ]; then
         echo "[dispatch] ⚠️ 超时代理: ${timed_out_agents[*]}"
     fi
@@ -829,7 +835,7 @@ EOF
 }
 
 #------------------------------------------------------------------------------
-# 等待子代理完成（v1.12.6 新增）
+# 等待子代理完成（v2.7.0 新增）
 #------------------------------------------------------------------------------
 wait_for_subagents() {
     local summary_file="$TMP_DIR/dispatch-summary.json"
@@ -879,7 +885,7 @@ wait_for_subagents() {
 }
 
 #------------------------------------------------------------------------------
-# 收集结果（v1.12.6 增强：支持 result 文件聚合）
+# 收集结果（v2.7.0 增强：支持 result 文件聚合）
 #------------------------------------------------------------------------------
 collect_results() {
     local summary_file="$TMP_DIR/dispatch-summary.json"
@@ -939,7 +945,7 @@ collect_results() {
         echo "  失败: $failed"
         echo "  部分: $partial"
 
-        # 收集所有修改的文件（v1.12.10 优化：单次 jq 聚合，减少子 shell）
+        # 收集所有修改的文件（v2.7.0 优化：单次 jq 聚合，减少子 shell）
         echo ""
         echo "修改文件清单:"
         local all_files="[]"
@@ -967,23 +973,23 @@ collect_results() {
             fi
         done
 
-        cat > "$summary_file" << EOF
-{
-  "task_id": "$task_id",
-  "task_desc": "$task_desc",
-  "parallel_n": $(jq -r '.parallel_n' "$launch_manifest"),
-  "agents": [$agents_json],
-  "created_at": "$launched_at",
-  "executed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "status": "COMPLETED",
-  "summary": {
-    "total": $total,
-    "successful": $success,
-    "failed": $failed,
-    "partial": $partial
-  }
-}
-EOF
+        local executed_at_ts
+        executed_at_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        local parallel_n_val
+        parallel_n_val=$(jq -r '.parallel_n' "$launch_manifest")
+        jq -n \
+            --arg tid "$task_id" \
+            --arg tdesc "$task_desc" \
+            --argjson pn "$parallel_n_val" \
+            --argjson aj "[$agents_json]" \
+            --arg ca "$launched_at" \
+            --arg ea "$executed_at_ts" \
+            --argjson tot "$total" \
+            --argjson suc "$success" \
+            --argjson fail "$failed" \
+            --argjson part "$partial" \
+            '{task_id: $tid, task_desc: $tdesc, parallel_n: $pn, agents: $aj, created_at: $ca, executed_at: $ea, status: "COMPLETED", summary: {total: $tot, successful: $suc, failed: $fail, partial: $part}}' \
+            > "$summary_file"
 
     elif [ -f "$summary_file" ]; then
         # 回退到旧的 summary 文件格式
@@ -1100,7 +1106,7 @@ main() {
     fi
 }
 
-# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

@@ -125,10 +125,10 @@ Group A (并行) → Group B (并行) → 汇总 → CEO 审查
 用户只需指定 executor 数量 + 一句话任务即可启动 agent 流水线：
 
 ```bash
-/flow-kit:dispatch 3:"实现用户认证模块"
+bash flow-kit/scripts/dispatch.sh 3:"实现用户认证模块"
 ```
 
-格式：`/flow-kit:dispatch <executor数量>:"<一句话任务描述>"`
+格式：`bash flow-kit/scripts/dispatch.sh <executor数量>:"<一句话任务描述>"`
 
 系统自动：
 

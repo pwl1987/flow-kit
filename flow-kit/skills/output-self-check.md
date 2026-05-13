@@ -3,7 +3,7 @@
 
 # R8.3 产物自检清单
 
-> v1.11 新增，v1.12 增强：每项增加可执行检查命令
+> v1.11 新增，v2.7.0 增强：每项增加可执行检查命令
 
 ## 概述
 
@@ -11,7 +11,7 @@
 
 ## 6 项自检清单
 
-> v1.12.2 新增：动态 change-id 路径支持
+> v2.7.0 新增：动态 change-id 路径支持
 
 ```bash
 # 动态 change-id 变量（自动从 .flow-kit/current-change 读取）
@@ -166,7 +166,7 @@ git status --porcelain | grep -v "^\?\?"
 ## 触发时机
 
 - 每个 phase 完成时自动触发
-- 用户可手动调用：`/flow-kit:skill output-self-check`
+- 用户可手动调用：`flow-kit/skills/output-self-check.md`
 
 ## 参考来源
 

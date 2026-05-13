@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 # health-rotation.sh — 健康历史轮转脚本
-# v1.12.5 P2 新增（可选）
-# v1.12.8 P1 修复: stat 命令 Linux/BSD 兼容 + set -euo pipefail
+# v2.7.0 P2 新增（可选）
+# v2.7.0 P1 修复: stat 命令 Linux/BSD 兼容 + set -euo pipefail
 # 当 health-history.json 超过 500KB 时自动归档
 
 #------------------------------------------------------------------------------
-# 配置（v1.12.17 P2 修复：使用 readonly 防止意外修改）
+# 配置（v2.7.0 P2 修复：使用 readonly 防止意外修改）
 #------------------------------------------------------------------------------
 readonly MAX_SIZE_KB=500
 readonly HISTORY_FILE=".flow-kit/health-history.json"

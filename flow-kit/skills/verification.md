@@ -33,7 +33,7 @@
 
 ### Token 预算联动
 - Phase 5-6 全量检查前自动检测 token 预算
-- 若 >= 80%，提示用户：`[HINT] Token budget at {pct}%, consider running /flow-kit:cleanup first`
+- 若 >= 80%，提示用户：`[HINT] Token budget at {pct}%, consider running /flow-kit:archive first`
 - 用户确认后继续或降级到基础检查
 
 ### Self-Check Delivery Checklist
@@ -178,13 +178,13 @@ Ready for code review.
 | Typecheck 失败 | 类型不匹配 | `npm run typecheck:fix` |
 | 测试失败 | 逻辑错误 | `npm run test:debug` |
 | 构建失败 | 编译错误 | `npm run build:debug` |
-| 安全扫描失败 | 漏洞检测 | `/flow-kit:security-fix` |
+| 安全扫描失败 | 漏洞检测 | `/flow-kit:guard full` |
 
 **一键修复流程**：
 1. 识别失败类型
 2. 执行对应修复命令
 3. 重新运行验证
-4. 若仍失败，调用 `/flow-kit:debug-snapshot` 保存现场
+4. 若仍失败，调用 `手动诊断步骤` 保存现场
 
 ## NOTES
 

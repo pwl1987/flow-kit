@@ -1,13 +1,13 @@
 # estimate-tokens
 
-> flow-kit v1.12.10 命令
+> flow-kit v2.7.0 命令
 
 基于 LOC 估算 token 使用量。
 
 ## 使用方法
 
 ```
-/flow-kit:estimate-tokens [目标目录]
+`bash flow-kit/lib/token-estimator.sh` [目标目录]
 ```
 
 ## 参数
@@ -19,9 +19,9 @@
 ## 示例
 
 ```
-/flow-kit:estimate-tokens
-/flow-kit:estimate-tokens .planning/phases
-/flow-kit:estimate-tokens ./src
+`bash flow-kit/lib/token-estimator.sh`
+`bash flow-kit/lib/token-estimator.sh` .planning/phases
+`bash flow-kit/lib/token-estimator.sh` ./src
 ```
 
 ## 功能说明

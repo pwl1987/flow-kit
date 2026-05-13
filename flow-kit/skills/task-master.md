@@ -49,11 +49,11 @@ function inferDependencies(tasks) {
 ```
 
 #### 用户手动调整
-- 命令：`/flow-kit:task-graph adjust [task-id] --after [dep-id]`
+- 命令：`/flow-kit:scan adjust [task-id] --after [dep-id]`
 - 调整后自动验证无循环依赖
 
 #### 与 subagent-execution 联动
-依赖图生成后，自动调用 `/flow-kit:skill:subagent-execution` 进行调度。
+依赖图生成后，自动调用 `flow-kit/skills/subagent-execution.md` 进行调度。
 ```
 
 ### 两步法：parse_prd → expand_task
@@ -108,7 +108,7 @@ graph LR
 **D-25 checkpoint 同步**：
 - 任务状态变更自动同步到 `.flow-kit/checkpoint-state.json`
 - blocked 状态触发断点续跑提示
-- 命令：`/flow-kit:checkpoint status` 查看当前任务状态
+- 命令：`内部功能（自动管理） status` 查看当前任务状态
 
 ## EXAMPLE
 
@@ -174,8 +174,8 @@ constraints:
 
 ### D-24 可选看板视图
 不强制默认开启。通过命令启用：
-- `/flow-kit:kanban show` — 显示看板
-- `/flow-kit:kanban hide` — 隐藏看板
+- `内部功能（看板视图） show` — 显示看板
+- `内部功能（看板视图） hide` — 隐藏看板
 
 看板格式：
 | To Do | In Progress | Done | Blocked |

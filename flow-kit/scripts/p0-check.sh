@@ -1,10 +1,10 @@
 #!/bin/bash
 # p0-check.sh — P0 变更自动检测
-# v1.12.10 新增：检测 P0 变更并强制执行审批流程
+# v2.7.0 新增：检测 P0 变更并强制执行审批流程
 
 set -euo pipefail
 
-# v1.12.10 P1 修复：引入统一错误处理框架
+# v2.7.0 P1 修复：引入统一错误处理框架
 readonly P0_CHECK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$P0_CHECK_DIR/../lib/error-handler.sh"
 

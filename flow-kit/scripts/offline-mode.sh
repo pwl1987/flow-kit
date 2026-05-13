@@ -1,6 +1,6 @@
 #!/bin/bash
 # offline-mode.sh — 离线模式控制
-# v1.12.17 新增：实现 /flow-kit:offline 命令
+# v2.7.0 新增：实现 /flow-kit:offline 命令
 
 set -euo pipefail
 

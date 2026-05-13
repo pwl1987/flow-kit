@@ -1,6 +1,6 @@
 #!/bin/bash
 # pr-generator.sh — PR 描述生成
-# v1.12.10 新增：实现 /flow-kit:pr-description 命令
+# v2.7.0 新增：实现 /flow-kit:pr-description 命令
 
 set -euo pipefail
 

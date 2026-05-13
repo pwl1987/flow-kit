@@ -6,11 +6,11 @@ tmux 工作区编排命令，实现并行开发"导演"模式。
 
 ## 命令列表
 
-### 1. `/flow-kit:tmux-init` — 初始化 tmux 工作区
+### 1. `/flow-kit:tmux-init（未来功能）` — 初始化 tmux 工作区
 
 ```bash
 # 初始化 tmux 工作区
-/flow-kit:tmux-init [--name <session-name>] [--worktrees <count>]
+/flow-kit:tmux-init（未来功能） [--name <session-name>] [--worktrees <count>]
 ```
 
 **功能：**
@@ -33,11 +33,11 @@ tmux 工作区初始化完成
 
 ---
 
-### 2. `/flow-kit:tmux-run` — 启动并行任务
+### 2. `/flow-kit:tmux-run（未来功能）` — 启动并行任务
 
 ```bash
 # 向所有窗格发送任务指令
-/flow-kit:tmux-run [--tasks <task-file>] [--parallel]
+/flow-kit:tmux-run（未来功能） [--tasks <task-file>] [--parallel]
 ```
 
 **功能：**
@@ -71,11 +71,11 @@ tasks:
 
 ---
 
-### 3. `/flow-kit:tmux-aggregate` — 聚合结果
+### 3. `/flow-kit:tmux-aggregate（未来功能）` — 聚合结果
 
 ```bash
 # 聚合所有工作区结果
-/flow-kit:tmux-aggregate [--format <md|json|console>]
+/flow-kit:tmux-aggregate（未来功能） [--format <md|json|console>]
 ```
 
 **功能：**
@@ -107,11 +107,11 @@ tasks:
 
 ---
 
-### 4. `/flow-kit:tmux-cleanup` — 清理工作区
+### 4. `/flow-kit:tmux-cleanup（未来功能）` — 清理工作区
 
 ```bash
 # 清理 tmux 工作区
-/flow-kit:tmux-cleanup [--force] [--keep-worktrees]
+/flow-kit:tmux-cleanup（未来功能） [--force] [--keep-worktrees]
 ```
 
 **功能：**
@@ -162,20 +162,20 @@ dependency_resolution:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  /flow-kit:tmux-init                                    │
+│  /flow-kit:tmux-init（未来功能）                                    │
 │  └── 创建 worktrees + tmux 会话                         │
 ├─────────────────────────────────────────────────────────┤
-│  /flow-kit:tmux-run                                    │
+│  /flow-kit:tmux-run（未来功能）                                    │
 │  ├── 读取任务文件                                        │
 │  ├── 解析 DAG 依赖                                      │
 │  └── 并行调度到各窗格                                    │
 ├─────────────────────────────────────────────────────────┤
-│  /flow-kit:tmux-aggregate                              │
+│  /flow-kit:tmux-aggregate（未来功能）                              │
 │  ├── 轮询状态                                           │
 │  ├── 收集 SUMMARY.md                                   │
 │  └── 生成聚合报告                                       │
 ├─────────────────────────────────────────────────────────┤
-│  /flow-kit:tmux-cleanup                                │
+│  /flow-kit:tmux-cleanup（未来功能）                                │
 │  ├── 关闭 tmux 会话                                    │
 │  └── 清理 worktrees（除非 --keep-worktrees）            │
 └─────────────────────────────────────────────────────────┘

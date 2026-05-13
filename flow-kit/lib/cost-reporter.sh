@@ -1,7 +1,7 @@
 #!/bin/bash
 # cost-reporter.sh — 成本报告生成
-# v1.12.17 P2 修复: 复用 token-estimator.sh 的 count_loc_in_dir 函数
-# v1.12.10 新增：实现 /flow-kit:cost-report 命令
+# v2.7.0 P2 修复: 复用 token-estimator.sh 的 count_loc_in_dir 函数
+# v2.7.0 新增：实现 /flow-kit:cost-report 命令
 
 set -euo pipefail
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # context-budget.sh — 上下文预算管理
-# v1.12.6 P0 新增
+# v2.7.0 P0 新增
 # 实现 token 估算和预算控制
 
 set -euo pipefail
@@ -13,7 +13,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly FLOW_KIT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly CAVEMAN_SCRIPT="$FLOW_KIT_ROOT/scripts/caveman-compress.sh"
 
-# v1.12.9 改进：检测 bc 可用性，提供降级方案
+# v2.7.0 改进：检测 bc 可用性，提供降级方案
 HAS_BC=false
 if command -v bc &>/dev/null; then
     HAS_BC=true
@@ -78,7 +78,7 @@ float_scale() {
 
 # 多模型token估算配置
 # 格式: "英文系数:中文系数:代码系数"（模型名作为关联数组 key）
-# v1.12.10 修复：使用关联数组实现 O(1) 查找
+# v2.7.0 修复：使用关联数组实现 O(1) 查找
 declare -A MODEL_CONFIGS=(
     ["claude"]="0.25:1.5:0.35"
     ["gpt4"]="0.25:1.6:0.30"
@@ -101,7 +101,7 @@ get_model_params() {
 }
 
 #------------------------------------------------------------------------------
-# 检测文本语言类型（POSIX 兼容，v1.12.10 修复 UTF-8 中文字符检测）
+# 检测文本语言类型（POSIX 兼容，v2.7.0 修复 UTF-8 中文字符检测）
 #------------------------------------------------------------------------------
 detect_language_type() {
     local text="$1"

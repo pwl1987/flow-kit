@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 # pre-tool-guard.sh — PreToolUse hook: 阻止危险命令和敏感文件编辑
-# v1.12.4 P1 修复: jq 精确提取 + DDL 高危检测
-# v1.12.8 P1 修复: DDL 正则补全 RENAME TO + set -euo pipefail
+# v2.7.0 P1 修复: jq 精确提取 + DDL 高危检测
+# v2.7.0 P1 修复: DDL 正则补全 RENAME TO + set -euo pipefail
 # Reference: gstack /careful + Morph Claude Code Hooks
 
 # 引入统一错误处理框架
@@ -49,7 +49,7 @@ fi
 # 阻止危险的 Bash 命令
 if [ "$TOOL" = "Bash" ]; then
     # 高危模式（必须拦截）
-    if echo "$COMMAND" | grep -qE 'git[[:space:]]+push[[:space:]]+--force|git[[:space:]]+reset[[:space:]]+--hard|DROP[[:space:]]+TABLE|dd[[:space:]]+if='; then
+    if echo "$COMMAND" | grep -qiE 'git[[:space:]]+push[[:space:]]+--force|git[[:space:]]+reset[[:space:]]+--hard|DROP[[:space:]]+TABLE|dd[[:space:]]+if='; then
         echo "BLOCKED: 危险命令被 flow-kit 护栏拦截。请确认后重试。" >&2
         exit 2
     fi
@@ -60,8 +60,8 @@ if [ "$TOOL" = "Bash" ]; then
         fi
     fi
     # P1 修复：DDL 高危操作（补全 RENAME TO 格式）
-    # v1.12.16 修复：SQL 关键字间支持任意空白（DROP[[:space:]]+COLUMN 等）
-    if echo "$COMMAND" | grep -qE 'DROP[[:space:]]+COLUMN|ALTER[[:space:]]+TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME[[:space:]]+TO|RENAME[[:space:]]+COLUMN)|TRUNCATE[[:space:]]+TABLE'; then
+    # v2.7.0 修复：SQL 关键字间支持任意空白（DROP[[:space:]]+COLUMN 等）
+    if echo "$COMMAND" | grep -qiE 'DROP[[:space:]]+COLUMN|ALTER[[:space:]]+TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME[[:space:]]+TO|RENAME[[:space:]]+COLUMN)|TRUNCATE[[:space:]]+TABLE'; then
         echo "BLOCKED: DDL 高危操作被 flow-kit 护栏拦截（DROP COLUMN/ALTER TABLE RENAME/TRUNCATE TABLE）。" >&2
         exit 2
     fi
@@ -69,7 +69,7 @@ fi
 
 # 阻止编辑敏感文件
 if [ "$TOOL" = "Edit" ] || [ "$TOOL" = "Write" ]; then
-    if echo "$FILE_PATH" | grep -qE '\.env$|migrations/|package-lock\.json|\.git/'; then
+    if echo "$FILE_PATH" | grep -qE '(^|/)\.env([._-]|$)|migrations/|package-lock\.json|\.git/'; then
         echo "BLOCKED: $FILE_PATH 是受保护文件。" >&2
         exit 2
     fi
@@ -83,7 +83,7 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [pre-tool-guard] [OK] [${ELAPSED}ms]" >> 
 
 exit 0
 
-# v1.12.10 修复：URL 放在 bash 注释中避免被解析
+# v2.7.0 修复：URL 放在 bash 注释中避免被解析
 # 参考来源：
 # - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
 # - garrytan/gstack：https://github.com/garrytan/gstack

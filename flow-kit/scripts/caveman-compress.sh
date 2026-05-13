@@ -1,6 +1,6 @@
 #!/bin/bash
 # caveman-compress.sh — 上下文压缩脚本
-# v1.12.10 新增：实现 caveman 级别压缩（保留核心决策）
+# v2.7.0 新增：实现 caveman 级别压缩（保留核心决策）
 
 set -euo pipefail
 

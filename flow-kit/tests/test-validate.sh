@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-validate.sh — validate-phase.sh 单元测试
-# v1.12.9 P1 新增
+# v2.7.0 P1 新增
 # 覆盖 validate-phase.sh 核心验证函数
 
 set -euo pipefail

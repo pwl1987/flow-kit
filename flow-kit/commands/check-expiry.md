@@ -36,8 +36,8 @@ Run `/flow-kit:archive` manually to archive early, or `flow-kit:recovery` to res
 
 | 命令 | 行为 |
 |------|------|
-| `/flow-kit:check-expiry` | 立即检查并输出当前上下文状态 |
-| `/flow-kit:recovery {archive-path}` | 从归档恢复上下文 |
+| `/flow-kit:status` | 立即检查并输出当前上下文状态 |
+| `/flow-kit:archive {archive-path}` | 从归档恢复上下文 |
 
 ### check-expiry 执行流程
 
@@ -57,7 +57,7 @@ Run `/flow-kit:archive` manually to archive early, or `flow-kit:recovery` to res
 ### recovery 命令格式
 
 ```
-/flow-kit:recovery archive/{YYYY-MM}/context-{YYYY-MM-DD}
+/flow-kit:archive archive/{YYYY-MM}/context-{YYYY-MM-DD}
 ```
 
 恢复步骤：
@@ -89,7 +89,7 @@ archive/{YYYY-MM}/context-{YYYY-MM-DD}/
 
 ## 恢复流程
 
-1. 用户执行 `/flow-kit:recovery {archive-path}`
+1. 用户执行 `/flow-kit:archive {archive-path}`
 2. 验证目标路径存在
 3. 解压 `.planning/` 目录内容
 4. 恢复所有 phase 文件到原始位置

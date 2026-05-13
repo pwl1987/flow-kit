@@ -112,7 +112,7 @@ archive/{YYYY-MM}/context-{YYYY-MM-DD}/
 
 ## 恢复上下文 (Recovery)
 
-从上下文归档恢复：`/flow-kit:recovery archive/{YYYY-MM}/context-{YYYY-MM-DD}`
+从上下文归档恢复：`/flow-kit:archive archive/{YYYY-MM}/context-{YYYY-MM-DD}`
 
 ### 恢复步骤
 

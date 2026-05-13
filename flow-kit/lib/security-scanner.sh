@@ -1,11 +1,11 @@
 #!/bin/bash
 # security-scanner.sh — 自动安全扫描
-# v1.12.10 新增：扫描硬编码密钥、SQL注入等常见安全问题
+# v2.7.0 新增：扫描硬编码密钥、SQL注入等常见安全问题
 
 set -euo pipefail
 
 SECURITY_SCANNER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# v1.12.10 修复：复用统一错误处理框架
+# v2.7.0 修复：复用统一错误处理框架
 source "$SECURITY_SCANNER_SCRIPT_DIR/error-handler.sh"
 
 #------------------------------------------------------------------------------

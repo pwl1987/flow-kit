@@ -1,6 +1,6 @@
 #!/bin/bash
 # dispatch-status.sh — 多代理编排状态查看命令
-# v1.12.5 P3 新增
+# v2.7.0 P3 新增
 # 查看当前 dispatch 任务执行状态
 
 set -euo pipefail
@@ -134,7 +134,7 @@ main() {
     echo "⏳ 使用 ./dispatch-aggregate.sh 查看完整报告"
 }
 
-# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-dispatch.sh — dispatch.sh 单元测试
-# v1.12.9 P1 新增
+# v2.7.0 P1 新增
 # 覆盖 dispatch.sh 核心函数
 
 set -euo pipefail

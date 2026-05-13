@@ -1,6 +1,6 @@
 #!/bin/bash
 # dispatch-aggregate.sh — 多代理编排聚合报告生成器
-# v1.12.5 P1 新增
+# v2.7.0 P1 新增
 # 读取 dispatch-summary.json 生成聚合报告
 
 set -euo pipefail
@@ -115,7 +115,7 @@ main() {
     echo "⏳ 使用 /flow-kit:dispatch-status 查看最新状态"
 }
 
-# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

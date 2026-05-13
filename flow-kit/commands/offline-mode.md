@@ -16,7 +16,7 @@
 ### 手动触发
 
 ```
-/flow-kit:offline
+/flow-kit:mode offline
 ```
 
 效果：
@@ -39,7 +39,7 @@
 ### 恢复在线
 
 ```
-/flow-kit:online
+/flow-kit:mode online
 ```
 
 ## 内置Lint适配器
@@ -105,9 +105,9 @@ YAML/JSON格式验证：
 
 | 场景 | 检测方式 | 行为 |
 |------|----------|------|
-| 飞机上工作 | 手动执行 `/flow-kit:offline` | 使用内置lint |
+| 飞机上工作 | 手动执行 `/flow-kit:mode offline` | 使用内置lint |
 | 网络工具超时 | 自动故障转移 | 切换到内置lint |
-| CI/CD环境 | 手动执行 `/flow-kit:offline` | 跳过外部依赖 |
+| CI/CD环境 | 手动执行 `/flow-kit:mode offline` | 跳过外部依赖 |
 | Git操作 | 始终可用 | Constitution检查不受影响 |
 
 ---

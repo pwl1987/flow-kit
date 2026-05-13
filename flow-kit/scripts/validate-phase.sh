@@ -1,6 +1,6 @@
 #!/bin/bash
 # validate-phase.sh — 阶段产物 JSON Schema 验证
-# v1.12.9 P0 修复：临时文件安全清理 + set -euo pipefail
+# v2.7.0 P0 修复：临时文件安全清理 + set -euo pipefail
 # 验证 phase-0/1/2 产物是否符合 JSON Schema
 
 set -euo pipefail
@@ -14,13 +14,13 @@ if ! command -v jq &>/dev/null; then
     exit 3
 fi
 
-# v1.12.10 改进：引入错误处理框架
+# v2.7.0 改进：引入错误处理框架
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 
 #------------------------------------------------------------------------------
-# 配置（v1.12.17 P2 修复：使用 paths.sh 中的绝对路径常量）
+# 配置（v2.7.0 P2 修复：使用 paths.sh 中的绝对路径常量）
 #------------------------------------------------------------------------------
 # SCHEMA_DIR 和 OUTPUT_DIR 从 paths.sh 获取（绝对路径）
 
@@ -285,7 +285,7 @@ validate_array_items() {
 }
 
 #------------------------------------------------------------------------------
-# 验证嵌套对象（递归验证，v1.12.9 修复：临时文件安全清理）
+# 验证嵌套对象（递归验证，v2.7.0 修复：临时文件安全清理）
 #------------------------------------------------------------------------------
 validate_nested_object() {
     local json_file="$1"
@@ -553,7 +553,7 @@ main() {
     esac
 }
 
-# v1.12.9 改进：仅在直接执行时运行 main，source 时不执行
+# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

@@ -13,7 +13,7 @@
 
 ## Command
 
-`/flow-kit:sync-team`
+`/flow-kit:status`
 
 ## Purpose
 

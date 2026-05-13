@@ -1,6 +1,6 @@
 #!/bin/bash
 # context-updater.sh — 上下文增量更新
-# v1.12.10 新增：实现 /flow-kit:update-context 命令
+# v2.7.0 新增：实现 /flow-kit:update-context 命令
 
 set -euo pipefail
 

@@ -1,6 +1,6 @@
 # register-commands
 
-> flow-kit v2.6.1 命令
+> flow-kit v2.7.0 命令
 
 生成 flow-kit 精简斜杠命令入口到 `flow-kit/.claude/commands/`。
 

@@ -2,12 +2,12 @@
 set -euo pipefail
 # notification.sh — Notification hook: 桌面通知
 # v1.8 新增
-# v1.12.8 P1 修复: Windows 实现实际发送 Toast 通知 + set -euo pipefail
+# v2.7.0 P1 修复: Windows 实现实际发送 Toast 通知 + set -euo pipefail
 # Reference: Claude Code hooks 社区最佳实践
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# v1.12.17 修复: 跨平台毫秒时间戳
+# v2.7.0 修复: 跨平台毫秒时间戳
 get_epoch_ms() {
     if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
         date +%s%3N
@@ -23,7 +23,7 @@ START_TIME=$(get_epoch_ms)
 TITLE="${1:-flow-kit}"
 MESSAGE="${2:-Claude Code 需要你的关注}"
 
-# v1.12.10 修复：声明变量（不能在函数外使用 local）
+# v2.7.0 修复：声明变量（不能在函数外使用 local）
 ps_script=""
 
 # macOS — 用 -e [参数] 传递，避免字符串拼接注入
@@ -35,7 +35,7 @@ elif command -v notify-send &> /dev/null; then
 # Windows - P1 修复：实际发送 Toast 通知
 elif command -v powershell &> /dev/null; then
     ps_script=$(mktemp /tmp/notify-XXXXXX.ps1)
-    # v1.12.10 安全修复：限制临时文件权限，防止信息泄露
+    # v2.7.0 安全修复：限制临时文件权限，防止信息泄露
     chmod 600 "${ps_script}" 2>/dev/null || true
     cat > "${ps_script}" << 'PSEOF'
 param(
@@ -87,7 +87,7 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [notification] [OK] [${ELAPSED}ms]" >> "$
 
 exit 0
 
-# v1.12.10 修复：URL 放在 bash 注释中避免被解析
+# v2.7.0 修复：URL 放在 bash 注释中避免被解析
 # 参考来源：
 # - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
 # - garrytan/gstack：https://github.com/garrytan/gstack

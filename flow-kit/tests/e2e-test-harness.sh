@@ -1,6 +1,6 @@
 #!/bin/bash
 # e2e-test-harness.sh — E2E 测试骨架
-# v2.6.1 更新
+# v2.7.0 更新
 # 提供基础 E2E 测试框架
 
 set -euo pipefail
@@ -115,7 +115,7 @@ main() {
     local failed=0
 
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "flow-kit v2.6.1 E2E 测试"
+    echo "flow-kit v2.7.0 E2E 测试"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     run_test "dispatch.sh 存在" test_dispatch_script_exists && passed=$((passed + 1)) || failed=$((failed + 1))

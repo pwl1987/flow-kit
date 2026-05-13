@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-# init-change.sh — flow-kit 变更初始化脚本 v2.6.1
+# init-change.sh — flow-kit 变更初始化脚本 v2.7.0
 # 功能: 自动创建变更规格目录 + change-id + 项目类型检测 + 护栏推荐 + 下一步建议
 # 用法: ./init-change.sh "变更描述"
 

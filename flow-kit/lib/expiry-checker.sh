@@ -1,6 +1,6 @@
 #!/bin/bash
 # expiry-checker.sh — 上下文过期检测
-# v1.12.10 新增：实现 /flow-kit:check-expiry 命令
+# v2.7.0 新增：实现 /flow-kit:check-expiry 命令
 
 set -euo pipefail
 

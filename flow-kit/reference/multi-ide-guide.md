@@ -24,9 +24,9 @@ Claude Code 是 flow-kit 的原生目标 IDE，提供最完整支持。
 
 **Skill 安装：**
 ```
-/flow-kit:skill:xxx
+flow-kit/skills/（对应 skill 文件）
 ```
-例如：`/flow-kit:skill:develop` 启动研究→计划→实现阶段流程。
+例如：`flow-kit/skills/agent-pipeline.md` 启动研究→计划→实现阶段流程。
 
 **SYSTEM.md 全局注入：**
 - 路径：`~/.claude/projects/{project}/SYSTEM.md`

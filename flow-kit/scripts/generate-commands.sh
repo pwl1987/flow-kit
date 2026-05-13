@@ -1,5 +1,5 @@
 #!/bin/bash
-# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.6.1)
+# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.7.0)
 #
 # 生成 21 个核心命令，移除所有 dev-/meta-/team-/ops- 前缀变体
 
@@ -139,7 +139,7 @@ main() {
   parse_args "$@"
 
   echo "=========================================="
-  echo "flow-kit 斜杠命令生成器 v2.6.1 (精简版)"
+  echo "flow-kit 斜杠命令生成器 v2.7.0 (精简版)"
   echo "=========================================="
   echo "输出目录: $OUTPUT_PATH"
   echo "模式: $([ "$FORCE" == "true" ] && echo "force" || echo "incremental")"

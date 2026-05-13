@@ -11,7 +11,7 @@
 ## 命令
 
 ```
-/flow-kit:cost-report
+`bash flow-kit/lib/cost-reporter.sh`
 ```
 
 ## 报告指标
@@ -75,7 +75,7 @@ Avg cost/change: {n}
 ### 独立命令
 
 ```bash
-/flow-kit:cost-report
+`bash flow-kit/lib/cost-reporter.sh`
 ```
 
 ### 自动触发

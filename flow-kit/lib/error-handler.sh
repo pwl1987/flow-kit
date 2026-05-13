@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 # error-handler.sh — 统一错误处理框架
-# v1.12.4 P3 新增
-# v1.12.8 P1 修复: POSIX date 回退格式 + set -euo pipefail
+# v2.7.0 P3 新增
+# v2.7.0 P1 修复: POSIX date 回退格式 + set -euo pipefail
 # 提供标准化日志和错误码
 
 #------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ fi
 #------------------------------------------------------------------------------
 get_timestamp() {
     # P1 修复：添加 POSIX date 回退格式
-    # v1.12.16 修复：第三回退格式统一为 ISO 8601（补 T 和 Z）
+    # v2.7.0 修复：第三回退格式统一为 ISO 8601（补 T 和 Z）
     if date -u +%Y-%m-%dT%H:%M:%SZ >/dev/null 2>&1; then
         # GNU date (Linux)
         date -u +%Y-%m-%dT%H:%M:%SZ
@@ -109,7 +109,7 @@ check_result() {
 # check_result "my-module" "命令执行成功"
 
 #------------------------------------------------------------------------------
-# 错误上下文管理（v1.12.10 强化）
+# 错误上下文管理（v2.7.0 强化）
 #------------------------------------------------------------------------------
 ERROR_CONTEXT_DIR="${ERROR_CONTEXT_DIR:-$HOME/.flow-kit/error-contexts}"
 mkdir -p "$ERROR_CONTEXT_DIR" 2>/dev/null || true
@@ -133,7 +133,7 @@ create_error_context() {
     local caller_script="${BASH_SOURCE[1]:-${BASH_SOURCE[0]:-unknown}}"
     local caller_line="${BASH_LINENO[0]:-0}"
 
-    # v1.12.17 使用 jq 生成 JSON，避免注入风险
+    # v2.7.0 使用 jq 生成 JSON，避免注入风险
     jq -n \
         --arg type "$error_type" \
         --arg ctx "$context" \
@@ -208,7 +208,7 @@ safe_exit() {
     exit "$exit_code"
 }
 
-# v1.12.17 P2 修复: 使用 jq 生成 JSON，避免注入风险
+# v2.7.0 P2 修复: 使用 jq 生成 JSON，避免注入风险
 aggregate_errors() {
     local error_log="$1"
     shift

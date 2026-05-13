@@ -13,7 +13,7 @@
 
 ## Command
 
-`/flow-kit:update-context`
+`/flow-kit:status`
 
 ## Purpose
 

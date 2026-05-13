@@ -1,6 +1,6 @@
 # agent-orchestrator.md — 多代理编排技能
 
-> v1.12.4 P0 新增：多代理任务编排决策与上下文管理
+> v2.7.0 P0 新增：多代理任务编排决策与上下文管理
 
 ## 多代理编排决策树
 
@@ -146,13 +146,13 @@ if (subagent_consumed > SUBAGENT_CONTEXT_BUDGET):
 
 ```bash
 # Team 模式：3 并行
-/flow-kit:dispatch 3:"实现用户认证系统"
+bash flow-kit/scripts/dispatch.sh 3:"实现用户认证系统"
 
 # L0 极简模式
-/flow-kit:minimal "修复登录 bug"
+/flow-kit:mode minimal "修复登录 bug"
 
 # 查看 dispatch 状态
-/flow-kit:dispatch-status
+`bash flow-kit/scripts/dispatch-status.sh`
 ```
 
 ## 参考来源

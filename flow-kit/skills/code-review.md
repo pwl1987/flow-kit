@@ -185,7 +185,7 @@ CEO → Design → Engineering
 深度模板消耗更多 token。使用前自动检测：
 - 若 >= 80% 预算：提示用户归档旧 phase 文件
 - 若 >= 90% 预算：建议降级到标准模板
-- 命令：`/flow-kit:estimate-tokens` 查看详情
+- 命令：`bash flow-kit/lib/token-estimator.sh`` 查看详情
 
 ### PR 描述自动填充（D-18）
 审查完成后，结果自动填充到 PR 描述的审查结果部分。

@@ -1,7 +1,7 @@
 # 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本命令执行 8 点技能质量审计，输出技能依赖关系图和健康报告。
 
-## 执行 /flow-kit:skill-audit
+## 执行 /flow-kit:scan
 
 执行八项检查：
 

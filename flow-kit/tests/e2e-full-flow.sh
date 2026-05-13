@@ -1,6 +1,6 @@
 #!/bin/bash
 # e2e-full-flow.sh — 端到端流程测试
-# v1.12.10 新增
+# v2.7.0 新增
 
 set -euo pipefail
 

@@ -25,7 +25,7 @@ P0 变更 = ** irreversible destructive operations**（不可逆的破坏性操�
 ### 手动触发
 
 ```bash
-/flow-kit:p0
+/flow-kit:guard p0
 ```
 
 强制将当前变更标记为 P0

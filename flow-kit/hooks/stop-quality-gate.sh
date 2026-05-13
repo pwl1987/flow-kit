@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # stop-quality-gate.sh — Stop hook: 质量门禁
-# v1.12.8 P0 修复：除零错误 + set -euo pipefail
+# v2.7.0 P0 修复：除零错误 + set -euo pipefail
 # Reference: smallnest/autoresearch PASSING_SCORE + Claude Code Stop hook
 
 INPUT=$(cat)
@@ -24,7 +24,7 @@ if [ "$(echo "$INPUT" | jq -r '.stop_hook_active // false')" = "true" ]; then
 fi
 
 #------------------------------------------------------------------------------
-# B6 测试覆盖率检测（v1.12.5 新增，v1.12.8 修复除零错误）
+# B6 测试覆盖率检测（v2.7.0 新增，v2.7.0 修复除零错误）
 #------------------------------------------------------------------------------
 check_test_coverage() {
     local coverage_file=".flow-kit/coverage/lcov.info"
@@ -66,7 +66,7 @@ check_test_coverage() {
 # B5/B6 联动检测
 #------------------------------------------------------------------------------
 if [ -f "package.json" ] && grep -q '"test"' package.json; then
-    # v1.12.17 P1 修复: 添加 120s 超时避免挂起
+    # v2.7.0 P1 修复: 添加 120s 超时避免挂起
     if command -v timeout &>/dev/null; then
         timeout 120 npm test 2>&1 || {
             exit_code=$?
@@ -86,7 +86,7 @@ check_test_coverage
 
 exit 0
 
-# v1.12.10 修复：URL 放在 bash 注释中避免被解析
+# v2.7.0 修复：URL 放在 bash 注释中避免被解析
 # 参考来源：
 # - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
 # - garrytan/gstack：https://github.com/garrytan/gstack

@@ -11,7 +11,7 @@
 ## 命令
 
 ```
-/flow-kit:pr-description
+`bash flow-kit/scripts/pr-description.sh`
 ```
 
 ## 执行流程
@@ -91,7 +91,7 @@ GitHub PR body 兼容的 Markdown：
 ### 独立命令调用
 
 ```bash
-/flow-kit:pr-description
+`bash flow-kit/scripts/pr-description.sh`
 ```
 
 直接生成 PR 描述输出

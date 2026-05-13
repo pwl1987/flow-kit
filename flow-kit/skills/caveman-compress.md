@@ -147,7 +147,7 @@ window.addEventListener("resize", handler);
 
 ## 中文压缩策略
 
-> v1.12.4 P3 新增：中文文本压缩规则
+> v2.7.0 P3 新增：中文文本压缩规则
 
 ### 基本原理
 

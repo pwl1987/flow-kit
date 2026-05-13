@@ -14,7 +14,7 @@
 [![Language](https://img.shields.io/badge/Markdown-Zero%20Dependencies-orange)](https://example.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-**flow-kit** 是面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、技能包、模板和工程参考材料。
+**flow-kit** 是面向 Claude Code 的结构化开发流程工具包，提供 9 阶段 (Phase 0-8) 开发工作流、护栏规则、技能包、模板和工程参考材料。
 
 ---
 
@@ -35,7 +35,7 @@
 
 | 特性             | 描述                                    |
 | ---------------- | --------------------------------------- |
-| **8 阶段工作流** | 从需求到集成的完整开发流程              |
+| **9 阶段 (Phase 0-8) 工作流** | 从需求到集成的完整开发流程              |
 | **棕地护栏**     | B1-B6 六大护栏，保护现有代码库          |
 | **元技能包**     | 7 个可复用技能模块                      |
 | **多语言支持**   | TypeScript、Python、Java、Go、Rust、PHP |
@@ -94,7 +94,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 | 场景                 | 推荐流程                |
 | -------------------- | ----------------------- |
 | 简单变更（1-3 文件） | 极简模式，跳过测试/审查 |
-| 中等复杂度（新功能） | 标准 8 阶段             |
+| 中等复杂度（新功能） | 标准 9 阶段 (Phase 0-8)             |
 | 复杂架构变更         | 完整流程 + 设计评审     |
 | 棕地项目迭代         | 启用 B1-B6 护栏         |
 
@@ -160,7 +160,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 flow-kit/
 ├── GO.md                      # 唯一入口
 ├── README.md                  # 本文档
-├── phases/                    # 8 阶段流程定义
+├── phases/                    # 9 阶段 (Phase 0-8) 流程定义
 │   ├── 0-change/
 │   ├── 1-requirement/
 │   ├── 2-design/
@@ -213,7 +213,7 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v2.6.1_
+_Generated with flow-kit v2.7.0_
 
 ---
 
@@ -233,7 +233,7 @@ _Generated with flow-kit v2.6.1_
 - **P2 修复**: validate-phase jq参数化(16处)、paths.sh绝对路径、token-estimator sourcing guard、context-updater、cost-reporter函数复用、health-rotation readonly、error-handler aggregate_errors
 - **回归修复**: dispatch-status/aggregate $#-eq 0阻塞、notification.sh BSD兼容、get_epoch_ms输出验证
 - **新增功能**: offline-mode.sh(离线模式+内置lint)、pr-description.sh(PR描述生成)
-- **新增命令**: /flow-kit:online、/flow-kit:pr-description、/flow-kit:offline
+- **新增命令**: /flow-kit:mode online、`bash flow-kit/scripts/pr-description.sh`、/flow-kit:mode offline
 
 ### v1.12.17 (2026-05-11)
 
@@ -297,7 +297,7 @@ _Generated with flow-kit v2.6.1_
 - hooks/\*.sh: +参考来源段落
 - templates/LESSONS.md.template: +提名条件与复核剪枝机制
 - skills/team-dispatch.md: +一键启动说明
-- commands/register-commands.md: +/flow-kit:map-codebase 子命令
+- commands/register-commands.md: +/flow-kit:scan 子命令
 
 ### v1.8 (2026-05-08)
 

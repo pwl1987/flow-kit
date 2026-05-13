@@ -7,20 +7,20 @@
 
 启用全部护栏 B1-B6：
 
-- B1: 文件变更限制（单文件 > 50 行警告）
-- B2: 破坏性变更检测
-- B3: 数据库安全
-- B4: 安全检查
-- B5: 性能护栏
-- B6: 测试覆盖率
+- B1: Breaking Change 破坏性变更检测
+- B2: Database Safety 数据库安全
+- B3: Security Checklist 安全检查
+- B4: UI Vocabulary Alignment UI 词汇对齐
+- B5: Performance Guardrail 性能护栏
+- B6: Testing Coverage Gate 测试覆盖率
 
 ### /guard minimal（绿地项目）
 
 启用核心护栏：
 
-- B2: 破坏性变更检测
-- B4: 安全检查
-- B6: 测试覆盖率（≥ 60%）
+- B1: Breaking Change 破坏性变更检测
+- B3: Security Checklist 安全检查
+- B6: Testing Coverage Gate 测试覆盖率（≥ 60%）
 
 ### /guard enable B{1-6}
 
@@ -143,7 +143,7 @@ production_safety:
 
 ## 并发文件锁（并行模式）
 
-> v1.6 新增，v1.12.4 修复: mkdir 原子文件锁
+> v1.6 新增，v2.7.0 修复: mkdir 原子文件锁
 
 ### 并发检测
 
@@ -161,11 +161,11 @@ Recommendation: Use write_files mutex lock to serialize access
 
 ### 手动锁管理
 
-- **`/flow-kit:lock {filepath}`**：锁定文件，防止并发修改
-- **`/flow-kit:unlock {filepath}`**：解锁文件
-- **`/flow-kit:lock-status`**：显示当前锁状态
+- **`/flow-kit:guard lock {filepath}`**：锁定文件，防止并发修改
+- **`/flow-kit:guard unlock {filepath}`**：解锁文件
+- **`/flow-kit:guard lock-status`**：显示当前锁状态
 
-### 锁实现（mkdir 原子文件锁，v1.12.4）
+### 锁实现（mkdir 原子文件锁，v2.7.0）
 
 > 核心保证：同一时间只有一个 agent 能获取锁
 
@@ -222,7 +222,7 @@ fi
 - 锁默认有效期 1 小时（expiry_ts）
 - 锁目录的 mtime 超过 expiry_ts，后续进程可删除并重新获取
 
-**死锁检测机制（v1.12.5 双重条件验证）：**
+**死锁检测机制（v2.7.0 双重条件验证）：**
 
 ```bash
 # 扫描过期锁并清理（双重条件：时间过期 AND mtime 过期）

@@ -24,7 +24,7 @@
 
 ## 【强制】阶段切换交接验证门
 
-> v1.12.1 新增：6-review → 7-integration 切换时触发 Agent 交接验证门
+> v2.7.0 新增：6-review → 7-integration 切换时触发 Agent 交接验证门
 
 **切换前检查**：
 1. 触发 `@flow-kit/skills/agent-pipeline.md` 的 Agent 交接验证门
@@ -53,7 +53,7 @@
 
 ## 回滚命令提示
 
-> v1.12.1 新增：集成完成后提示回滚命令
+> v2.7.0 新增：集成完成后提示回滚命令
 
 变更完成后输出：
 

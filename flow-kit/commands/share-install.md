@@ -1,7 +1,7 @@
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本命令输出团队共享安装指令，供新成员一键配置 flow-kit。
 
-## 执行 /flow-kit:share-install
+## 执行 内部安装脚本
 
 ### 功能
 

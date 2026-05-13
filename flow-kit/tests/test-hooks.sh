@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-hooks.sh — Hooks 集成测试
-# v1.12.9 P1 新增
+# v2.7.0 P1 新增
 # 模拟 hooks 输入，验证拦截逻辑和错误处理
 
 set -euo pipefail

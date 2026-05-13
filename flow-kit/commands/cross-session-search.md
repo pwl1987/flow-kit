@@ -1,5 +1,5 @@
 > 【CLAUDE CODE INSTRUCTION 强制约束】
-> 本文件实现跨会话搜索命令 `/flow-kit:search-lessons`。
+> 本文件实现跨会话搜索命令 `/flow-kit:scan`。
 > D-CMD-01: 搜索方式 = 混合模式（关键词优先 + 语义兜底）
 > D-CMD-02: 输出格式 = 可切换（默认列表，`--verbose` 摘要模式）
 > D-CMD-03: LESSONS.md 读写权限 = 结构化追加（### Entries 用户写，### Extracted 系统只读）
@@ -13,9 +13,9 @@
 ## 命令
 
 ```
-/flow-kit:search-lessons <query> [--verbose]
-/flow-kit:search-lessons --list [--verbose]
-/flow-kit:search-lessons --stats
+/flow-kit:scan <query> [--verbose]
+/flow-kit:scan --list [--verbose]
+/flow-kit:scan --stats
 ```
 
 ## 搜索方式
@@ -39,7 +39,7 @@
 ### 默认列表模式
 
 ```
-/flow-kit:search-lessons "error handling"
+/flow-kit:scan "error handling"
 ```
 
 输出：
@@ -62,7 +62,7 @@
 ### 摘要模式（--verbose）
 
 ```
-/flow-kit:search-lessons "error handling" --verbose
+/flow-kit:scan "error handling" --verbose
 ```
 
 输出：
@@ -141,7 +141,7 @@ Last updated: 2025-05-07
 ## 统计信息
 
 ```
-/flow-kit:search-lessons --stats
+/flow-kit:scan --stats
 ```
 
 输出：
@@ -171,9 +171,9 @@ Total entries: 47
 ### 独立命令
 
 ```bash
-/flow-kit:search-lessons "pattern"
-/flow-kit:search-lessons --list --verbose
-/flow-kit:search-lessons --stats --category patterns
+/flow-kit:scan "pattern"
+/flow-kit:scan --list --verbose
+/flow-kit:scan --stats --category patterns
 ```
 
 ### 自动触发
@@ -185,10 +185,10 @@ Total entries: 47
 
 ```bash
 # 与 learn-rule 集成
-/flow-kit:search-lessons "same mistake"  # 预防重复错误
+/flow-kit:scan "same mistake"  # 预防重复错误
 
 # 与 replay-learnings 集成
-/flow-kit:search-lessons "database"  # 查找相关经验
+/flow-kit:scan "database"  # 查找相关经验
 ```
 
 ---

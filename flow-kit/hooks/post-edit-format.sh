@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # post-edit-format.sh — PostToolUse hook: 自动格式化代码
-# v1.12.17 P1 修复: 简化 PROJECT_DIR 解析 + date 兼容性
+# v2.7.0 P1 修复: 简化 PROJECT_DIR 解析 + date 兼容性
 # Reference: Claude Code hooks 社区最佳实践
 
 INPUT=$(cat)
@@ -56,7 +56,7 @@ if command -v npx &> /dev/null; then
     fi
 fi
 
-# v1.12.10 改进：多语言格式化支持
+# v2.7.0 改进：多语言格式化支持
 detect_and_format() {
     local file="$1"
 
@@ -103,7 +103,7 @@ echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >
 
 exit 0
 
-# v1.12.10 修复：URL 放在 bash 注释中避免被解析
+# v2.7.0 修复：URL 放在 bash 注释中避免被解析
 # 参考来源：
 # - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
 # - garrytan/gstack：https://github.com/garrytan/gstack

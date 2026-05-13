@@ -207,7 +207,7 @@ function schedule(tasks) {
 
 ### D-29 轻量监控仪表盘
 
-**激活命令**：`/flow-kit:dispatch:monitor show`
+**激活命令**：`bash flow-kit/scripts/dispatch.sh --monitor` show`
 
 **显示格式**：
 ```markdown
@@ -224,7 +224,7 @@ function schedule(tasks) {
 **Parallelism**: 2 active agents
 ```
 
-**隐藏命令**：`/flow-kit:dispatch:monitor hide`
+**隐藏命令**：`bash flow-kit/scripts/dispatch.sh --monitor` hide`
 
 ### 验证检查
 

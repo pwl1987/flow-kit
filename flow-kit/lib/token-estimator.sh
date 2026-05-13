@@ -1,6 +1,6 @@
 #!/bin/bash
 # token-estimator.sh — 基于 LOC 的 Token 估算
-# v1.12.10 新增：实现 /flow-kit:estimate-tokens 命令
+# v2.7.0 新增：实现 /flow-kit:estimate-tokens 命令
 # 估算算法: Token ≈ LOC × 1.5 (经验公式)
 
 set -euo pipefail
@@ -21,7 +21,7 @@ if [ "${TOKEN_BUDGET:-100000}" -eq 0 ] 2>/dev/null; then
 fi
 readonly TOKEN_BUDGET="${TOKEN_BUDGET:-100000}"
 
-# v1.12.17 P2 修复: DEFAULT_TARGET 移入 main() 避免顶层 $1 引用
+# v2.7.0 P2 修复: DEFAULT_TARGET 移入 main() 避免顶层 $1 引用
 
 #------------------------------------------------------------------------------
 # 统计函数
@@ -117,7 +117,7 @@ main() {
     fi
 }
 
-# v1.12.17 P0 修复: 添加 sourcing guard 防止 source 时误触发 main()
+# v2.7.0 P0 修复: 添加 sourcing guard 防止 source 时误触发 main()
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

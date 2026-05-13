@@ -1,6 +1,6 @@
 # init-change
 
-> flow-kit v2.6.1 命令
+> flow-kit v2.7.0 命令
 
 ## 描述
 
