@@ -2,6 +2,31 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [3.2.0] - 2026-05-13
+
+### P0: 功能修复
+
+- **GO.md** — 版本声明 v2.x → v3.x，命令数 21 → 22，添加 `/flow-kit:resume`
+- **.claude/commands/** — 9/22 命令补全 `execute` 字段（archive/health/hooks/mode/register-commands/generate-commands/resume/scan/scale）
+- **dispatch.sh** — 删除残留 `━━━` 分隔线
+
+### P1: Token 深度优化
+
+- **dispatch.sh** — 删除版本号注释（~15 处）、压缩 show_help（30→15行）、分隔线→标签
+- **init-change.sh** — 输出从 25 行 emoji → 4 行 caveman 风格
+- **flow-kit.sh** — hooks-summary 删分隔线、status 去重输出
+- **error-handler.sh** — 删除示例代码（14行）和参考来源（4行）
+- **paths.sh** — 删除使用示例（7行）
+- **test-session-state.sh** — 删除 ━━ 分隔线
+
+### P2: 代码质量
+
+- **session-state.sh** — `_ss_now` 简化：删除双重相同 fallback
+- **paths.sh** — `rotate_logs` 纳秒 `%N` → 秒级 `%Y%m%d%H%M%S`（macOS 兼容）
+- **phase-executor.sh** — `find` → `ls -d` 替代，减少子进程开销
+
+---
+
 ## [3.1.0] - 2026-05-13
 
 ### P0: session-state.sh 修复

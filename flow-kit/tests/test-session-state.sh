@@ -28,9 +28,7 @@ export MODE_FILE="$TMP_TEST_DIR/.flow-kit/mode"
 
 source "$PROJECT_DIR/lib/session-state.sh"
 
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "session-state.sh 单元测试"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # --- session_init ---
 session_init "test-change-20260513" "brown"
@@ -113,8 +111,6 @@ phase=$(session_get phase)
 
 # --- 结果 ---
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "session-state 测试: 通过 $PASS | 失败 $FAIL"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 [ "$FAIL" -eq 0 ] && exit 0 || exit 1

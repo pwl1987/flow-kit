@@ -159,7 +159,7 @@ rotate_logs() {
             local basename
             basename=$(basename "$log_file")
             local timestamp
-            timestamp=$(date +%Y%m%d%H%M%S%N 2>/dev/null || printf '%s.%s' "$$" "$RANDOM")
+            timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || printf '%s.%s' "$$" "$RANDOM")
             mv "$log_file" "$archive_dir/${basename%.log}.${timestamp}.log"
         fi
     done
@@ -174,11 +174,3 @@ rotate_logs() {
         fi
     done < <(ls -t "$archive_dir"/*.log 2>/dev/null)
 }
-
-#------------------------------------------------------------------------------
-# 使用示例
-#------------------------------------------------------------------------------
-# source "flow-kit/lib/paths.sh"
-# echo "项目根目录: $PROJECT_DIR"
-# echo "临时目录: $TMP_DIR"
-# init_runtime_dirs

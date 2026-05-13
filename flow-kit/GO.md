@@ -1,8 +1,8 @@
-# flow-kit v2.x 入口文档
+# flow-kit v3.x 入口文档
 
-> flow-kit v2.x — 精简版入口，21 个核心命令
+> flow-kit v3.x — 精简版入口，22 个核心命令
 
-## 21 个核心命令
+## 22 个核心命令
 
 | 命令                          | 说明         | Phase |
 | ----------------------------- | ------------ | ----- |
@@ -18,6 +18,7 @@
 | `/flow-kit:archive`           | 归档变更     | -     |
 | `/flow-kit:next`              | 进入下一阶段 | -     |
 | `/flow-kit:status`            | 查看状态     | -     |
+| `/flow-kit:resume`            | 恢复会话     | -     |
 
 ### Phase 工作流命令
 
@@ -44,14 +45,10 @@ Phase 执行时自动检测项目类型，加载差异化工作流：
 **输出示例**：
 
 ```
-[phase-executor] 项目类型: brownfield
-[phase-executor] Phase: 0-change
-[phase-executor] 加载工作流: flow-kit/phases/0-change/brownfield.md
+[phase-exec] type=brownfield phase=0-change
+[phase-exec] workflow=flow-kit/phases/0-change/brownfield.md
 
-==========================================
-🛡️  棕地项目建议: /flow-kit:guard full
-   启用全部护栏 B1-B6，保护现有代码库
-==========================================
+[phase-exec] guard: /flow-kit:guard full
 ```
 
 ### 护栏建议
@@ -102,9 +99,9 @@ Phase 执行时自动检测项目类型，加载差异化工作流：
 ./flow-kit.sh change init "描述"        # 初始化变更
 ```
 
-## v2.x 改进
+## v3.x 改进
 
-- **精简命令**：154 → 21 个核心命令
+- **精简命令**：154 → 22 个核心命令
 - **条件路由**：phase-executor.sh 根据项目类型加载不同工作流
 - **护栏建议**：自动输出棕地/绿地护栏建议
 - **Phase 自动路由**：`./flow-kit.sh phase-N` 自动路由到对应工作流

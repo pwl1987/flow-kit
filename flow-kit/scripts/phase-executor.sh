@@ -35,7 +35,7 @@ load_workflow() {
 
     # 查找 Phase 目录（支持 0-change, 1-requirement 等格式）
     local phase_dir
-    phase_dir=$(find "$PHASES_DIR" -maxdepth 1 \( -name "${phase}" -o -name "${phase}-*" \) 2>/dev/null | head -1)
+    phase_dir=$(ls -d "$PHASES_DIR/${phase}" "$PHASES_DIR/${phase}-"* 2>/dev/null | head -1)
 
     if [ -z "$phase_dir" ]; then
         echo ""
@@ -45,10 +45,12 @@ load_workflow() {
     # 优先加载项目类型专用工作流
     case "$project_type" in
         brownfield)
-            workflow_file=$(find "$phase_dir" -name "brownfield.md" 2>/dev/null | head -1)
+            workflow_file="$phase_dir/brownfield.md"
+            [ -f "$workflow_file" ] || workflow_file=""
             ;;
         greenfield)
-            workflow_file=$(find "$phase_dir" -name "greenfield.md" 2>/dev/null | head -1)
+            workflow_file="$phase_dir/greenfield.md"
+            [ -f "$workflow_file" ] || workflow_file=""
             ;;
         *)
             workflow_file=""
@@ -57,7 +59,8 @@ load_workflow() {
 
     # 如果没有专用工作流，加载通用工作流
     if [ -z "$workflow_file" ] || [ ! -f "$workflow_file" ]; then
-        workflow_file=$(find "$phase_dir" -maxdepth 1 -name "*.md" ! -name "brownfield.md" ! -name "greenfield.md" 2>/dev/null | head -1)
+        local main_md="$phase_dir/${phase##*-}.md"
+        [ -f "$main_md" ] && workflow_file="$main_md" || workflow_file=$(ls "$phase_dir"/*.md 2>/dev/null | grep -v -e brownfield.md -e greenfield.md | head -1)
     fi
 
     echo "$workflow_file"

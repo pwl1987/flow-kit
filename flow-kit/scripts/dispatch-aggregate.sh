@@ -48,13 +48,9 @@ main() {
     fi
 
     echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "多代理编排聚合报告"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "任务ID: $(jq -r '.task_id' "$summary_file")"
-    echo "任务描述: $(jq -r '.task_desc' "$summary_file")"
-    echo "执行时间: $(jq -r '.executed_at // "未执行"' "$summary_file")"
+    echo "[aggregate] task=$(jq -r '.task_id' "$summary_file")"
+    echo "[aggregate] desc=$(jq -r '.task_desc' "$summary_file")"
+    echo "[aggregate] exec=$(jq -r '.executed_at // "未执行"' "$summary_file")"
     echo ""
 
     local total
@@ -66,15 +62,10 @@ main() {
     local partial
     partial=$(jq -r '.summary.partial // 0' "$summary_file")
 
-    echo "执行统计:"
-    echo "  总代理数: $total"
-    echo "  成功: $successful"
-    echo "  失败: $failed"
-    echo "  部分: $partial"
+    echo "total=$total ok=$successful fail=$failed partial=$partial"
     echo ""
 
     echo "子代理状态:"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     local has_agents=false
     while read -r agent_json; do
         has_agents=true
@@ -97,9 +88,7 @@ main() {
     if [ "$has_agents" != true ]; then
         echo "  (尚未执行，请使用 --execute 运行)"
     fi
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    # 收集所有修改的文件（使用 jq 数组输入聚合）
     echo ""
     echo "修改文件清单:"
     local all_files
@@ -112,10 +101,8 @@ main() {
     echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
 
     echo ""
-    echo "⏳ 使用 /flow-kit:dispatch-status 查看最新状态"
+    echo "[aggregate] /flow-kit:dispatch-status 查看最新状态"
 }
-
-# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

@@ -1,39 +1,25 @@
 #!/bin/bash
 # dispatch.sh — 多代理并行编排脚本
-# v2.7.0 P0 修复：移除 set -e + 添加 trap 清理 + 锁冲突 blocking + result validation
 # 用法: ./dispatch.sh [N] "任务描述"
 
-# P0 修复：移除 set -e，改用显式错误处理
-# set -e 与 jq 回退模式冲突，导致不可预测的脚本终止
-# v2.7.0 改进：启用 -u（未定义变量检测）和 -o pipefail（管道错误传递）
 set -uo pipefail
 
 #------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# v2.7.0 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
 source "$SCRIPT_DIR/../lib/session-state.sh" 2>/dev/null || true
-# 注意：LOCK_DIR/TMP_DIR 复用 paths.sh 中的定义，无需重复定义
 
-# P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
 CHILD_PIDS=(${CHILD_PIDS[@]:-})
 
-# v2.7.0 改进：并发池控制 - 最大并行子代理数
 MAX_CONCURRENT="${MAX_CONCURRENT:-5}"
 
-# v2.7.0 P0 修复：标记模拟模式（生产环境需替换为真实 Agent API）
+# 模拟模式：设 SIMULATION_MODE=false 启用真实执行
 SIMULATION_MODE="${SIMULATION_MODE:-true}"
-if [[ "$SIMULATION_MODE" == "true" ]]; then
-    readonly SIMULATION_WARNING="⚠️  [SIMULATION MODE] dispatch.sh 当前为桩代码，未调用真实 Agent API"
-fi
 
-# v2.9.0: 使用共享时间工具替代内联定义
 source "$SCRIPT_DIR/../lib/time-utils.sh"
-
-# v2.9.0: 依赖预检
 source "$SCRIPT_DIR/../lib/preflight.sh"
 require_jq
 
@@ -96,30 +82,11 @@ trap cleanup_children EXIT INT TERM
 #------------------------------------------------------------------------------
 show_help() {
     cat << 'EOF'
-dispatch.sh — 多代理并行编排脚本
-
-用法:
-  ./dispatch.sh [N] "任务描述"
-  ./dispatch.sh --wait [--timeout <秒>]
-  ./dispatch.sh --aggregate
-
-参数:
-  N           并行 executor 数量（默认: 3）
-  任务描述    要分解和执行的任务
-  --wait      等待子代理完成并聚合结果
-  --timeout   等待超时秒数（默认: 300，仅与 --wait 联用）
-  --aggregate 聚合已有结果
-
-示例:
-  ./dispatch.sh 3 "实现用户认证系统"
-  ./dispatch.sh "修复登录 bug"
-  ./dispatch.sh --wait
-  ./dispatch.sh --wait --timeout 600
-  ./dispatch.sh --aggregate
-
-输出:
-  - .flow-kit/tmp/subagent-{id}-prompt.txt  (子任务 prompt 文件)
-  - .flow-kit/tmp/dispatch-summary.json     (执行摘要)
+用法: ./dispatch.sh [N] "任务" | --wait [--timeout S] | --aggregate
+  N           并行数(默认3)
+  --wait      等待完成
+  --timeout   超时秒(默认300)
+  --aggregate 聚合结果
 EOF
 }
 
@@ -886,14 +853,9 @@ collect_results() {
         local agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
         echo ""
-        echo "────────────────────────────────"
-        echo "多代理编排聚合报告"
-        echo "────────────────────────────────"
-        echo ""
-        echo "任务ID: $task_id"
-        echo "任务描述: $task_desc"
-        echo "启动时间: $launched_at"
-        echo "完成时间: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo "[dispatch] 聚合报告"
+        echo "task=$task_id desc=$task_desc"
+        echo "start=$launched_at end=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo ""
 
         local total=0
@@ -902,7 +864,6 @@ collect_results() {
         local partial=0
 
         echo "子代理状态:"
-        echo "────────────────────────────────"
 
         for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
@@ -923,16 +884,11 @@ collect_results() {
                 total=$((total + 1))
             fi
         done
-        echo "────────────────────────────────"
 
         echo ""
-        echo "执行统计:"
-        echo "  总代理数: $total"
-        echo "  成功: $success"
-        echo "  失败: $failed"
-        echo "  部分: $partial"
+        echo "total=$total ok=$success fail=$failed partial=$partial"
 
-        # 收集所有修改的文件（v2.7.0 优化：单次 jq 聚合，减少子 shell）
+        # 收集所有修改的文件
         echo ""
         echo "修改文件清单:"
         local all_files="[]"
@@ -980,15 +936,11 @@ collect_results() {
             > "$summary_file"
 
     elif [ -f "$summary_file" ]; then
-        # 回退到旧的 summary 文件格式
         echo ""
-        echo "────────────────────────────────"
-        echo "多代理编排聚合报告"
-        echo "────────────────────────────────"
-        echo ""
-        echo "任务ID: $(jq -r '.task_id' "$summary_file")"
-        echo "任务描述: $(jq -r '.task_desc' "$summary_file")"
-        echo "执行时间: $(jq -r '.executed_at // "未执行"' "$summary_file")"
+        echo "[dispatch] 聚合报告(summary)"
+        echo "task=$(jq -r '.task_id' "$summary_file")"
+        echo "desc=$(jq -r '.task_desc' "$summary_file")"
+        echo "exec=$(jq -r '.executed_at // "未执行"' "$summary_file")"
         echo ""
 
         local total=$(jq -r '.summary.total // 0' "$summary_file")
@@ -996,15 +948,10 @@ collect_results() {
         local failed=$(jq -r '.summary.failed // 0' "$summary_file")
         local partial=$(jq -r '.summary.partial // 0' "$summary_file")
 
-        echo "执行统计:"
-        echo "  总代理数: $total"
-        echo "  成功: $successful"
-        echo "  失败: $failed"
-        echo "  部分: $partial"
+        echo "total=$total ok=$successful fail=$failed partial=$partial"
         echo ""
 
         echo "子代理状态:"
-        echo "────────────────────────────────"
         local has_agents=false
         while read -r agent_json; do
             has_agents=true
@@ -1024,7 +971,6 @@ collect_results() {
         if [ "$has_agents" != true ]; then
             echo "  (尚未执行，请使用 --execute 运行)"
         fi
-        echo "────────────────────────────────"
 
         # 收集所有修改的文件
         echo ""
@@ -1043,7 +989,7 @@ collect_results() {
     fi
 
     echo ""
-    echo "⏳ 使用 /flow-kit:dispatch-status 查看最新状态"
+    echo "[dispatch] /flow-kit:dispatch-status 查看最新状态"
 }
 
 #------------------------------------------------------------------------------
@@ -1071,10 +1017,7 @@ main() {
     init_dirs
 
     echo ""
-    echo "🚀 多代理编排已启动"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "任务: $TASK_DESC"
-    echo "并行数: $PARALLEL_N"
+    echo "[dispatch] start: $TASK_DESC parallel=$PARALLEL_N"
     echo ""
 
     split_task "$TASK_DESC" "$PARALLEL_N"
@@ -1085,16 +1028,12 @@ main() {
         collect_results
     else
         echo ""
-        echo "────────────────────────────────"
-        echo "📋 子任务拆分结果:"
+        echo "[dispatch] subtasks:"
         jq '.agents' "$TMP_DIR/dispatch-summary.json"
         echo ""
-        echo "⏳ 使用以下命令执行子代理:"
-        echo "   bash flow-kit/scripts/dispatch.sh --execute"
+        echo "[dispatch] run: bash flow-kit/scripts/dispatch.sh --execute"
     fi
 }
-
-# v2.7.0 改进：仅在直接执行时运行 main，source 时不执行
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi

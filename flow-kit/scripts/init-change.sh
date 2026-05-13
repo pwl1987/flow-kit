@@ -46,7 +46,7 @@ main() {
     # 6. 写入初始阶段状态
     mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
     echo "0" > "$CURRENT_PHASE_FILE"
-    echo "💾 当前阶段已记录: Phase 0"
+    echo "[init] phase=0"
 
     # v3.0.0: 初始化会话状态
     local ss_ptype="green"
@@ -242,48 +242,16 @@ detect_project_type() {
 # 输出护栏推荐
 print_guardrail_recommendation() {
     local project_type="$1"
-
-    echo ""
-    echo "=========================================="
-    echo "flow-kit 变更初始化"
-    echo "=========================================="
-    echo ""
-    echo "📋 项目类型: $project_type"
-
-    if [ "$project_type" = "brownfield" ]; then
-        echo ""
-        echo "🛡️  推荐护栏配置: 棕地项目 - 启用全部护栏 B1-B6"
-        echo "   原因: 已有代码库，需保护现有功能不破坏"
-        echo "   命令: /flow-kit:guard full"
-    else
-        echo ""
-        echo "🛡️  推荐护栏配置: 绿地项目 - 启用核心护栏"
-        echo "   原因: 新项目无历史包袱，可适度放宽，重点关注 B2/B4"
-        echo "   命令: /flow-kit:guard minimal"
-    fi
+    local guard_cmd="minimal"
+    [ "$project_type" = "brownfield" ] && guard_cmd="full"
+    echo "[init] ptype=$project_type guard=$guard_cmd"
 }
 
 # 输出下一步建议
 print_next_steps() {
     local change_id="$1"
-
-    echo ""
-    echo "=========================================="
-    echo "✅ 变更规格已创建: .specs/${change_id}/"
-    echo "=========================================="
-    echo ""
-    echo "📌 下一步建议:"
-    echo ""
-    echo "   1. [推荐] 启动变更立项: /flow-kit:phase-0"
-    echo "      原因: 进入 Phase 0 进行影响范围评估"
-    echo ""
-    echo "   2. [可选] 直接进入需求澄清: /flow-kit:phase-1"
-    echo "      原因: 如果需求已明确，可跳过 Phase 0"
-    echo ""
-    echo "   3. [可选] 如需调整项目类型: /flow-kit:project-type [brownfield|greenfield]"
-    echo "      原因: 当前自动检测可能不准确"
-    echo ""
-    echo "💡 输入 /flow-kit:next 可自动推进到下一步骤"
+    echo "[init] specs: .specs/${change_id}/"
+    echo "[init] next: /flow-kit:phase-0"
 }
 
 # ============================================================================

@@ -196,9 +196,7 @@ show_hooks_summary() {
     fi
 
     echo "最近 20 条执行记录："
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     tail -20 "$log_file"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     # 统计
     local total
@@ -399,25 +397,6 @@ route_command() {
 
         status)
             show_status
-            load_paths
-            echo ""
-            echo "=========================================="
-            echo "flow-kit 项目状态"
-            echo "=========================================="
-            if [ -f "$CURRENT_PHASE_FILE" ]; then
-                local phase
-                phase=$(cat "$CURRENT_PHASE_FILE")
-                echo "📍 当前阶段: Phase $phase"
-            else
-                echo "📍 当前阶段: 未初始化（请先运行 /flow-kit:init）"
-            fi
-            if [ -f "$PROJECT_TYPE_FILE" ]; then
-                local ptype
-                ptype=$(grep "^project_type:" "$PROJECT_TYPE_FILE" | cut -d' ' -f2)
-                echo "📋 项目类型: $ptype"
-            else
-                echo "📋 项目类型: 未检测（请先运行 /flow-kit:health）"
-            fi
             exit 0
             ;;
 

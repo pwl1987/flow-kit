@@ -220,11 +220,24 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v3.1.0_
+_Generated with flow-kit v3.2.0_
 
 ---
 
 ## Changelog
+
+### v3.2.0 (2026-05-13)
+
+- GO.md 版本声明 v2.x → v3.x，命令数 21 → 22（含 resume）
+- 9/22 命令补全 execute 字段，全部可执行
+- dispatch.sh token 深度优化：删除分隔线/版本注释，压缩帮助信息
+- init-change.sh 输出精简：25 行 emoji → 4 行 caveman 风格
+- flow-kit.sh status 去重输出，hooks-summary 删分隔线
+- error-handler.sh 删除示例代码和参考来源段落
+- paths.sh 删除使用示例，rotate_logs 纳秒→秒（macOS 兼容）
+- session-state.sh `_ss_now` 简化双重 fallback
+- phase-executor.sh find → ls 替代（减少子进程开销）
+- test-session-state.sh 删除 ━━ 分隔线
 
 ### v3.1.0 (2026-05-13)
 

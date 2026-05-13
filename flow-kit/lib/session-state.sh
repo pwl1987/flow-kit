@@ -20,7 +20,7 @@ source "$_SS_SCRIPT_DIR/paths.sh" 2>/dev/null || {
 # 内部函数
 #------------------------------------------------------------------------------
 
-_ss_now() { date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +"%Y-%m-%dT%H:%M:%SZ"; }
+_ss_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 _ss_skeleton() {
     jq -n --arg ts "$(_ss_now)" '{

@@ -436,11 +436,8 @@ validate_phase() {
     fi
 
     echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "验证 Phase $phase 产物"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Schema: $schema_file"
-    echo "产物:   $json_file"
+    echo "[validate] phase=$phase schema=$schema_file"
+    echo "产物: $json_file"
     echo ""
 
     local all_errors=()
@@ -517,9 +514,7 @@ validate_all() {
     done
 
     echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "验证结果汇总"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "[validate] 汇总"
     if [ $failed -eq 0 ]; then
         echo "[validate-phase] ✅ 所有阶段产物验证通过"
         return 0
