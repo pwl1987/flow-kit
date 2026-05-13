@@ -28,7 +28,8 @@ fi
 #------------------------------------------------------------------------------
 check_test_coverage() {
     # 使用 paths.sh 常量而非相对路径
-    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local SCRIPT_DIR
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     source "$SCRIPT_DIR/../lib/paths.sh" 2>/dev/null || true
     local coverage_file="${COVERAGE_DIR:-.flow-kit/coverage}/lcov.info"
     local threshold=80

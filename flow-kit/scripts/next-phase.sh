@@ -40,9 +40,11 @@ advance_phase() {
     mv "$tmp_file" "$CURRENT_PHASE_FILE"
 
     # v3.0.0: 更新会话状态
+    # v3.3.0: 追加执行历史
     session_set phase "$next"
     session_set status pending
     session_next "run /flow-kit:phase-$next"
+    session_history_add "next->$next"
 
     echo "phase $current → $next"
     echo "run /flow-kit:phase-$next"

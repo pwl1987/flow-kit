@@ -109,6 +109,88 @@ rm -rf "$TMP_TEST_DIR/.specs"
 phase=$(session_get phase)
 [ "$phase" = "0" ] && pass "empty fallback phase=0" || fail "empty fallback: got '$phase'"
 
+# ============================================================================
+# v3.3.0 P1: session-state v2 测试
+# ============================================================================
+
+# 重新初始化干净的 v2 状态
+rm -f "$SESSION_STATE_FILE" "$CURRENT_PHASE_FILE"
+session_init "v2-test-20260513" "green"
+
+# --- v2 schema ---
+version=$(session_get v)
+[ "$version" = "2" ] && pass "v2 schema version" || fail "v2 version: got '$version'"
+
+history=$(session_get history)
+[ "$history" = "" ] && pass "v2 history empty on init" || fail "v2 history init: got '$history'"
+
+decisions=$(session_get decisions)
+[ "$decisions" = "" ] && pass "v2 decisions empty on init" || fail "v2 decisions init: got '$decisions'"
+
+interactions=$(session_get interactions)
+[ "$interactions" = "" ] && pass "v2 interactions empty on init" || fail "v2 interactions init: got '$interactions'"
+
+# --- session_history_add ---
+session_history_add "phase-0"
+history=$(session_get history)
+echo "$history" | grep -q "phase-0" && pass "history_add appends action" || fail "history_add: got '$history'"
+
+session_history_add "phase-1"
+history=$(session_get history)
+echo "$history" | grep -q "phase-0" && echo "$history" | grep -q "phase-1" && pass "history_add multiple entries" || fail "history_add multiple: got '$history'"
+
+# --- session_history_get ---
+history_lines=$(session_history_get | wc -l)
+[ "$history_lines" -ge 2 ] && pass "history_get returns entries" || fail "history_get: got $history_lines lines"
+
+# --- session_decision_add ---
+session_decision_add "d1" "y"
+decisions=$(session_get decisions)
+echo "$decisions" | grep -q "d1:y" && pass "decision_add appends decision" || fail "decision_add: got '$decisions'"
+
+session_decision_add "d2" "n"
+decisions=$(session_get decisions)
+echo "$decisions" | grep -q "d1:y" && echo "$decisions" | grep -q "d2:n" && pass "decision_add multiple" || fail "decision_add multiple: got '$decisions'"
+
+# --- session_interaction_set ---
+session_interaction_set "用户确认使用 JWT 认证方案"
+interactions=$(session_get interactions)
+[ "$interactions" = "用户确认使用 JWT 认证方案" ] && pass "interaction_set stores summary" || fail "interaction_set: got '$interactions'"
+
+# --- session_interaction_set 截断 ---
+long_summary=$(printf 'A%.0s' {1..120})
+session_interaction_set "$long_summary"
+interactions=$(session_get interactions)
+[ ${#interactions} -le 100 ] && pass "interaction_set truncates to 100" || fail "interaction_set truncation: len=${#interactions}"
+
+# --- v1 → v2 自动迁移 ---
+rm -f "$SESSION_STATE_FILE"
+# 创建 v1 格式文件
+jq -n '{
+    v: 1,
+    change: "legacy-change",
+    phase: 3,
+    status: "wip",
+    ptype: "brown",
+    mode: "auto",
+    tasks: "T1:done,T2:wip",
+    next: "",
+    blockers: "",
+    ts: "2026-05-13T00:00:00Z"
+}' > "$SESSION_STATE_FILE"
+
+# 触发 v1→v2 迁移
+session_history_add "phase-3"
+version=$(session_get v)
+[ "$version" = "2" ] && pass "v1 migrate to v2" || fail "v1 migrate: got v=$version"
+
+history=$(session_get history)
+echo "$history" | grep -q "phase-3" && pass "v1 migrate preserves new history" || fail "v1 migrate history: got '$history'"
+
+# v1 原有字段保持不变
+change=$(session_get change)
+[ "$change" = "legacy-change" ] && pass "v1 migrate preserves change" || fail "v1 migrate change: got '$change'"
+
 # --- 结果 ---
 echo ""
 echo "session-state 测试: 通过 $PASS | 失败 $FAIL"

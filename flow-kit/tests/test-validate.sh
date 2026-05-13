@@ -56,7 +56,8 @@ make_temp_dir() {
 #------------------------------------------------------------------------------
 
 test_validate_required_pass() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"name": "test", "version": "1.0.0"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"name": {"type": "string"}, "version": {"type": "string"}}, "required": ["name", "version"]}' > "$tmp_dir/schema.json"
 
@@ -71,7 +72,8 @@ test_validate_required_pass() {
 }
 
 test_validate_required_fail() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"name": "test"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"name": {"type": "string"}, "version": {"type": "string"}}, "required": ["name", "version"]}' > "$tmp_dir/schema.json"
 
@@ -86,7 +88,8 @@ test_validate_required_fail() {
 }
 
 test_validate_types_string() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"name": "test"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"name": {"type": "string"}}}' > "$tmp_dir/schema.json"
 
@@ -101,7 +104,8 @@ test_validate_types_string() {
 }
 
 test_validate_types_mismatch() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"count": "not_a_number"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"count": {"type": "number"}}}' > "$tmp_dir/schema.json"
 
@@ -116,7 +120,8 @@ test_validate_types_mismatch() {
 }
 
 test_validate_string_length_min() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"name": "ab"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"name": {"type": "string", "minLength": 5}}}' > "$tmp_dir/schema.json"
 
@@ -131,7 +136,8 @@ test_validate_string_length_min() {
 }
 
 test_validate_string_length_max() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"name": "too_long_name_here"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"name": {"type": "string", "maxLength": 5}}}' > "$tmp_dir/schema.json"
 
@@ -146,7 +152,8 @@ test_validate_string_length_max() {
 }
 
 test_validate_enum_pass() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"level": "info"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"level": {"type": "string", "enum": ["debug", "info", "warn", "error"]}}}' > "$tmp_dir/schema.json"
 
@@ -161,7 +168,8 @@ test_validate_enum_pass() {
 }
 
 test_validate_enum_fail() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"level": "critical"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"level": {"type": "string", "enum": ["debug", "info", "warn", "error"]}}}' > "$tmp_dir/schema.json"
 
@@ -176,7 +184,8 @@ test_validate_enum_fail() {
 }
 
 test_validate_nested_object() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"metadata": {"author": "test", "version": 1}}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"metadata": {"type": "object", "properties": {"author": {"type": "string"}, "version": {"type": "integer"}}, "required": ["author"]}}}' > "$tmp_dir/schema.json"
 
@@ -191,7 +200,8 @@ test_validate_nested_object() {
 }
 
 test_validate_nested_object_missing_required() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"metadata": {"version": 1}}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"metadata": {"type": "object", "properties": {"author": {"type": "string"}, "version": {"type": "integer"}}, "required": ["author"]}}}' > "$tmp_dir/schema.json"
 
@@ -206,7 +216,8 @@ test_validate_nested_object_missing_required() {
 }
 
 test_validate_array_items() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"tags": ["a", "b", "c"]}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"tags": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 5}}}' > "$tmp_dir/schema.json"
 
@@ -221,7 +232,8 @@ test_validate_array_items() {
 }
 
 test_validate_array_items_type_mismatch() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"tags": ["a", 42, "c"]}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"tags": {"type": "array", "items": {"type": "string"}}}}' > "$tmp_dir/schema.json"
 
@@ -236,7 +248,8 @@ test_validate_array_items_type_mismatch() {
 }
 
 test_validate_pattern() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"email": "user@example.com"}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"email": {"type": "string", "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"}}}' > "$tmp_dir/schema.json"
 
@@ -251,7 +264,8 @@ test_validate_pattern() {
 }
 
 test_validate_number_range() {
-    local tmp_dir=$(make_temp_dir)
+    local tmp_dir
+    tmp_dir=$(make_temp_dir)
     echo '{"score": 85}' > "$tmp_dir/input.json"
     echo '{"type": "object", "properties": {"score": {"type": "number", "minimum": 0, "maximum": 100}}}' > "$tmp_dir/schema.json"
 

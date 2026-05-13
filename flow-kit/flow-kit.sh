@@ -17,7 +17,8 @@ set -euo pipefail
 # 版本读取（v2.7.0 新增）
 #------------------------------------------------------------------------------
 read_version() {
-    local -r version_file="$(dirname "$0")/VERSION"
+    local version_file
+    version_file="$(dirname "$0")/VERSION"
     if [ -f "$version_file" ]; then
         cat "$version_file"
     else
@@ -26,7 +27,8 @@ read_version() {
 }
 
 load_paths() {
-    local paths_file="$(dirname "$0")/lib/paths.sh"
+    local paths_file
+    paths_file="$(dirname "$0")/lib/paths.sh"
     if [ -f "$paths_file" ]; then
         source "$paths_file"
     fi
@@ -61,6 +63,7 @@ flow-kit $ver — 结构化开发流程 CLI
 
 命令:
   help                    显示帮助信息和使用示例
+  install                 自动化安装部署（OS 检测、依赖检查、命令注册）
   status                  显示当前执行模式
   share                   输出团队共享安装指令
   map-codebase           运行存量项目代码库扫描
@@ -85,6 +88,8 @@ flow-kit $ver — 结构化开发流程 CLI
 
 示例:
   ./flow-kit.sh help                      # 显示帮助
+  ./flow-kit.sh install                   # 自动化安装
+  ./flow-kit.sh install --silent          # 静默安装
   ./flow-kit.sh status                    # 显示当前模式
   ./flow-kit.sh share                     # 输出团队安装指令
   ./flow-kit.sh map-codebase              # 扫描当前项目
@@ -224,7 +229,8 @@ route_command() {
             ;;
 
         pr-description)
-            local pr_desc_script="$(dirname "$0")/scripts/pr-description.sh"
+            local pr_desc_script
+            pr_desc_script="$(dirname "$0")/scripts/pr-description.sh"
             if [ -f "$pr_desc_script" ]; then
                 bash "$pr_desc_script" "$@"
             else
@@ -234,7 +240,8 @@ route_command() {
             ;;
 
         offline)
-            local offline_script="$(dirname "$0")/scripts/offline-mode.sh"
+            local offline_script
+            offline_script="$(dirname "$0")/scripts/offline-mode.sh"
             if [ -f "$offline_script" ]; then
                 bash "$offline_script" "$@"
             else
@@ -244,7 +251,8 @@ route_command() {
             ;;
 
         online)
-            local offline_script="$(dirname "$0")/scripts/offline-mode.sh"
+            local offline_script
+            offline_script="$(dirname "$0")/scripts/offline-mode.sh"
             if [ -f "$offline_script" ]; then
                 bash "$offline_script" off
             else
@@ -297,7 +305,8 @@ route_command() {
                 exit 1
             fi
             # 直接调用 dispatch.sh 执行（--execute 模式）
-            local dispatch_script="$(dirname "$0")/scripts/dispatch.sh"
+            local dispatch_script
+            dispatch_script="$(dirname "$0")/scripts/dispatch.sh"
             if [ ! -f "$dispatch_script" ]; then
                 echo "[flow-kit] 错误: dispatch.sh 不存在"
                 exit 1
@@ -312,9 +321,32 @@ route_command() {
             exit 0
             ;;
 
+        install)
+            local install_script
+            install_script="$(dirname "$0")/scripts/install.sh"
+            if [ -f "$install_script" ]; then
+                bash "$install_script" "$@"
+            else
+                echo "[flow-kit] 错误: install.sh 不存在"
+                exit 1
+            fi
+            ;;
+
+        code-review|plan-generate|tmux-init|tmux-run|tmux-aggregate|tmux-cleanup)
+            local script_file
+            script_file="$(dirname "$0")/scripts/${cmd}.sh"
+            if [ -f "$script_file" ]; then
+                bash "$script_file" "$@"
+            else
+                echo "[flow-kit] 错误: ${cmd}.sh 不存在"
+                exit 1
+            fi
+            ;;
+
         register)
             echo "[flow-kit] 注册斜杠命令..."
-            local gen_script="$(dirname "$0")/scripts/generate-commands.sh"
+            local gen_script
+            gen_script="$(dirname "$0")/scripts/generate-commands.sh"
             if [ -f "$gen_script" ]; then
                 bash "$gen_script" --force
                 echo "[flow-kit] ✅ 斜杠命令注册完成"
@@ -329,7 +361,8 @@ route_command() {
             local phases_dir=".planning/phases"
             mkdir -p "$archive_dir"
             if [ -d "$phases_dir" ]; then
-                local archive_name="archive-$(date +%Y%m%d-%H%M%S).tar.gz"
+                local archive_name
+                archive_name="archive-$(date +%Y%m%d-%H%M%S).tar.gz"
                 tar -czf "$archive_dir/$archive_name" "$phases_dir" 2>/dev/null && \
                     echo "[flow-kit] ✅ 已归档到 $archive_dir/$archive_name" || \
                     echo "[flow-kit] ⚠️ 归档失败"
@@ -358,7 +391,8 @@ route_command() {
                         echo "[flow-kit] 示例: ./flow-kit.sh change init \"添加用户反馈中心\""
                         exit 1
                     fi
-                    local init_script="$(dirname "$0")/scripts/init-change.sh"
+                    local init_script
+                    init_script="$(dirname "$0")/scripts/init-change.sh"
                     if [ -f "$init_script" ]; then
                         bash "$init_script" "$desc"
                     else
@@ -376,7 +410,8 @@ route_command() {
 
         phase-*)
             local phase_num="${cmd#phase-}"
-            local executor_script="$(dirname "$0")/scripts/phase-executor.sh"
+            local executor_script
+            executor_script="$(dirname "$0")/scripts/phase-executor.sh"
             if [ -f "$executor_script" ]; then
                 bash "$executor_script" "$phase_num"
             else
@@ -386,7 +421,8 @@ route_command() {
             ;;
 
         next)
-            local next_script="$(dirname "$0")/scripts/next-phase.sh"
+            local next_script
+            next_script="$(dirname "$0")/scripts/next-phase.sh"
             if [ -f "$next_script" ]; then
                 bash "$next_script"
             else

@@ -16,24 +16,23 @@ SCAN_DIR="."
 SEVERITY_THRESHOLD="${SEVERITY_THRESHOLD:-medium}"
 
 #------------------------------------------------------------------------------
-# 颜色输出
+# 颜色输出（使用 scan_ 前缀避免覆盖 error-handler.sh 日志函数）
 #------------------------------------------------------------------------------
-# 覆盖 error-handler.sh 的日志函数以支持彩色输出和 SCAN_DIR 前缀
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-log_info()  { echo -e "${GREEN}[INFO]${NC} $(basename "$SCAN_DIR"): $1"; }
-log_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_debug() { echo -e "${NC}[DEBUG] $1"; }
+scan_info()  { echo -e "${GREEN}[INFO]${NC} $(basename "$SCAN_DIR"): $1"; }
+scan_warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
+scan_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+scan_debug() { echo -e "${NC}[DEBUG] $1"; }
 
 #------------------------------------------------------------------------------
 # 扫描硬编码密钥
 #------------------------------------------------------------------------------
 scan_hardcoded_secrets() {
-    log_info "扫描硬编码密钥..."
+    scan_info "扫描硬编码密钥..."
 
     local found=0
     local patterns=(
@@ -51,14 +50,14 @@ scan_hardcoded_secrets() {
         while IFS= read -r file; do
             local line_num
             line_num=$(grep -n "$pattern" "$file" 2>/dev/null | head -1 | cut -d: -f1 || echo "?")
-            log_error "发现疑似密钥: $file:$line_num"
+            scan_error "发现疑似密钥: $file:$line_num"
             echo "  Pattern: $pattern"
             found=$((found + 1))
         done < <(grep -rlE "$pattern" --include="*.sh" --include="*.js" --include="*.ts" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' | grep -v -E '(\.md|\.txt|test_|_test\.|spec\.)' || true)
     done
 
     if [ "$found" -eq 0 ]; then
-        log_info "未发现硬编码密钥"
+        scan_info "未发现硬编码密钥"
     fi
 
     return $found
@@ -68,7 +67,7 @@ scan_hardcoded_secrets() {
 # 扫描 SQL 注入风险
 #------------------------------------------------------------------------------
 scan_sql_injection() {
-    log_info "扫描 SQL 注入风险..."
+    scan_info "扫描 SQL 注入风险..."
 
     local found=0
     local patterns=(
@@ -83,14 +82,14 @@ scan_sql_injection() {
             local matches
             matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
             if [ "$matches" -gt 0 ]; then
-                log_warn "发现疑似 SQL 注入风险: $file ($matches 处)"
+                scan_warn "发现疑似 SQL 注入风险: $file ($matches 处)"
                 found=$((found + 1))
             fi
         done < <(grep -rlE "$pattern" --include="*.js" --include="*.ts" --include="*.py" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
     done
 
     if [ "$found" -eq 0 ]; then
-        log_info "未发现 SQL 注入风险"
+        scan_info "未发现 SQL 注入风险"
     fi
 
     return $found
@@ -100,7 +99,7 @@ scan_sql_injection() {
 # 扫描 XSS 风险
 #------------------------------------------------------------------------------
 scan_xss() {
-    log_info "扫描 XSS 风险..."
+    scan_info "扫描 XSS 风险..."
 
     local found=0
     local patterns=(
@@ -115,14 +114,14 @@ scan_xss() {
             local matches
             matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
             if [ "$matches" -gt 0 ]; then
-                log_warn "发现疑似 XSS 风险: $file ($matches 处)"
+                scan_warn "发现疑似 XSS 风险: $file ($matches 处)"
                 found=$((found + 1))
             fi
         done < <(grep -rlE "$pattern" --include="*.js" --include="*.ts" --include="*.html" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
     done
 
     if [ "$found" -eq 0 ]; then
-        log_info "未发现 XSS 风险"
+        scan_info "未发现 XSS 风险"
     fi
 
     return $found
@@ -132,7 +131,7 @@ scan_xss() {
 # 扫描危险 shell 命令
 #------------------------------------------------------------------------------
 scan_dangerous_shell() {
-    log_info "扫描危险 shell 命令..."
+    scan_info "扫描危险 shell 命令..."
 
     local found=0
     local patterns=(
@@ -144,14 +143,14 @@ scan_dangerous_shell() {
 
     for pattern in "${patterns[@]}"; do
         while IFS= read -r file; do
-            log_error "发现危险命令: $file"
+            scan_error "发现危险命令: $file"
             grep -n "$pattern" "$file" 2>/dev/null | head -3
             found=$((found + 1))
         done < <(grep -rlE "$pattern" --include="*.sh" "$SCAN_DIR" 2>/dev/null | grep -v '.git' || true)
     done
 
     if [ "$found" -eq 0 ]; then
-        log_info "未发现危险 shell 命令"
+        scan_info "未发现危险 shell 命令"
     fi
 
     return $found
@@ -184,10 +183,10 @@ main() {
     echo ""
     echo "=========================================="
     if [ "$total_issues" -gt 0 ]; then
-        log_error "发现 $total_issues 个安全问题"
+        scan_error "发现 $total_issues 个安全问题"
         return 1
     else
-        log_info "未发现安全问题"
+        scan_info "未发现安全问题"
         return 0
     fi
 }

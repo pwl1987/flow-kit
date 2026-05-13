@@ -102,7 +102,8 @@ test_parse_args_aggregate_mode() {
 
 test_init_dirs() {
     # 测试目录初始化
-    local test_tmp=$(mktemp -d)
+    local test_tmp
+    test_tmp=$(mktemp -d)
     local result
     result=$(bash -c '
         TMP_DIR="'"$test_tmp"'/tmp"

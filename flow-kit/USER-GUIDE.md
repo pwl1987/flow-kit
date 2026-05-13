@@ -1,6 +1,6 @@
 # flow-kit 用户指导手册
 
-> **版本**: v3.2.0
+> **版本**: v3.3.0
 > **更新日期**: 2026-05-13
 > **适用环境**: Claude Code
 
@@ -137,30 +137,37 @@ cat .flow-kit/current-phase
 
 ### 22 个核心命令
 
-| 命令                          | 说明           |
-| ----------------------------- | -------------- |
-| `/flow-kit:init`              | 变更初始化     |
-| `/flow-kit:health`            | 项目健康扫描   |
-| `/flow-kit:scan`              | 技术情报扫描   |
-| `/flow-kit:phase-0`           | 变更立项       |
-| `/flow-kit:phase-1`           | 需求澄清       |
-| `/flow-kit:phase-2`           | 架构设计       |
-| `/flow-kit:phase-3`           | 任务拆解       |
-| `/flow-kit:phase-4`           | 开发执行       |
-| `/flow-kit:phase-5`           | 测试验证       |
-| `/flow-kit:phase-6`           | 代码审查       |
-| `/flow-kit:phase-7`           | 集成归档       |
-| `/flow-kit:phase-8`           | 变更回滚       |
-| `/flow-kit:next`              | 推进到下一阶段 |
-| `/flow-kit:status`            | 显示当前状态   |
-| `/flow-kit:guard`             | 护栏管理       |
-| `/flow-kit:archive`           | 归档完成变更   |
-| `/flow-kit:scale`             | 扩展级别评估   |
-| `/flow-kit:mode`              | 执行模式切换   |
-| `/flow-kit:hooks`             | Hooks 使用指南 |
-| `/flow-kit:register-commands` | 注册斜杠命令   |
-| `/flow-kit:generate-commands` | 重新生成命令   |
-| `/flow-kit:resume`            | 恢复会话状态   |
+| 命令                          | 说明            |
+| ----------------------------- | --------------- |
+| `/flow-kit:init`              | 变更初始化      |
+| `/flow-kit:health`            | 项目健康扫描    |
+| `/flow-kit:scan`              | 技术情报扫描    |
+| `/flow-kit:install`           | 自动化安装部署  |
+| `/flow-kit:code-review`       | 自动化代码评审  |
+| `/flow-kit:plan-generate`     | 开发方案生成    |
+| `/flow-kit:tmux-init`         | tmux 并行初始化 |
+| `/flow-kit:tmux-run`          | tmux 并行执行   |
+| `/flow-kit:tmux-aggregate`    | tmux 结果聚合   |
+| `/flow-kit:tmux-cleanup`      | tmux 环境清理   |
+| `/flow-kit:phase-0`           | 变更立项        |
+| `/flow-kit:phase-1`           | 需求澄清        |
+| `/flow-kit:phase-2`           | 架构设计        |
+| `/flow-kit:phase-3`           | 任务拆解        |
+| `/flow-kit:phase-4`           | 开发执行        |
+| `/flow-kit:phase-5`           | 测试验证        |
+| `/flow-kit:phase-6`           | 代码审查        |
+| `/flow-kit:phase-7`           | 集成归档        |
+| `/flow-kit:phase-8`           | 变更回滚        |
+| `/flow-kit:next`              | 推进到下一阶段  |
+| `/flow-kit:status`            | 显示当前状态    |
+| `/flow-kit:guard`             | 护栏管理        |
+| `/flow-kit:archive`           | 归档完成变更    |
+| `/flow-kit:scale`             | 扩展级别评估    |
+| `/flow-kit:mode`              | 执行模式切换    |
+| `/flow-kit:hooks`             | Hooks 使用指南  |
+| `/flow-kit:register-commands` | 注册斜杠命令    |
+| `/flow-kit:generate-commands` | 重新生成命令    |
+| `/flow-kit:resume`            | 恢复会话状态    |
 
 ### 护栏子命令
 
@@ -356,4 +363,4 @@ phases/
 
 ---
 
-_Generated: 2026-05-13 flow-kit v3.2.0_
+_Generated: 2026-05-13 flow-kit v3.3.0_

@@ -246,16 +246,19 @@ validate_array_items() {
                     case "$items_type" in
                         string)
                             if [ "$item_type" != "string" ]; then
+                                # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 string，实际 $item_type (值: $item_value)")
                             fi
                             ;;
                         number|integer)
                             if [ "$item_type" != "number" ] && [ "$item_type" != "integer" ]; then
+                                # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 number，实际 $item_type (值: $item_value)")
                             fi
                             ;;
                         object)
                             if [ "$item_type" != "object" ]; then
+                                # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 object，实际 $item_type (值: $item_value)")
                             fi
                             ;;

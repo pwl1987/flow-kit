@@ -21,6 +21,8 @@ SIMULATION_MODE="${SIMULATION_MODE:-true}"
 
 source "$SCRIPT_DIR/../lib/time-utils.sh"
 source "$SCRIPT_DIR/../lib/preflight.sh"
+source "$SCRIPT_DIR/dispatch-parse.sh"
+source "$SCRIPT_DIR/dispatch-lock.sh"
 require_jq
 
 cleanup_children() {
@@ -78,96 +80,6 @@ cleanup_children() {
 trap cleanup_children EXIT INT TERM
 
 #------------------------------------------------------------------------------
-# 帮助信息
-#------------------------------------------------------------------------------
-show_help() {
-    cat << 'EOF'
-用法: ./dispatch.sh [N] "任务" | --wait [--timeout S] | --aggregate
-  N           并行数(默认3)
-  --wait      等待完成
-  --timeout   超时秒(默认300)
-  --aggregate 聚合结果
-EOF
-}
-
-#------------------------------------------------------------------------------
-# 参数解析
-#------------------------------------------------------------------------------
-parse_args() {
-    EXECUTE_MODE=false
-    WAIT_MODE=false
-    AGGREGATE_MODE=false
-    WAIT_TIMEOUT=300
-
-    if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-        show_help
-        exit 0
-    fi
-
-    # 收集所有参数（过滤掉 --execute, --wait, --aggregate, --timeout）
-    local args=()
-    local skip_next=false
-    local timeout_next=false
-    for arg in "$@"; do
-        if [ "$skip_next" = true ]; then
-            skip_next=false
-            continue
-        fi
-        if [ "$timeout_next" = true ]; then
-            WAIT_TIMEOUT="$arg"
-            timeout_next=false
-            continue
-        fi
-        case "$arg" in
-            --execute)
-                EXECUTE_MODE=true
-                ;;
-            --wait)
-                WAIT_MODE=true
-                ;;
-            --aggregate)
-                AGGREGATE_MODE=true
-                ;;
-            --timeout)
-                timeout_next=true
-                ;;
-            *)
-                args+=("$arg")
-                ;;
-        esac
-    done
-
-    # 如果是 aggregate 或 wait 模式，不需要任务描述
-    if [ "$AGGREGATE_MODE" = true ] || [ "$WAIT_MODE" = true ]; then
-        TASK_DESC=""
-        PARALLEL_N=0
-        return 0
-    fi
-
-    # 空数组保护
-    if [ ${#args[@]} -eq 0 ]; then
-        echo "[dispatch] 错误: 缺少任务描述参数" >&2
-        return 1
-    fi
-
-    # 从过滤后的参数中解析数字
-    if [[ "${args[0]}" =~ ^[0-9]+$ ]]; then
-        PARALLEL_N="${args[0]}"
-        args=("${args[@]:1}")
-    else
-        PARALLEL_N=3
-    fi
-
-    # 合并剩余参数为任务描述
-    TASK_DESC="${args[*]}"
-
-    if [ -z "$TASK_DESC" ]; then
-        echo "[dispatch] 错误: 任务描述不能为空" >&2
-        exit 1
-    fi
-}
-
-#------------------------------------------------------------------------------
 # 目录初始化
 #------------------------------------------------------------------------------
 init_dirs() {
@@ -182,7 +94,8 @@ split_task() {
     local task="$1"
     local n="$2"
 
-    local TASK_ID="task-$(date +%Y%m%d%H%M%S)"
+    local TASK_ID
+    TASK_ID="task-$(date +%Y%m%d%H%M%S)"
     local CREATED_AT
     CREATED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
@@ -311,47 +224,6 @@ ROLE_EOF
 }
 
 #------------------------------------------------------------------------------
-# 锁冲突检测（v2.7.0 修复：改为 blocking 等待而非仅警告）
-#------------------------------------------------------------------------------
-check_lock_conflicts() {
-    echo "[dispatch] 🔒 检查锁冲突..."
-
-    local locks_count=0
-    if [ -d "$LOCK_DIR" ]; then
-        locks_count=$(find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | wc -l)
-    fi
-
-    echo "[dispatch] 当前活跃锁数: $locks_count"
-
-    if [ "$locks_count" -gt 0 ]; then
-        echo "[dispatch] 🚫 检测到 $locks_count 个活跃锁，等待解锁..."
-
-        local wait_timeout=30
-        local wait_elapsed=0
-        local wait_interval=2
-
-        while [ $wait_elapsed -lt $wait_timeout ]; do
-            local current_locks
-            current_locks=$(find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | wc -l)
-
-            if [ "$current_locks" -eq 0 ]; then
-                echo "[dispatch] ✅ 锁已释放，继续执行"
-                return 0
-            fi
-
-            echo "[dispatch]    等待中... ($wait_elapsed/$wait_timeout 秒)"
-            sleep $wait_interval
-            wait_elapsed=$((wait_elapsed + wait_interval))
-        done
-
-        echo "[dispatch] ❌ 锁冲突超时 (${wait_timeout}s)，终止执行" >&2
-        return 1
-    else
-        echo "[dispatch] ✅ 无锁冲突"
-    fi
-}
-
-#------------------------------------------------------------------------------
 # 执行单个子代理（后台进程函数，支持重试）
 #------------------------------------------------------------------------------
 run_single_agent() {
@@ -403,7 +275,8 @@ run_single_agent() {
             fi
 
             # 读取prompt内容
-            local prompt_content=$(cat "$prompt_file")
+            local prompt_content
+            prompt_content=$(cat "$prompt_file")
 
             # v2.7.0 P0 修复：模拟模式警告
             if [[ "$SIMULATION_MODE" == "true" ]]; then
@@ -413,7 +286,8 @@ run_single_agent() {
             sleep 2  # 模拟执行时间（占位代码）
 
             # 根据角色生成模拟结果
-            local role_lower=$(echo "$role" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+            local role_lower
+            role_lower=$(echo "$role" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
             local simulated_status="SUCCESS"
             local simulated_files="[\"src/${role_lower}.ts\"]"
 
@@ -442,53 +316,6 @@ EOF
             echo "[agent-$agent_id] ❌ 执行失败（已重试 $max_retries 次）"
         fi
     } >> "$log_file" 2>&1
-}
-
-#------------------------------------------------------------------------------
-# 并发池控制（v2.7.0 改进：使用 flock 消除竞态 + 防止 FD/文件泄漏）
-#------------------------------------------------------------------------------
-acquire_slot() {
-    local max_conc="$1"
-    local slot_num=""
-    for ((i=0; i<max_conc; i++)); do
-        local lockdir="$TMP_DIR/slot-$i.lock"
-        # 使用 mkdir 原子创建目录来实现锁（无需 FD）
-        if mkdir "$lockdir" 2>/dev/null; then
-            slot_num="$i"
-            # 保存 slot 编号到临时文件
-            echo "$i" > "$TMP_DIR/slot-$$.id"
-            return 0
-        fi
-    done
-    return 1
-}
-
-release_slot() {
-    local slot_id_file="$TMP_DIR/slot-$$.id"
-    if [[ -f "$slot_id_file" ]]; then
-        local slot_num
-        slot_num=$(cat "$slot_id_file" 2>/dev/null || echo "")
-        if [[ -n "$slot_num" ]]; then
-            local lockdir="$TMP_DIR/slot-$slot_num.lock"
-            # 使用 rmdir 释放锁（原子操作）
-            rmdir "$lockdir" 2>/dev/null || true
-        fi
-        rm -f "$slot_id_file"
-    fi
-}
-
-# v2.7.0 修复: 用于子进程 trap 的释放函数（使用 $BASHPID）
-release_slot_from_trap() {
-    local slot_id_file="$TMP_DIR/slot-$BASHPID.id"
-    if [[ -f "$slot_id_file" ]]; then
-        local slot_num
-        slot_num=$(cat "$slot_id_file" 2>/dev/null || echo "")
-        if [[ -n "$slot_num" ]]; then
-            local lockdir="$TMP_DIR/slot-$slot_num.lock"
-            rmdir "$lockdir" 2>/dev/null || true
-        fi
-        rm -f "$slot_id_file"
-    fi
 }
 
 #------------------------------------------------------------------------------
@@ -614,7 +441,8 @@ execute_subagents() {
 
     echo "[dispatch] ⏳ 等待子代理完成..."
 
-    local start_epoch=$(date +%s)
+    local start_epoch
+    start_epoch=$(date +%s)
     local remaining_pids=("${pids[@]}")
     local check_interval=2
 
@@ -623,7 +451,8 @@ execute_subagents() {
     # 修复：双重检测 — kill -0 + 结果文件存在性。子进程完成时会写入 result 文件。
     # 如果 result 文件已存在但 kill -0 仍为 true（僵尸），视为完成并回收。
     while [ ${#remaining_pids[@]} -gt 0 ]; do
-        local now_epoch=$(date +%s)
+        local now_epoch
+        now_epoch=$(date +%s)
         local elapsed=$((now_epoch - start_epoch))
 
         if [ $elapsed -ge $timeout_seconds ]; then
@@ -737,15 +566,16 @@ EOF
     for agent_id in "${agent_ids[@]}"; do
         local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
         if [ -f "$result_file" ]; then
-            # P0 修复：验证 result JSON 有效性
-            if ! jq -e '.status' "$result_file" >/dev/null 2>&1; then
+            local data
+            data=$(cat "$result_file")
+            local status
+            status=$(echo "$data" | jq -r '.status' 2>/dev/null || echo "FAILED")
+            if [ -z "$status" ] || [ "$status" = "null" ]; then
                 echo "[dispatch] ❌ result JSON 无效: $result_file"
                 failed=$((failed + 1))
                 continue
             fi
 
-            local status
-            status=$(jq -r '.status' "$result_file" 2>/dev/null || echo "FAILED")
             case "$status" in
                 SUCCESS) success=$((success + 1)) ;;
                 FAILED) failed=$((failed + 1)) ;;
@@ -763,7 +593,8 @@ EOF
     for agent_id in "${agent_ids[@]}"; do
         local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
         if [ -f "$result_file" ]; then
-            local agent_data=$(jq -c '.' "$result_file")
+            local agent_data
+            agent_data=$(jq -c '.' "$result_file")
             if [ "$first" = true ]; then
                 agents_json="$agent_data"
                 first=false
@@ -805,7 +636,8 @@ wait_for_subagents() {
 
     echo "[dispatch] ⏳ 等待子代理完成（超时: ${timeout_seconds}秒）..."
 
-    local agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
+    local agents
+    agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
     while [ $elapsed -lt $timeout_seconds ]; do
         local all_complete=true
@@ -847,10 +679,14 @@ collect_results() {
 
     # 优先使用 launch-manifest
     if [ -f "$launch_manifest" ]; then
-        local task_id=$(jq -r '.task_id' "$launch_manifest")
-        local task_desc=$(jq -r '.task_desc' "$launch_manifest")
-        local launched_at=$(jq -r '.launched_at' "$launch_manifest")
-        local agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
+        local task_id
+        task_id=$(jq -r '.task_id' "$launch_manifest")
+        local task_desc
+        task_desc=$(jq -r '.task_desc' "$launch_manifest")
+        local launched_at
+        launched_at=$(jq -r '.launched_at' "$launch_manifest")
+        local agents
+        agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
         echo ""
         echo "[dispatch] 聚合报告"
@@ -868,8 +704,12 @@ collect_results() {
         for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
             if [ -f "$result_file" ]; then
-                local status=$(jq -r '.status' "$result_file" 2>/dev/null || echo "UNKNOWN")
-                local role=$(jq -r '.role' "$result_file" 2>/dev/null || echo "Unknown")
+                local data
+                data=$(cat "$result_file")
+                local status
+                status=$(echo "$data" | jq -r '.status' 2>/dev/null || echo "UNKNOWN")
+                local role
+                role=$(echo "$data" | jq -r '.role' 2>/dev/null || echo "Unknown")
                 local status_icon="⚪"
                 case "$status" in
                     SUCCESS) status_icon="✅"; success=$((success + 1)) ;;
@@ -943,10 +783,14 @@ collect_results() {
         echo "exec=$(jq -r '.executed_at // "未执行"' "$summary_file")"
         echo ""
 
-        local total=$(jq -r '.summary.total // 0' "$summary_file")
-        local successful=$(jq -r '.summary.successful // 0' "$summary_file")
-        local failed=$(jq -r '.summary.failed // 0' "$summary_file")
-        local partial=$(jq -r '.summary.partial // 0' "$summary_file")
+        local total
+        total=$(jq -r '.summary.total // 0' "$summary_file")
+        local successful
+        successful=$(jq -r '.summary.successful // 0' "$summary_file")
+        local failed
+        failed=$(jq -r '.summary.failed // 0' "$summary_file")
+        local partial
+        partial=$(jq -r '.summary.partial // 0' "$summary_file")
 
         echo "total=$total ok=$successful fail=$failed partial=$partial"
         echo ""
@@ -955,9 +799,12 @@ collect_results() {
         local has_agents=false
         while read -r agent_json; do
             has_agents=true
-            local id=$(echo "$agent_json" | jq -r '.id')
-            local role=$(echo "$agent_json" | jq -r '.role')
-            local status=$(echo "$agent_json" | jq -r '.status')
+            local id
+            id=$(echo "$agent_json" | jq -r '.id')
+            local role
+            role=$(echo "$agent_json" | jq -r '.role')
+            local status
+            status=$(echo "$agent_json" | jq -r '.status')
             local status_icon="⚪"
             case "$status" in
                 SUCCESS) status_icon="✅" ;;
@@ -978,7 +825,8 @@ collect_results() {
         local all_files="[]"
         for result_file in "$TMP_DIR"/subagent-*-result.json; do
             if [ -f "$result_file" ]; then
-                local files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
+                local files
+                files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
                 all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
             fi
         done
@@ -1026,6 +874,8 @@ main() {
     if [ "$EXECUTE_MODE" = true ]; then
         execute_subagents
         collect_results
+        # v3.3.0: 追加执行历史
+        command -v session_history_add >/dev/null 2>&1 && session_history_add "dispatch-done" 2>/dev/null || true
     else
         echo ""
         echo "[dispatch] subtasks:"

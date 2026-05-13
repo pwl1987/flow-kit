@@ -135,12 +135,14 @@ init_runtime_dirs() {
 
 #------------------------------------------------------------------------------
 # 日志轮转（v2.7.0 新增：防止日志无限增长）
-# 用法: rotate_logs <目录> [保留文件数] [文件大小阈值(MB)]
+# 用法: rotate_logs <目录> [保留文件数] [文件大小阈值(MB)] [归档子目录] [文件匹配模式]
 #------------------------------------------------------------------------------
 rotate_logs() {
     local log_dir="$1"
     local keep_count="${2:-10}"
     local size_threshold_mb="${3:-10}"
+    local archive_subdir="${4:-archive}"
+    local log_pattern="${5:-*.log}"
 
     if [ ! -d "$log_dir" ]; then
         return 0
@@ -148,19 +150,19 @@ rotate_logs() {
 
     # 归档超过大小阈值的日志文件
     local threshold_bytes=$((size_threshold_mb * 1024 * 1024))
-    local archive_dir="$log_dir/archive"
+    local archive_dir="$log_dir/$archive_subdir"
     mkdir -p "$archive_dir"
 
-    for log_file in "$log_dir"/*.log; do
+    for log_file in "$log_dir"/$log_pattern; do
         [ -f "$log_file" ] || continue
         local file_size
         file_size=$(wc -c < "$log_file" 2>/dev/null || echo "0")
         if [ "$file_size" -gt "$threshold_bytes" ]; then
-            local basename
-            basename=$(basename "$log_file")
+            local base
+            base=$(basename "$log_file")
             local timestamp
             timestamp=$(date +%Y%m%d%H%M%S 2>/dev/null || printf '%s.%s' "$$" "$RANDOM")
-            mv "$log_file" "$archive_dir/${basename%.log}.${timestamp}.log"
+            mv "$log_file" "$archive_dir/${base%.log}.${timestamp}.log"
         fi
     done
 
@@ -172,5 +174,5 @@ rotate_logs() {
         if [ "$count" -gt "$keep_count" ]; then
             rm -f "$archived" 2>/dev/null || true
         fi
-    done < <(ls -t "$archive_dir"/*.log 2>/dev/null)
+    done < <(ls -t "$archive_dir"/$log_pattern 2>/dev/null)
 }

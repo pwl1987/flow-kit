@@ -80,12 +80,14 @@ main() {
 
     # v2.9.0: 持久化当前阶段到 .flow-kit/current-phase
     # v3.0.0: 同时更新 session-state.json
+    # v3.3.0: 追加执行历史
     local phase_num_only="${PHASE_NUM%%-*}"
     [[ "$phase_num_only" =~ ^[0-9]+$ ]] || phase_num_only="0"
     mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
     printf '%s\n' "$phase_num_only" > "$CURRENT_PHASE_FILE"
     session_set phase "$phase_num_only"
     session_set status wip
+    session_history_add "phase-${phase_num_only}"
 
     local workflow_file
     workflow_file=$(load_workflow "$PHASE_NUM" "$project_type")

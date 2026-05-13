@@ -107,30 +107,30 @@ test_validate_phase_checks_jq() {
 test_dispatch_lock_mechanism() {
     echo "=== test_dispatch_lock_mechanism ==="
 
+    # v3.4.0: 锁机制已拆分到 dispatch-lock.sh
+    local lock_script="$FLOW_KIT_DIR/scripts/dispatch-lock.sh"
     local script="$FLOW_KIT_DIR/scripts/dispatch.sh"
 
-    if [ ! -f "$script" ]; then
-        echo -e "${RED}FAIL${NC}: dispatch.sh not found"
+    if [ ! -f "$lock_script" ]; then
+        echo -e "${RED}FAIL${NC}: dispatch-lock.sh not found"
         failed=$((failed + 1))
         return 1
     fi
 
-    # v2.8.0: 验证实际使用的 mkdir/rmdir 锁机制
-    # 锁模式: lockdir 变量包含 slot-*.lock 路径，用 mkdir 创建、rmdir 释放
-    if ! grep -qE 'lockdir=.*slot.*\.lock' "$script"; then
-        echo -e "${RED}FAIL${NC}: dispatch.sh missing slot lock variable"
+    if ! grep -qE 'lockdir=.*slot.*\.lock' "$lock_script"; then
+        echo -e "${RED}FAIL${NC}: dispatch-lock.sh missing slot lock variable"
         failed=$((failed + 1))
         return 1
     fi
 
-    if ! grep -qE 'mkdir "\$lockdir"' "$script"; then
-        echo -e "${RED}FAIL${NC}: dispatch.sh missing mkdir lock acquisition"
+    if ! grep -qE 'mkdir "\$lockdir"' "$lock_script"; then
+        echo -e "${RED}FAIL${NC}: dispatch-lock.sh missing mkdir lock acquisition"
         failed=$((failed + 1))
         return 1
     fi
 
-    if ! grep -qE 'rmdir "\$lockdir"' "$script"; then
-        echo -e "${RED}FAIL${NC}: dispatch.sh missing rmdir lock release"
+    if ! grep -qE 'rmdir "\$lockdir"' "$lock_script"; then
+        echo -e "${RED}FAIL${NC}: dispatch-lock.sh missing rmdir lock release"
         failed=$((failed + 1))
         return 1
     fi

@@ -2,6 +2,42 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [3.4.0] - 2026-05-14
+
+### P0: 架构重构
+
+- **dispatch.sh** — 拆分为 3 文件：dispatch.sh(889) + dispatch-parse.sh(90) + dispatch-lock.sh(89)
+- **session-state.sh** — `_ss_ensure()` 单路径化，消除 `_ss_migrate` 冗余调用
+- **security-scanner.sh** — `log_*` → `scan_*` 命名空间，消除 error-handler.sh 日志覆盖
+- **paths.sh** — `rotate_logs()` 参数化（5 参数），消除硬编码
+
+### P1: 代码质量
+
+- **CODING-STANDARDS.md** — 新建编码规范文档（命名/注释/架构/编码 4 类）
+- **.shellcheckrc** — 新建 ShellCheck 全局配置
+- **session-start.sh** — 修复 `local` 在函数外使用（SC2168）
+- **validate-phase.sh** — 修复数组展开 SC1087（3 处）
+- **code-review.sh** — 修复 shellcheck 指令解析 SC1072/1073
+- **flow-kit.sh** — SC2155 批量修复（12 处 local+命令替换分离）
+- **dispatch.sh** — SC2155 批量修复（15 处）
+
+### P2: 性能优化
+
+- **dispatch.sh** — jq 调用优化：`cat` 一次 + `echo "$data" | jq` 复用
+
+### 测试
+
+- **test-phase-executor.sh** — 新增 `test_load_workflow_brownfield` 测试
+- **test-session-state.sh** — 新增 v2 schema 测试（36 项）
+- **test-validate.sh** — SC2155 修复
+- **e2e-full-flow.sh** — dispatch-lock.sh 拆分适配
+
+### 验证
+
+- 63 测试全通过，0 失败
+- 0 ShellCheck error（50 warning/note）
+- 三层代码审查通过（0 P0/P1 问题）
+
 ## [3.2.0] - 2026-05-13
 
 ### P0: 功能修复

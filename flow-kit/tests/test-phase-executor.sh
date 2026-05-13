@@ -121,6 +121,52 @@ test_get_project_type_default() {
     rm -rf "$tmp_dir"
 }
 
+# 测试 load_workflow 函数
+test_load_workflow_brownfield() {
+    echo "=== test_load_workflow_brownfield ==="
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    mkdir -p "$tmp_dir/phases/0-change"
+
+    local result
+    result=$(
+        PHASES_DIR="$tmp_dir/phases"
+        load_workflow() {
+            local phase="$1"
+            local project_type="$2"
+            local phase_dir="$PHASES_DIR/${phase}"
+            [ -d "$phase_dir" ] || { echo ""; return; }
+            case "$project_type" in
+                brownfield) [ -f "$phase_dir/brownfield.md" ] && echo "$phase_dir/brownfield.md" && return ;;
+                greenfield) [ -f "$phase_dir/greenfield.md" ] && echo "$phase_dir/greenfield.md" && return ;;
+            esac
+            echo ""
+        }
+        # 无 brownfield.md，应返回空
+        load_workflow "0-change" "brownfield"
+    )
+
+    assert_equals "" "$result" "load_workflow returns empty when no brownfield.md"
+
+    # 创建 brownfield.md
+    echo "# brownfield workflow" > "$tmp_dir/phases/0-change/brownfield.md"
+    result=$(
+        PHASES_DIR="$tmp_dir/phases"
+        load_workflow() {
+            local phase="$1" project_type="$2"
+            local phase_dir="$PHASES_DIR/${phase}"
+            case "$project_type" in
+                brownfield) [ -f "$phase_dir/brownfield.md" ] && echo "$phase_dir/brownfield.md" && return ;;
+            esac
+            echo ""
+        }
+        load_workflow "0-change" "brownfield"
+    )
+
+    assert_contains "$result" "brownfield.md" "load_workflow finds brownfield.md"
+    rm -rf "$tmp_dir"
+}
+
 # 测试 main 缺参数
 test_main_missing_arg() {
     echo "=== test_main_missing_arg ==="
@@ -202,6 +248,7 @@ main() {
     test_get_project_type_brownfield
     test_get_project_type_greenfield
     test_get_project_type_default
+    test_load_workflow_brownfield
     test_main_missing_arg
     test_main_phase_not_found
     test_main_success

@@ -8,6 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/session-state.sh"
+source "$SCRIPT_DIR/../lib/conflict-detector.sh"
 
 # ============================================================================
 # 主函数
@@ -20,6 +21,13 @@ main() {
         echo "用法: ./init-change.sh \"变更描述\""
         echo "示例: ./init-change.sh \"添加用户反馈中心模块\""
         exit 1
+    fi
+
+    # v3.3.0: 冲突检测
+    if interactive_conflict_resolution "$description"; then
+        echo ""
+        echo "[init] 检测到冲突，请处理后重新运行"
+        exit 0
     fi
 
     # 1. 生成 change-id
@@ -49,9 +57,11 @@ main() {
     echo "[init] phase=0"
 
     # v3.0.0: 初始化会话状态
+    # v3.3.0: 追加执行历史
     local ss_ptype="green"
     [ "$project_type" = "brownfield" ] && ss_ptype="brown"
     session_init "$change_id" "$ss_ptype"
+    session_history_add "init"
 
     # 7. 输出下一步建议
     print_next_steps "$change_id"

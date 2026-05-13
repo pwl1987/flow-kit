@@ -1,5 +1,5 @@
 #!/bin/bash
-# session-state.sh — v3.0.0 记忆系统核心库
+# session-state.sh — v3.3.0 记忆系统核心库
 # caveman 压缩风格：极简 JSON，id:status 逗号串，省虚词
 # 设计参考 cavemem：原子写入、graceful fallback、渐进披露
 
@@ -24,7 +24,7 @@ _ss_now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 _ss_skeleton() {
     jq -n --arg ts "$(_ss_now)" '{
-        v: 1,
+        v: 2,
         change: "",
         phase: 0,
         status: "init",
@@ -33,14 +33,16 @@ _ss_skeleton() {
         tasks: "",
         next: "",
         blockers: "",
+        history: "",
+        decisions: "",
+        interactions: "",
         ts: $ts
     }'
 }
 
 _ss_ensure() {
-    if [ ! -f "$SESSION_STATE_FILE" ]; then
-        _ss_migrate || true
-    fi
+    [ -f "$SESSION_STATE_FILE" ] && return 0
+    _ss_migrate 2>/dev/null || true
     if [ ! -f "$SESSION_STATE_FILE" ]; then
         mkdir -p "$(dirname "$SESSION_STATE_FILE")"
         _ss_skeleton > "$SESSION_STATE_FILE"
@@ -80,7 +82,7 @@ _ss_migrate() {
         --arg mode "$mode" \
         --arg ts "$(_ss_now)" \
         '{
-            v: 1,
+            v: 2,
             change: $change,
             phase: $phase,
             status: (if $phase > 0 then "wip" else "init" end),
@@ -89,6 +91,9 @@ _ss_migrate() {
             tasks: "",
             next: "",
             blockers: "",
+            history: "",
+            decisions: "",
+            interactions: "",
             ts: $ts
         }' > "$SESSION_STATE_FILE"
 }
@@ -140,7 +145,7 @@ session_init() {
         --arg ptype "$ptype" \
         --arg ts "$(_ss_now)" \
         '{
-            v: 1,
+            v: 2,
             change: $change,
             phase: 0,
             status: "init",
@@ -149,6 +154,9 @@ session_init() {
             tasks: "",
             next: "run /flow-kit:phase-0",
             blockers: "",
+            history: "",
+            decisions: "",
+            interactions: "",
             ts: $ts
         }' > "$tmp" && mv "$tmp" "$SESSION_STATE_FILE"
 
@@ -222,3 +230,98 @@ session_resume_prompt() {
 
     echo "[flow-kit] change=${change:-(none)} phase=${phase}(${status}) ptype=${ptype} tasks=${tasks_summary:--} blockers=${blocker_count} next=${next:-(not set)}"
 }
+
+#------------------------------------------------------------------------------
+# v3.3.0 P1: 记忆系统增强
+#------------------------------------------------------------------------------
+
+# 追加执行历史: session_history_add "phase-0"
+session_history_add() {
+    local action="${1:-}"
+    [ -z "$action" ] && return 1
+    _ss_ensure
+
+    # v1 → v2 自动迁移
+    local version
+    version=$(session_get v)
+    if [ "$version" = "1" ]; then
+        session_set v 2
+        session_set history ""
+        session_set decisions ""
+        session_set interactions ""
+    fi
+
+    local current
+    current=$(session_get history)
+    local epoch
+    epoch=$(date +%s)
+    local entry="${epoch}:${action}"
+
+    if [ -n "$current" ]; then
+        session_set history "${current},${entry}"
+    else
+        session_set history "$entry"
+    fi
+}
+
+# 追加决策记录: session_decision_add "d1" "y"
+session_decision_add() {
+    local id="${1:-}"
+    local choice="${2:-}"
+    [ -z "$id" ] || [ -z "$choice" ] && return 1
+    _ss_ensure
+
+    # v1 → v2 自动迁移
+    local version
+    version=$(session_get v)
+    if [ "$version" = "1" ]; then
+        session_set v 2
+        session_set history ""
+        session_set decisions ""
+        session_set interactions ""
+    fi
+
+    local current
+    current=$(session_get decisions)
+    local entry="${id}:${choice}"
+
+    if [ -n "$current" ]; then
+        session_set decisions "${current},${entry}"
+    else
+        session_set decisions "$entry"
+    fi
+}
+
+# 设置交互摘要: session_interaction_set "用户确认使用 JWT 认证"
+session_interaction_set() {
+    local summary="${1:-}"
+    [ -z "$summary" ] && return 1
+    _ss_ensure
+
+    # v1 → v2 自动迁移
+    local version
+    version=$(session_get v)
+    if [ "$version" = "1" ]; then
+        session_set v 2
+        session_set history ""
+        session_set decisions ""
+        session_set interactions ""
+    fi
+
+    # 限制长度 <100 字符
+    if [ ${#summary} -gt 100 ]; then
+        summary="${summary:0:97}..."
+    fi
+
+    session_set interactions "$summary"
+}
+
+# 读取历史数组: session_history_get
+session_history_get() {
+    _ss_ensure
+    local history
+    history=$(session_get history)
+    [ -z "$history" ] && return 0
+    echo "$history" | tr ',' '\n'
+}
+

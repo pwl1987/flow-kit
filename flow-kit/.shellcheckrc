@@ -1,0 +1,6 @@
+# flow-kit ShellCheck 配置
+# 全局禁用：readonly VAR="$(cmd)" 顶级模式（标准实践）
+disable=SC2155
+# 全局禁用：source 路径变量
+disable=SC1090
+disable=SC1091
