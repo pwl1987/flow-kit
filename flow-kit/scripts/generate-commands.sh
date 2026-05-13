@@ -1,5 +1,5 @@
 #!/bin/bash
-# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.5.0)
+# generate-commands.sh — flow-kit 斜杠命令生成器 (精简版 v2.6.1)
 #
 # 生成 21 个核心命令，移除所有 dev-/meta-/team-/ops- 前缀变体
 
@@ -131,7 +131,7 @@ main() {
   parse_args "$@"
 
   echo "=========================================="
-  echo "flow-kit 斜杠命令生成器 v2.5.0 (精简版)"
+  echo "flow-kit 斜杠命令生成器 v2.6.1 (精简版)"
   echo "=========================================="
   echo "输出目录: $OUTPUT_PATH"
   echo "模式: $([ "$FORCE" == "true" ] && echo "force" || echo "incremental")"
@@ -183,7 +183,12 @@ main() {
 
   for cmd in "${!CORE_COMMANDS[@]}"; do
     local ref="${CORE_COMMANDS[$cmd]}"
-    local source_file="$REPO_ROOT/$ref"
+    local source_file
+    if [[ "$ref" == flow-kit/* ]]; then
+        source_file="$REPO_ROOT/${ref#flow-kit/}"
+    else
+        source_file="$REPO_ROOT/$ref"
+    fi
     local description
     description=$(extract_description "$source_file" "flow-kit ${cmd} 命令")
     local output_file="$OUTPUT_PATH/flow-kit:${cmd}.md"

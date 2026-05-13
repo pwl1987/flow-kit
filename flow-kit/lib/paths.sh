@@ -156,7 +156,7 @@ rotate_logs() {
         if [ "$count" -gt "$keep_count" ]; then
             rm -f "$archived" 2>/dev/null || true
         fi
-    done < <(find "$archive_dir" -maxdepth 1 -type f -name "*.log" -exec stat --format='%Y %n' {} \; 2>/dev/null | sort -rn | cut -d' ' -f2-)
+    done < <(ls -t "$archive_dir"/*.log 2>/dev/null)
 }
 
 #------------------------------------------------------------------------------

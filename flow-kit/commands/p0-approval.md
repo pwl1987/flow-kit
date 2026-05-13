@@ -100,7 +100,7 @@ Approval file format: see `flow-kit/templates/approval/approval-template.md`
 
 ### Phase Executor 集成
 
-在 `flow-kit/lib/phase-executor.md` 中：
+在 `flow-kit/lib/phase-executor.sh` 中：
 - Phase 7 执行前检查 P0 状态
 - 若 P0 未批准，阻止执行
 - 批准后清除 P0 状态
@@ -114,6 +114,6 @@ P0 定义基于 constitution.md 中的安全规则：
 ---
 
 **关联文件**：
-- `@flow-kit/lib/phase-executor.md` (阶段执行器)
+- `@flow-kit/lib/phase-executor.sh` (阶段执行器)
 - `@flow-kit/config/constitution.md` (安全规则)
 - `@flow-kit/config/team-roles.md` (角色权限)

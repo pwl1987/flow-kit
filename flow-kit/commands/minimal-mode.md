@@ -73,7 +73,7 @@ Phase 1 -> Phase 2 -> Phase 3 -> Phase 4 (Dev) -> [SKIP Phase 5] -> [SKIP Phase 
 
 ## 与phase-executor集成
 
-在 `flow-kit/lib/phase-executor.md` 中的集成点：
+在 `flow-kit/lib/phase-executor.sh` 中的集成点：
 
 ```
 1. Before Phase 5 execution:
@@ -126,5 +126,5 @@ Phase 1 -> Phase 2 -> Phase 3 -> Phase 4 (Dev) -> [SKIP Phase 5] -> [SKIP Phase 
 
 **关联文件**：
 - `@flow-kit/GO.md` (命令路由)
-- `@flow-kit/lib/phase-executor.md` (执行器集成)
+- `@flow-kit/lib/phase-executor.sh` (执行器集成)
 - `@flow-kit/config/constitution.md` (安全规则)

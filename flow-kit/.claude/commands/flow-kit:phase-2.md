@@ -1,7 +1,12 @@
 ---
-description: 架构设计 - phase-2
+description: "架构设计 - 生成技术方案和架构图"
 category: dev
 reference: flow-kit/phases/2-design/
-execute: bash flow-kit/scripts/phase-executor.sh 2
 ---
-/flow-kit:phase-2: 架构设计
+
+读取并执行以下 Phase 工作流文件：
+
+@flow-kit/phases/2-design/2-design.md
+
+执行条件路由时，参考 @flow-kit/scripts/phase-executor.sh 中棕地/绿地分叉逻辑。
+当前项目类型从 @flow-kit/.flow-kit/project-type 读取（若不存在，Phase 0 自动检测）。

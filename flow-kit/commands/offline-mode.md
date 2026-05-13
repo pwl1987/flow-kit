@@ -68,7 +68,7 @@ YAML/JSON格式验证：
 
 ## 与phase-executor集成
 
-在 `flow-kit/lib/phase-executor.md` 中的集成点：
+在 `flow-kit/lib/phase-executor.sh` 中的集成点：
 
 ```
 1. Before running external lint tools:
@@ -114,4 +114,4 @@ YAML/JSON格式验证：
 
 **关联文件**：
 - `@flow-kit/GO.md` (命令路由)
-- `@flow-kit/lib/phase-executor.md` (执行器集成)
+- `@flow-kit/lib/phase-executor.sh` (执行器集成)

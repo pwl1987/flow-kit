@@ -70,7 +70,7 @@ main() {
         if [ "$count" -gt 5 ]; then
             rm -f "$archive"
         fi
-    done < <(find "$ARCHIVE_DIR" -maxdepth 1 -type f -name 'health-history-*.json' -exec stat --format='%Y %n' {} \; 2>/dev/null | sort -rn | cut -d' ' -f2-)
+    done < <(ls -t "$ARCHIVE_DIR"/health-history-*.json 2>/dev/null)
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

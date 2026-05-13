@@ -100,11 +100,19 @@ cleanup_children() {
             fi
         done
     fi
-    # v1.12.9 改进：清理临时文件
-    if [ -d "$TMP_DIR" ]; then
-        rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*-result.json "$TMP_DIR"/subagent-*-status.json "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
+    # v1.12.9 改进：清理临时文件（仅在错误退出时删除结果文件）
+    if [ "$exit_code" -ne 0 ]; then
+        # 错误退出：清理所有临时文件包括结果文件
+        if [ -d "$TMP_DIR" ]; then
+            rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*-result.json "$TMP_DIR"/subagent-*-status.json "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
+        fi
+    else
+        # 成功退出：仅清理临时文件，保留结果文件供后续聚合
+        if [ -d "$TMP_DIR" ]; then
+            rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
+        fi
     fi
-    # v1.12.10 改进：清理 slot 锁文件
+    # v1.12.10 改进：清理 slot 锁文件（始终执行）
     if [ -d "$LOCK_DIR" ]; then
         rm -f "$LOCK_DIR"/slot-*.lock 2>/dev/null || true
     fi
@@ -582,7 +590,7 @@ execute_subagents() {
     local first=true
     while IFS= read -r agent_json; do
         local agent_id role prompt_file
-        read -r agent_id role prompt_file <<< "$(echo "$agent_json" | jq -r '[.id, .role, .prompt_file] | join(" ")')"
+        IFS=$'\t' read -r agent_id role prompt_file <<< "$(echo "$agent_json" | jq -r '[.id, .role, .prompt_file] | join("\t")')"
 
         echo "[dispatch]  启动子代理: $agent_id ($role)"
 
@@ -900,13 +908,6 @@ collect_results() {
         local failed=0
         local partial=0
 
-        echo "执行统计:"
-        echo "  总代理数: $total"
-        echo "  成功: $success"
-        echo "  失败: $failed"
-        echo "  部分: $partial"
-        echo ""
-
         echo "子代理状态:"
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
@@ -930,6 +931,13 @@ collect_results() {
             fi
         done
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        echo ""
+        echo "执行统计:"
+        echo "  总代理数: $total"
+        echo "  成功: $success"
+        echo "  失败: $failed"
+        echo "  部分: $partial"
 
         # 收集所有修改的文件（v1.12.10 优化：单次 jq 聚合，减少子 shell）
         echo ""

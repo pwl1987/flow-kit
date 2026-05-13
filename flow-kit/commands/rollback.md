@@ -144,7 +144,7 @@ Impact Analysis:
 
 ## 与phase-executor集成
 
-在 `flow-kit/lib/phase-executor.md` 中的集成点：
+在 `flow-kit/lib/phase-executor.sh` 中的集成点：
 
 ```
 集成点 9: Rollback Trigger
@@ -205,6 +205,6 @@ Impact Analysis:
 **关联文件**：
 
 - `@flow-kit/GO.md` (命令路由)
-- `@flow-kit/lib/phase-executor.md` (执行器集成)
+- `@flow-kit/lib/phase-executor.sh` (执行器集成)
 - `.planning/checkpoints/` (稳定点存储)
 - `.planning/phases/{phase}/LESSONS.md` (回滚日志)

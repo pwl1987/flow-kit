@@ -84,7 +84,7 @@ GitHub PR body 兼容的 Markdown：
 
 ### Phase Executor 集成
 
-在 `flow-kit/lib/phase-executor.md` 中：
+在 `flow-kit/lib/phase-executor.sh` 中：
 - Phase 7 (Integration) 完成后自动调用
 - 生成 PR 描述用于提交审查
 
@@ -118,5 +118,5 @@ GitHub PR body 兼容的 Markdown：
 ---
 
 **关联文件**：
-- `@flow-kit/lib/phase-executor.md` (阶段执行器)
+- `@flow-kit/lib/phase-executor.sh` (阶段执行器)
 - `@flow-kit/commands/estimate-tokens.md` (Token 估算)

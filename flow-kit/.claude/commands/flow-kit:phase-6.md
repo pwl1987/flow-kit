@@ -1,7 +1,12 @@
 ---
-description: 代码审查 - phase-6
+description: "代码审查 - 审查代码质量和规范"
 category: dev
 reference: flow-kit/phases/6-review/
-execute: bash flow-kit/scripts/phase-executor.sh 6
 ---
-/flow-kit:phase-6: 代码审查
+
+读取并执行以下 Phase 工作流文件：
+
+@flow-kit/phases/6-review/6-review.md
+
+执行条件路由时，参考 @flow-kit/scripts/phase-executor.sh 中棕地/绿地分叉逻辑。
+当前项目类型从 @flow-kit/.flow-kit/project-type 读取（若不存在，Phase 0 自动检测）。

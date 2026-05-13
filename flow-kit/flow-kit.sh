@@ -21,7 +21,7 @@ read_version() {
     if [ -f "$version_file" ]; then
         cat "$version_file"
     else
-        echo "v2.5.0"
+        echo "v2.6.1"
     fi
 }
 
@@ -52,6 +52,7 @@ check_dependencies() {
 show_help() {
     local ver
     ver=$(read_version)
+    [[ "$ver" == v* ]] || ver="v$ver"
     cat << EOF
 flow-kit $ver — 结构化开发流程 CLI
 
@@ -104,6 +105,7 @@ EOF
 show_status() {
     local ver
     ver=$(read_version)
+    [[ "$ver" == v* ]] || ver="v$ver"
     local mode_file=".flow-kit/mode"
     local current_mode="autopilot"
 
@@ -129,6 +131,7 @@ show_status() {
 show_share() {
     local ver
     ver=$(read_version)
+    [[ "$ver" == v* ]] || ver="v$ver"
     local project_name
     project_name=$(basename "$(pwd)")
 
@@ -158,7 +161,10 @@ show_share() {
 show_hooks_summary() {
     local log_file=".flow-kit/logs/hooks-execution.log"
 
-    echo "flow-kit v$(read_version) — Hooks 执行摘要"
+    local ver
+    ver=$(read_version)
+    [[ "$ver" == v* ]] || ver="v$ver"
+    echo "flow-kit $ver — Hooks 执行摘要"
     echo ""
 
     if [ ! -f "$log_file" ]; then
@@ -436,7 +442,10 @@ perform_minimal() {
 perform_uninstall() {
     local confirm="${1:-}"
 
-    echo "flow-kit v$(read_version) — 卸载程序"
+    local ver
+    ver=$(read_version)
+    [[ "$ver" == v* ]] || ver="v$ver"
+    echo "flow-kit $ver — 卸载程序"
     echo ""
 
     if [ "$confirm" != "--force" ]; then
@@ -492,16 +501,26 @@ perform_uninstall() {
         [ "$removed" -gt 0 ] && echo "[flow-kit] ✓ 已删除 ${removed} 个 flow-kit 命令"
     fi
 
-    # 删除 settings.json 中的 flow-kit hooks（保留其他配置）
+    # 删除 settings.json 中的 flow-kit hooks（保留其他 hooks）
     if [ -f ".claude/settings.json" ] && command -v jq &>/dev/null; then
         local tmp_settings
         tmp_settings=$(mktemp)
-        if jq 'del(.hooks)' ".claude/settings.json" > "$tmp_settings" 2>/dev/null; then
-            mv "$tmp_settings" ".claude/settings.json"
-            echo "[flow-kit] ✓ 已移除 flow-kit hooks 配置"
-        else
-            rm -f "$tmp_settings"
-        fi
+        local settings_json
+        settings_json=$(cat ".claude/settings.json")
+        for event in PreToolUse PostToolUse Stop SessionStart Notification; do
+            settings_json=$(echo "$settings_json" | jq --arg event "$event" '
+                if .hooks[$event] then
+                    .hooks[$event] = [
+                        .hooks[$event][] |
+                        .hooks = [.hooks[] | select(.command | test("flow-kit") | not)] |
+                        select(.hooks | length > 0)
+                    ]
+                else . end
+            ')
+        done
+        echo "$settings_json" > "$tmp_settings"
+        mv "$tmp_settings" ".claude/settings.json"
+        echo "[flow-kit] ✓ 已移除 flow-kit hooks 配置（保留其他 hooks）"
     fi
 
     echo ""

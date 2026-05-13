@@ -18,7 +18,7 @@ fi
 
 # 引入统一错误处理框架
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$PROJECT_DIR/flow-kit/lib/error-handler.sh"
+source "$SCRIPT_DIR/../lib/error-handler.sh"
 
 # 获取毫秒级时间戳（兼容 GNU date 和 macOS）
 get_epoch_ms() {

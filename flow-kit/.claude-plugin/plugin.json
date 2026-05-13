@@ -1,6 +1,6 @@
 {
   "name": "flow-kit",
-  "version": "2.5.1",
+  "version": "2.6.1",
   "description": "面向 Claude Code 的结构化开发流程工具包，提供 8 阶段开发工作流、护栏规则、子代理调度",
   "author": {
     "name": "pwl1987",
