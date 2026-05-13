@@ -11,8 +11,16 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # OUTPUT_PATH: 项目根目录 .claude/commands/（优先 CLAUDE_PROJECT_DIR，回退向上两级）
 # CLAUDE_PROJECT_DIR 由 Claude Code 设置，总是指向项目根目录
-# 回退处理子模块场景：scripts/ → flow-kit/ → project-root/
-readonly OUTPUT_PATH="${CLAUDE_PROJECT_DIR:-$(cd "$REPO_ROOT/../.." && pwd)}/.claude/commands"
+# 向上查找项目根目录（优先 CLAUDE_PROJECT_DIR，回退查找 .git）
+_find_project_root() {
+    local dir="$REPO_ROOT"
+    while [ "$dir" != "/" ]; do
+        [ -d "$dir/.git" ] && echo "$dir" && return
+        dir="$(dirname "$dir")"
+    done
+    cd "$REPO_ROOT/../.." && pwd
+}
+readonly OUTPUT_PATH="${CLAUDE_PROJECT_DIR:-$(_find_project_root)}/.claude/commands"
 
 declare -A CORE_COMMANDS=(
   ["init"]="flow-kit/commands/init-change.md"
