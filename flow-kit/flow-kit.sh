@@ -21,7 +21,7 @@ read_version() {
     if [ -f "$version_file" ]; then
         cat "$version_file"
     else
-        echo "v2.7.0"
+        echo "unknown"
     fi
 }
 
@@ -106,23 +106,46 @@ show_status() {
     local ver
     ver=$(read_version)
     [[ "$ver" == v* ]] || ver="v$ver"
-    local mode_file=".flow-kit/mode"
-    local current_mode="autopilot"
 
-    if [ -f "$mode_file" ]; then
-        current_mode=$(cat "$mode_file")
+    echo "flow-kit $ver"
+    echo ""
+
+    # v3.0.0: 从 session-state.json 读取状态
+    local ss_file=".flow-kit/session-state.json"
+    if [ -f "$ss_file" ] && command -v jq >/dev/null 2>&1; then
+        local change phase status ptype tasks next blockers
+        change=$(jq -r '.change // empty' "$ss_file" 2>/dev/null || true)
+        phase=$(jq -r '.phase // 0' "$ss_file" 2>/dev/null || true)
+        status=$(jq -r '.status // "init"' "$ss_file" 2>/dev/null || true)
+        ptype=$(jq -r '.ptype // "green"' "$ss_file" 2>/dev/null || true)
+        tasks=$(jq -r '.tasks // ""' "$ss_file" 2>/dev/null || true)
+        next=$(jq -r '.next // ""' "$ss_file" 2>/dev/null || true)
+        blockers=$(jq -r '.blockers // ""' "$ss_file" 2>/dev/null || true)
+
+        echo "change: ${change:-(none)}"
+        echo "phase: ${phase} (${status})"
+        echo "ptype: ${ptype}"
+        if [ -n "$tasks" ]; then
+            local done=0 wip=0 todo=0
+            for entry in $(echo "$tasks" | tr ',' ' '); do
+                local s="${entry##*:}"
+                case "$s" in
+                    done) done=$((done + 1)) ;;
+                    wip)  wip=$((wip + 1)) ;;
+                    *)    todo=$((todo + 1)) ;;
+                esac
+            done
+            echo "tasks: ${done} done, ${wip} wip, ${todo} todo"
+        fi
+        [ -n "$next" ] && echo "next: $next"
+        [ -n "$blockers" ] && echo "blockers: $blockers"
+    else
+        # 回退到旧模式
+        local mode_file=".flow-kit/mode"
+        local current_mode="autopilot"
+        [ -f "$mode_file" ] && current_mode=$(cat "$mode_file")
+        echo "mode: $current_mode"
     fi
-
-    echo "flow-kit $ver — 执行模式状态"
-    echo ""
-    echo "当前模式: $current_mode"
-    echo ""
-    echo "可用模式:"
-    echo "  autopilot  — L0-L1 单 Agent 自主执行"
-    echo "  team       — L2-L3 多 Agent 协作"
-    echo "  ralph      — Team + 验证循环"
-    echo ""
-    echo "切换模式: ./flow-kit.sh mode <mode>"
 }
 
 #------------------------------------------------------------------------------

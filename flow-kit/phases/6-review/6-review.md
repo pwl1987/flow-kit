@@ -172,3 +172,5 @@ echo "project_type: brownfield" > .flow-kit/project-type
 问题汇总到 REVIEW.md 按 P0-P3 分级。
 
 --- END flow-kit/phases/6-review/6-review.md ---
+
+<!-- v3.1.0 session-state: 审查通过时 session_set status done，需修改时 session_next "fix review findings" -->

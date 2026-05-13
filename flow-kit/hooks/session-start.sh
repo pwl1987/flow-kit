@@ -1,23 +1,21 @@
 #!/bin/bash
 set -euo pipefail
-# session-start.sh — SessionStart hook: 自动注册斜杠命令
-# v2.7.0 P2 修复: 实际执行注册而非 dry-run，仅在新命令缺失时更新
-# v1.8 新增
-# Reference: flow-kit register-commands.md
+# session-start.sh — SessionStart hook: 注册命令 + 恢复会话状态
+# v3.0.0: 完整记忆恢复（caveman 风格，~30 token）
 
-CLAUDE_PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 
-# 检查并注册斜杠命令（仅在新命令缺失时更新）
+# 注册斜杠命令
 if [ -f "${CLAUDE_PROJECT_DIR}/scripts/generate-commands.sh" ]; then
     cd "${CLAUDE_PROJECT_DIR}"
-    # v2.7.0: 实际执行注册，而非 dry-run
     ./scripts/generate-commands.sh --force 2>/dev/null || true
-    echo "[flow-kit] hooks 已就绪"
+    echo "[flow-kit] hooks ready"
+fi
+
+# v3.0.0: 记忆系统恢复
+if [ -f "${CLAUDE_PROJECT_DIR}/lib/session-state.sh" ]; then
+    source "${CLAUDE_PROJECT_DIR}/lib/session-state.sh"
+    session_resume_prompt
 fi
 
 exit 0
-
-# v2.7.0 修复：URL 放在 bash 注释中避免被解析
-# 参考来源：
-# - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
-# - garrytan/gstack：https://github.com/garrytan/gstack

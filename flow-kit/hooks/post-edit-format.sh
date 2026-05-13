@@ -16,20 +16,10 @@ else
     PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 fi
 
-# 引入统一错误处理框架
+# 引入统一错误处理框架和共享时间工具
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
-
-# 获取毫秒级时间戳（兼容 GNU date 和 macOS）
-get_epoch_ms() {
-    if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
-        date +%s%3N
-    elif python3 -c "import time; print(int(time.time() * 1000))" >/dev/null 2>&1; then
-        python3 -c "import time; print(int(time.time() * 1000))"
-    else
-        perl -MTime::HiRes -e 'printf "%d\n", int(Time::HiRes::time() * 1000)'
-    fi
-}
+source "$SCRIPT_DIR/../lib/time-utils.sh"
 
 START_TIME=$(get_epoch_ms)
 

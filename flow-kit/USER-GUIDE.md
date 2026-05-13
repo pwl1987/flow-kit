@@ -1,7 +1,7 @@
 # flow-kit 用户指导手册
 
-> **版本**: v2.7.0
-> **更新日期**: 2026-05-12
+> **版本**: v3.1.0
+> **更新日期**: 2026-05-13
 > **适用环境**: Claude Code
 
 ---
@@ -25,12 +25,12 @@ flow-kit 是面向 Claude Code 的结构化开发流程工具包，提供 9 阶�
 
 ### 核心特性
 
-| 特性          | 说明                               |
-| ------------- | ---------------------------------- |
-| 9 阶段 (Phase 0-8) 工作流  | 从需求立项到集成归档               |
-| 状态追踪      | `.flow-kit/current-phase` 追踪进度 |
-| 棕地/绿地分叉 | 不同项目类型走不同工作流           |
-| 护栏 B1-B6    | 保护代码库免受破坏性变更           |
+| 特性                      | 说明                               |
+| ------------------------- | ---------------------------------- |
+| 9 阶段 (Phase 0-8) 工作流 | 从需求立项到集成归档               |
+| 状态追踪                  | `.flow-kit/current-phase` 追踪进度 |
+| 棕地/绿地分叉             | 不同项目类型走不同工作流           |
+| 护栏 B1-B6                | 保护代码库免受破坏性变更           |
 
 ### 术语表
 
@@ -135,27 +135,32 @@ cat .flow-kit/current-phase
 
 ## 第四章：命令参考
 
-### 21 个核心命令
+### 22 个核心命令
 
-| 命令                | 说明           |
-| ------------------- | -------------- |
-| `/flow-kit:init`    | 变更初始化     |
-| `/flow-kit:health`  | 项目健康扫描   |
-| `/flow-kit:scan`    | 技术情报扫描   |
-| `/flow-kit:phase-0` | 变更立项       |
-| `/flow-kit:phase-1` | 需求澄清       |
-| `/flow-kit:phase-2` | 架构设计       |
-| `/flow-kit:phase-3` | 任务拆解       |
-| `/flow-kit:phase-4` | 开发执行       |
-| `/flow-kit:phase-5` | 测试验证       |
-| `/flow-kit:phase-6` | 代码审查       |
-| `/flow-kit:phase-7` | 集成归档       |
-| `/flow-kit:phase-8` | 变更回滚       |
-| `/flow-kit:next`    | 推进到下一阶段 |
-| `/flow-kit:status`  | 显示当前状态   |
-| `/flow-kit:guard`   | 护栏管理       |
-| `/flow-kit:archive` | 归档完成变更   |
-| `/flow-kit:scale`   | 扩展级别评估   |
+| 命令                          | 说明           |
+| ----------------------------- | -------------- |
+| `/flow-kit:init`              | 变更初始化     |
+| `/flow-kit:health`            | 项目健康扫描   |
+| `/flow-kit:scan`              | 技术情报扫描   |
+| `/flow-kit:phase-0`           | 变更立项       |
+| `/flow-kit:phase-1`           | 需求澄清       |
+| `/flow-kit:phase-2`           | 架构设计       |
+| `/flow-kit:phase-3`           | 任务拆解       |
+| `/flow-kit:phase-4`           | 开发执行       |
+| `/flow-kit:phase-5`           | 测试验证       |
+| `/flow-kit:phase-6`           | 代码审查       |
+| `/flow-kit:phase-7`           | 集成归档       |
+| `/flow-kit:phase-8`           | 变更回滚       |
+| `/flow-kit:next`              | 推进到下一阶段 |
+| `/flow-kit:status`            | 显示当前状态   |
+| `/flow-kit:guard`             | 护栏管理       |
+| `/flow-kit:archive`           | 归档完成变更   |
+| `/flow-kit:scale`             | 扩展级别评估   |
+| `/flow-kit:mode`              | 执行模式切换   |
+| `/flow-kit:hooks`             | Hooks 使用指南 |
+| `/flow-kit:register-commands` | 注册斜杠命令   |
+| `/flow-kit:generate-commands` | 重新生成命令   |
+| `/flow-kit:resume`            | 恢复会话状态   |
 
 ### 护栏子命令
 
@@ -351,4 +356,4 @@ phases/
 
 ---
 
-_Generated: 2026-05-12 flow-kit v2.7.0_
+_Generated: 2026-05-13 flow-kit v3.1.0_

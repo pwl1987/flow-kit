@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-8-output.schema.json",
+  "title": "Phase 8 Output Schema",
+  "description": "变更回滚产物验证 schema — v2.9.0 新增",
+  "type": "object",
+  "required": [
+    "change_id",
+    "rollback_status",
+    "created_at"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "rollback_status": {
+      "type": "string",
+      "enum": [
+        "COMPLETED",
+        "PARTIAL",
+        "FAILED"
+      ],
+      "description": "回滚状态"
+    },
+    "rollback_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "partial",
+        "hotfix"
+      ],
+      "description": "回滚类型"
+    },
+    "checkpoint_sha": {
+      "type": "string",
+      "description": "回滚到的 git commit SHA"
+    },
+    "steps_taken": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "回滚步骤记录"
+    },
+    "verification_result": {
+      "type": "string",
+      "description": "回滚后验证结果"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

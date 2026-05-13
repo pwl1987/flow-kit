@@ -19,17 +19,34 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "description", "type"],
+        "required": [
+          "id",
+          "description",
+          "type"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "description": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
           "type": {
             "type": "string",
-            "enum": ["functional", "non-functional", "constraint"]
+            "enum": [
+              "functional",
+              "non-functional",
+              "constraint"
+            ]
           },
           "priority": {
             "type": "string",
-            "enum": ["must", "should", "could", "wont"]
+            "enum": [
+              "must",
+              "should",
+              "could",
+              "wont"
+            ]
           }
         }
       },
@@ -40,12 +57,24 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "criteria", "verification_method"],
+        "required": [
+          "id",
+          "criteria",
+          "verification_method"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "criteria": { "type": "string" },
-          "verification_method": { "type": "string" },
-          "measurable": { "type": "boolean" }
+          "id": {
+            "type": "string"
+          },
+          "criteria": {
+            "type": "string"
+          },
+          "verification_method": {
+            "type": "string"
+          },
+          "measurable": {
+            "type": "boolean"
+          }
         }
       },
       "minItems": 1,
@@ -57,13 +86,18 @@
     },
     "ambiguity_notes": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "需求模糊性记录"
     },
     "open_questions": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "未解决问题列表"
     }
-  }
+  },
+  "additionalProperties": false
 }

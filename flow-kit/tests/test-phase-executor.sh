@@ -156,9 +156,9 @@ test_main_success() {
     exit_code=$?
 
     assert_equals 0 $exit_code "main exits with 0 for valid phase"
-    assert_contains "$output" "项目类型:" "main outputs project type"
-    assert_contains "$output" "Phase:" "main outputs Phase info"
-    assert_contains "$output" "加载工作流:" "main outputs workflow loading info"
+    assert_contains "$output" "type=" "main outputs project type"
+    assert_contains "$output" "phase=" "main outputs Phase info"
+    assert_contains "$output" "workflow=" "main outputs workflow loading info"
 }
 
 # 测试护栏建议输出（跳过 - 依赖实际项目文件）

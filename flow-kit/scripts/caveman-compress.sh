@@ -76,7 +76,7 @@ extract_todos() {
         fi
 
         while IFS= read -r line; do
-            if [[ "$line" =~ ^-[*][[:space:]]*(TODO|FIXME|待办|修复) ]]; then
+            if [[ "$line" =~ ^[-*+][[:space:]]*(\[.\])?[[:space:]]*(TODO|FIXME|待办|修复) ]]; then
                 all_todos+=("$line")
             fi
         done < "$file"

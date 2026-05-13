@@ -5,12 +5,11 @@
 set -euo pipefail
 
 #------------------------------------------------------------------------------
-# 依赖检查
+# 依赖检查 — gh 仅在 --create 模式下需要，模板生成无需 gh
 #------------------------------------------------------------------------------
-if ! command -v gh &>/dev/null; then
-    echo "[ERROR] gh CLI 未安装，无法生成 PR 描述" >&2
-    echo "[INFO] 安装: brew install gh" >&2
-    exit 1
+GH_AVAILABLE=false
+if command -v gh &>/dev/null; then
+    GH_AVAILABLE=true
 fi
 
 #------------------------------------------------------------------------------
@@ -121,11 +120,17 @@ EOF
 {Command or reference}
 EOF
 
-    # 如果不是 preview，创建 PR
+    # 如果不是 preview，提示创建 PR
     if [ "$preview" = "false" ]; then
-        echo ""
-        echo "[INFO] 使用 --preview 查看完整输出，或重定向到文件"
-        echo "[INFO] gh pr create 时会自动打开编辑器填写描述"
+        if [ "$GH_AVAILABLE" = true ]; then
+            echo ""
+            echo "[INFO] 可使用以下命令创建 PR:"
+            echo "  gh pr create --title \"$(echo "$branch" | tr '-' ' ')\" --body-file -"
+        else
+            echo ""
+            echo "[INFO] 安装 gh CLI 后可使用 gh pr create 创建 PR"
+            echo "[INFO] 安装: brew install gh"
+        fi
     fi
 }
 

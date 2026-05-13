@@ -5,6 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
+source "$SCRIPT_DIR/../lib/session-state.sh"
 
 get_current_phase() {
     local current
@@ -32,23 +33,19 @@ advance_phase() {
         return 0
     fi
 
-    # 更新状态文件
+    # v2.8.0: 使用原子写入防止并发竞态
     mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
-    echo "$next" > "$CURRENT_PHASE_FILE"
+    local tmp_file="$CURRENT_PHASE_FILE.tmp.$$"
+    echo "$next" > "$tmp_file"
+    mv "$tmp_file" "$CURRENT_PHASE_FILE"
 
-    echo ""
-    echo "=========================================="
-    echo "flow-kit Phase 推进"
-    echo "=========================================="
-    echo ""
-    echo "📍 当前阶段: Phase $current"
-    echo "📍 推进到: Phase $next"
-    echo ""
-    echo "📌 下一步操作:"
-    echo ""
-    echo "   输入 /flow-kit:phase-$next 启动 Phase $next"
-    echo ""
-    echo "💡 或继续使用 /flow-kit:next 逐步推进"
+    # v3.0.0: 更新会话状态
+    session_set phase "$next"
+    session_set status pending
+    session_next "run /flow-kit:phase-$next"
+
+    echo "phase $current → $next"
+    echo "run /flow-kit:phase-$next"
 }
 
 main() {

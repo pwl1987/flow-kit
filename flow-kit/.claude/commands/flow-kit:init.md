@@ -1,11 +1,8 @@
 ---
-description: "初始化变更 - 创建 change-id 和规格目录"
+description: flow-kit init 命令
 category: dev
 reference: flow-kit/commands/init-change.md
+execute: bash flow-kit/scripts/init-change.sh
 ---
 
-读取并执行以下命令文档：
-
-@flow-kit/commands/init-change.md
-
-创建 `.specs/{change-id}/` 目录，生成 CHANGE.md，初始化 `.flow-kit/current-phase` 为 0。
+/flow-kit:init: flow-kit init 命令

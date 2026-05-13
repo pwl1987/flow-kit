@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-7-output.schema.json",
+  "title": "Phase 7 Output Schema",
+  "description": "集成归档产物验证 schema — v2.9.0 新增",
+  "type": "object",
+  "required": [
+    "change_id",
+    "integration_status",
+    "created_at"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "integration_status": {
+      "type": "string",
+      "enum": [
+        "MERGED",
+        "RELEASED",
+        "ARCHIVED"
+      ],
+      "description": "集成状态"
+    },
+    "merge_commit": {
+      "type": "string",
+      "description": "合并 commit SHA"
+    },
+    "release_tag": {
+      "type": "string",
+      "description": "发布标签"
+    },
+    "archive_path": {
+      "type": "string",
+      "description": "归档路径"
+    },
+    "lessons_learned": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "经验教训"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

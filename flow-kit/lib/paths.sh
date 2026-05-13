@@ -117,6 +117,9 @@ readonly CURRENT_PHASE_FILE="$PROJECT_DIR/.flow-kit/current-phase"
 # 模式文件
 readonly MODE_FILE="$PROJECT_DIR/.flow-kit/mode"
 
+# 会话状态文件（v3.0.0 记忆系统）
+readonly SESSION_STATE_FILE="$PROJECT_DIR/.flow-kit/session-state.json"
+
 #------------------------------------------------------------------------------
 # 初始化运行时目录
 #------------------------------------------------------------------------------

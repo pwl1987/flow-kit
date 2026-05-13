@@ -1,12 +1,7 @@
 ---
-description: "需求澄清 - 明确功能范围和验收标准"
+description: 需求澄清 - phase-1
 category: dev
 reference: flow-kit/phases/1-requirement/
+execute: bash flow-kit/scripts/phase-executor.sh 1
 ---
-
-读取并执行以下 Phase 工作流文件：
-
-@flow-kit/phases/1-requirement/1-requirement.md
-
-执行条件路由时，参考 @flow-kit/scripts/phase-executor.sh 中棕地/绿地分叉逻辑。
-当前项目类型从 @flow-kit/.flow-kit/project-type 读取（若不存在，Phase 0 自动检测）。
+/flow-kit:phase-1: 需求澄清

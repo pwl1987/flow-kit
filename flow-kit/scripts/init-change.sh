@@ -7,6 +7,7 @@ set -euo pipefail
 # 加载路径管理
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
+source "$SCRIPT_DIR/../lib/session-state.sh"
 
 # ============================================================================
 # 主函数
@@ -47,6 +48,11 @@ main() {
     echo "0" > "$CURRENT_PHASE_FILE"
     echo "💾 当前阶段已记录: Phase 0"
 
+    # v3.0.0: 初始化会话状态
+    local ss_ptype="green"
+    [ "$project_type" = "brownfield" ] && ss_ptype="brown"
+    session_init "$change_id" "$ss_ptype"
+
     # 7. 输出下一步建议
     print_next_steps "$change_id"
 }
@@ -79,7 +85,20 @@ generate_change_id() {
         slug="change"
     fi
 
-    echo "${slug}-${date}"
+    local change_id="${slug}-${date}"
+
+    # v2.8.0: 防止同日同 slug 碰撞覆盖已有 spec
+    local specs_base
+    specs_base="$PROJECT_DIR/.specs"
+    if [ -d "$specs_base/$change_id" ] && [ "$(ls -A "$specs_base/$change_id" 2>/dev/null)" ]; then
+        local seq=2
+        while [ -d "$specs_base/${change_id}-${seq}" ]; do
+            seq=$((seq + 1))
+        done
+        change_id="${change_id}-${seq}"
+    fi
+
+    echo "$change_id"
 }
 
 # 创建标准文件骨架

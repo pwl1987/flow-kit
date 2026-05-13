@@ -104,8 +104,8 @@ test_validate_phase_checks_jq() {
     passed=$((passed + 1))
 }
 
-test_dispatch_uses_flock() {
-    echo "=== test_dispatch_uses_flock ==="
+test_dispatch_lock_mechanism() {
+    echo "=== test_dispatch_lock_mechanism ==="
 
     local script="$FLOW_KIT_DIR/scripts/dispatch.sh"
 
@@ -115,13 +115,27 @@ test_dispatch_uses_flock() {
         return 1
     fi
 
-    if ! grep -q 'flock' "$script"; then
-        echo -e "${RED}FAIL${NC}: dispatch.sh missing flock"
+    # v2.8.0: 验证实际使用的 mkdir/rmdir 锁机制
+    # 锁模式: lockdir 变量包含 slot-*.lock 路径，用 mkdir 创建、rmdir 释放
+    if ! grep -qE 'lockdir=.*slot.*\.lock' "$script"; then
+        echo -e "${RED}FAIL${NC}: dispatch.sh missing slot lock variable"
         failed=$((failed + 1))
         return 1
     fi
 
-    echo -e "${GREEN}PASS${NC}: dispatch.sh uses flock"
+    if ! grep -qE 'mkdir "\$lockdir"' "$script"; then
+        echo -e "${RED}FAIL${NC}: dispatch.sh missing mkdir lock acquisition"
+        failed=$((failed + 1))
+        return 1
+    fi
+
+    if ! grep -qE 'rmdir "\$lockdir"' "$script"; then
+        echo -e "${RED}FAIL${NC}: dispatch.sh missing rmdir lock release"
+        failed=$((failed + 1))
+        return 1
+    fi
+
+    echo -e "${GREEN}PASS${NC}: dispatch.sh uses mkdir/rmdir lock mechanism"
     passed=$((passed + 1))
 }
 
@@ -157,7 +171,7 @@ main() {
     setup
 
     test_validate_phase_checks_jq
-    test_dispatch_uses_flock
+    test_dispatch_lock_mechanism
     test_lib_scripts_exist
     test_security_scripts_exist
     test_dispatch_creates_summary

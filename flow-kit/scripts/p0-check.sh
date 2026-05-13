@@ -96,8 +96,32 @@ get_changed_files() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    local files="${1:-}"
-    local base_branch="${2:-origin/main}"
+    local files=""
+    local base_branch="origin/main"
+    local force_skip=false
+
+    # v2.8.0: 添加 --force 参数支持
+    local args=()
+    for arg in "$@"; do
+        case "$arg" in
+            --force)
+                force_skip=true
+                ;;
+            *)
+                args+=("$arg")
+                ;;
+        esac
+    done
+
+    if [ "$force_skip" = true ]; then
+        log_info "=========================================="
+        log_info "P0 变更检测已通过 --force 跳过"
+        log_info "=========================================="
+        exit 0
+    fi
+
+    files="${args[0]:-}"
+    base_branch="${args[1]:-$base_branch}"
 
     echo "=========================================="
     echo "P0 Change Detector"
@@ -131,7 +155,7 @@ main() {
         echo "请执行以下步骤:"
         echo "  1. 确认变更必要性"
         echo "  2. 获取 admin 或 reviewer 角色审批"
-        echo "  3. 执行: /flow-kit:p0-approve"
+        echo "  3. 执行: /flow-kit:p0-approval"
         echo ""
         echo "或使用 --force 跳过检查（危险）:"
         echo "  /flow-kit:p0 --force"

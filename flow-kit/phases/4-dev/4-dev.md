@@ -169,3 +169,5 @@ echo "project_type: brownfield" > .flow-kit/project-type
 - 绿地项目：提示 `建议使用标准开发流程`
 
 --- END flow-kit/phases/4-dev/4-dev.md ---
+
+<!-- v3.1.0 session-state: 每完成一个任务时调用 session_task_set T{N} done 更新记忆 -->

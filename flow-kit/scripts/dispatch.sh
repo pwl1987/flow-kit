@@ -15,6 +15,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # v2.7.0 改进：使用统一路径管理
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
+source "$SCRIPT_DIR/../lib/session-state.sh" 2>/dev/null || true
 # 注意：LOCK_DIR/TMP_DIR 复用 paths.sh 中的定义，无需重复定义
 
 # P0 修复：添加 trap 清理子进程，防止提前退出时子进程 orphaned
@@ -29,44 +30,12 @@ if [[ "$SIMULATION_MODE" == "true" ]]; then
     readonly SIMULATION_WARNING="⚠️  [SIMULATION MODE] dispatch.sh 当前为桩代码，未调用真实 Agent API"
 fi
 
-#------------------------------------------------------------------------------
-# 跨平台时间戳工具（v2.7.0 新增：macOS/Linux 兼容）
-#------------------------------------------------------------------------------
-get_epoch_ms() {
-    # macOS: date 不支持 %3N，使用 python/perl 回退
-    local epoch_ms
-    epoch_ms=$(python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null)
-    if [ -n "$epoch_ms" ] && [[ "$epoch_ms" =~ ^[0-9]+$ ]]; then
-        echo "$epoch_ms"
-        return 0
-    fi
-    epoch_ms=$(perl -MTime::HiRes -e 'printf("%d\n",Time::HiRes::time()*1000)' 2>/dev/null)
-    if [ -n "$epoch_ms" ] && [[ "$epoch_ms" =~ ^[0-9]+$ ]]; then
-        echo "$epoch_ms"
-        return 0
-    fi
-    # 最终回退：date +%s 拼接 000
-    echo "$(date +%s)000"
-}
+# v2.9.0: 使用共享时间工具替代内联定义
+source "$SCRIPT_DIR/../lib/time-utils.sh"
 
-date_to_epoch() {
-    local iso_date="$1"
-    local epoch=0
-    if [ -z "$iso_date" ] || [ "$iso_date" = "null" ] || [ "$iso_date" = "" ]; then
-        echo "0"
-        return 0
-    fi
-    if date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s >/dev/null 2>&1; then
-        epoch=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_date" +%s 2>/dev/null || echo "0")
-    elif date -d "$iso_date" +%s >/dev/null 2>&1; then
-        epoch=$(date -d "$iso_date" +%s 2>/dev/null || echo "0")
-    fi
-    if [ "$epoch" = "0" ] || [ -z "$epoch" ]; then
-        echo "0"
-    else
-        echo "$epoch"
-    fi
-}
+# v2.9.0: 依赖预检
+source "$SCRIPT_DIR/../lib/preflight.sh"
+require_jq
 
 cleanup_children() {
     local exit_code=$?
@@ -112,10 +81,10 @@ cleanup_children() {
             rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
         fi
     fi
-    # v2.7.0 改进：清理 slot 锁文件（始终执行）
-    if [ -d "$LOCK_DIR" ]; then
-        rm -f "$LOCK_DIR"/slot-*.lock 2>/dev/null || true
-    fi
+    # v2.8.0 修复：slot 锁是目录（mkdir 创建），必须用 rmdir 或 rm -rf 清理
+    for lockdir in "$TMP_DIR"/slot-*.lock; do
+        [ -d "$lockdir" ] && rmdir "$lockdir" 2>/dev/null || rm -rf "$lockdir" 2>/dev/null || true
+    done
     rm -f "$TMP_DIR"/slot-*.id "$TMP_DIR"/slot-*.fd 2>/dev/null || true
     exit $exit_code
 }
@@ -660,7 +629,7 @@ execute_subagents() {
         --argjson agents "[$agents_array]" \
         --argjson pids "$pids_json" \
         --arg execution_mode "PARALLEL" \
-        --argjson timeout_seconds 300 \
+        --argjson timeout_seconds "$WAIT_TIMEOUT" \
         --argjson retry_attempts 2 \
         --argjson retry_interval_seconds 10 \
         '{task_id: $task_id, task_desc: $task_desc, parallel_n: $parallel_n, status: $status, launched_at: $launched_at, agents: $agents, pids: $pids, execution_mode: $execution_mode, timeout_seconds: $timeout_seconds, retry_attempts: $retry_attempts, retry_interval_seconds: $retry_interval_seconds}' \
@@ -669,10 +638,10 @@ execute_subagents() {
     echo ""
     echo "[dispatch] 📊 已启动 ${#pids[@]} 个子代理（并行执行中）"
     echo "[dispatch] PIDs: ${pids[*]}"
-    echo "[dispatch] ⏱️ 超时设置: 300秒/子代理"
+    echo "[dispatch] ⏱️ 超时设置: ${WAIT_TIMEOUT}秒/子代理"
 
     # 监控并等待所有后台进程完成（带超时控制）
-    local timeout_seconds=300
+    local timeout_seconds="$WAIT_TIMEOUT"
     local all_success=true
     local timed_out_agents=()
 
@@ -682,9 +651,10 @@ execute_subagents() {
     local remaining_pids=("${pids[@]}")
     local check_interval=2
 
-    # v2.7.0 P0 修复：正确轮询子进程状态
-    # wait -n 不返回 PID（仅返回退出码），不能用 $! 获取完成进程的 PID
-    # 因此使用 kill -0 轮询方案，间隔 2 秒在精度与 CPU 之间权衡
+    # v2.8.0 P0 修复：正确处理僵尸进程
+    # kill -0 对僵尸进程返回 true（进程条目仍存在），导致假超时
+    # 修复：双重检测 — kill -0 + 结果文件存在性。子进程完成时会写入 result 文件。
+    # 如果 result 文件已存在但 kill -0 仍为 true（僵尸），视为完成并回收。
     while [ ${#remaining_pids[@]} -gt 0 ]; do
         local now_epoch=$(date +%s)
         local elapsed=$((now_epoch - start_epoch))
@@ -709,11 +679,51 @@ execute_subagents() {
 
         local new_remaining=()
         for pid in "${remaining_pids[@]}"; do
-            if kill -0 $pid 2>/dev/null; then
-                # 进程仍在运行，使用关联数组 O(1) 查找 agent_id
+            local agent_id="${PID_TO_AGENT[$pid]:-}"
+            local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
+            local alive=false
+            kill -0 "$pid" 2>/dev/null && alive=true
+
+            # 双重检测：进程已死 OR 结果文件已生成（即使进程是僵尸）
+            local completed=false
+            if [ "$alive" = false ]; then
+                completed=true
+            elif [ -n "$agent_id" ] && [ -f "$result_file" ]; then
+                # 僵尸进程：仍存活但结果文件已生成
+                completed=true
+            fi
+
+            if [ "$completed" = true ]; then
+                # 进程已完成或结果已就绪，回收僵尸
+                if [ "$alive" = true ]; then
+                    kill -TERM "$pid" 2>/dev/null || true
+                    sleep 0.1 2>/dev/null || true
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
+                wait "$pid" 2>/dev/null || true
+
+                if [ -n "$agent_id" ]; then
+                    if [ ! -f "$result_file" ]; then
+                        echo "[dispatch] ❌ $agent_id 执行失败"
+                        cat > "$result_file" << EOF
+{
+  "id": "$agent_id",
+  "role": "unknown",
+  "status": "FAILED",
+  "summary": "子代理执行失败",
+  "files_modified": [],
+  "issues": ["子代理进程异常退出"],
+  "context_consumed_pct": "0%",
+  "attempts": 0
+}
+EOF
+                        all_success=false
+                    fi
+                fi
+            else
+                # 进程仍在运行，检查单代理超时
                 local timed_out=false
-                if [[ -n "${PID_TO_AGENT[$pid]+isset}" ]]; then
-                    local agent_id="${PID_TO_AGENT[$pid]}"
+                if [ -n "$agent_id" ]; then
                     local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
                     if [ -f "$status_file" ]; then
                         local started_at
@@ -727,6 +737,7 @@ execute_subagents() {
                                 kill -TERM $pid 2>/dev/null || true
                                 sleep 1
                                 kill -9 $pid 2>/dev/null || true
+                                wait "$pid" 2>/dev/null || true
                                 timed_out_agents+=("$agent_id")
                                 timed_out=true
                                 all_success=false
@@ -736,30 +747,6 @@ execute_subagents() {
                 fi
                 if [ "$timed_out" = false ]; then
                     new_remaining+=("$pid")
-                fi
-            else
-                # 进程已完成，使用关联数组 O(1) 查找 agent_id
-                if [[ -n "${PID_TO_AGENT[$pid]+isset}" ]]; then
-                    local agent_id="${PID_TO_AGENT[$pid]}"
-                    if ! wait $pid 2>/dev/null; then
-                        local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-                        if [ ! -f "$result_file" ]; then
-                            echo "[dispatch] ❌ $agent_id 执行失败"
-                            cat > "$result_file" << EOF
-{
-  "id": "$agent_id",
-  "role": "unknown",
-  "status": "FAILED",
-  "summary": "子代理执行失败",
-  "files_modified": [],
-  "issues": ["子代理进程异常退出"],
-  "context_consumed_pct": "0%",
-  "attempts": 0
-}
-EOF
-                            all_success=false
-                        fi
-                    fi
                 fi
             fi
         done
@@ -851,15 +838,14 @@ wait_for_subagents() {
 
     echo "[dispatch] ⏳ 等待子代理完成（超时: ${timeout_seconds}秒）..."
 
-    local agents=$(jq -c '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
+    local agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
     while [ $elapsed -lt $timeout_seconds ]; do
         local all_complete=true
         local completed=0
         local total=0
 
-        for agent in $agents; do
-            local agent_id=$(echo "$agent" | jq -r '.')
+        for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
             total=$((total + 1))
 
@@ -872,6 +858,7 @@ wait_for_subagents() {
 
         if [ "$all_complete" = true ]; then
             echo "[dispatch] ✅ 所有子代理已完成"
+            command -v session_set >/dev/null 2>&1 && session_set status done 2>/dev/null || true
             return 0
         fi
 
@@ -896,12 +883,12 @@ collect_results() {
         local task_id=$(jq -r '.task_id' "$launch_manifest")
         local task_desc=$(jq -r '.task_desc' "$launch_manifest")
         local launched_at=$(jq -r '.launched_at' "$launch_manifest")
-        local agents=$(jq -c '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
+        local agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
         echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         echo "多代理编排聚合报告"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         echo ""
         echo "任务ID: $task_id"
         echo "任务描述: $task_desc"
@@ -915,7 +902,7 @@ collect_results() {
         local partial=0
 
         echo "子代理状态:"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
 
         for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
@@ -936,7 +923,7 @@ collect_results() {
                 total=$((total + 1))
             fi
         done
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
 
         echo ""
         echo "执行统计:"
@@ -949,8 +936,9 @@ collect_results() {
         echo ""
         echo "修改文件清单:"
         local all_files="[]"
-        if [ -f "$TMP_DIR/subagent-agent-1-result.json" ]; then
-            all_files=$(jq -s '[.[] | .files_modified // []] | add | unique' "$TMP_DIR"/subagent-*-result.json 2>/dev/null || echo "[]")
+        local result_files=("$TMP_DIR"/subagent-*-result.json)
+        if [ ${#result_files[@]} -gt 0 ] && [ -f "${result_files[0]}" ]; then
+            all_files=$(jq -s '[.[] | .files_modified // []] | add | unique' "${result_files[@]}" 2>/dev/null || echo "[]")
         fi
         if [ "$all_files" = "[]" ]; then
             echo "  (无)"
@@ -994,9 +982,9 @@ collect_results() {
     elif [ -f "$summary_file" ]; then
         # 回退到旧的 summary 文件格式
         echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         echo "多代理编排聚合报告"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         echo ""
         echo "任务ID: $(jq -r '.task_id' "$summary_file")"
         echo "任务描述: $(jq -r '.task_desc' "$summary_file")"
@@ -1016,7 +1004,7 @@ collect_results() {
         echo ""
 
         echo "子代理状态:"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         local has_agents=false
         while read -r agent_json; do
             has_agents=true
@@ -1036,7 +1024,7 @@ collect_results() {
         if [ "$has_agents" != true ]; then
             echo "  (尚未执行，请使用 --execute 运行)"
         fi
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
 
         # 收集所有修改的文件
         echo ""
@@ -1097,7 +1085,7 @@ main() {
         collect_results
     else
         echo ""
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "────────────────────────────────"
         echo "📋 子任务拆分结果:"
         jq '.agents' "$TMP_DIR/dispatch-summary.json"
         echo ""

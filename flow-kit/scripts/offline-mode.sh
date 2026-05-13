@@ -4,7 +4,12 @@
 
 set -euo pipefail
 
-readonly OFFLINE_FLAG_DIR=".flow-kit"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../lib/preflight.sh"
+source "$SCRIPT_DIR/../lib/paths.sh"
+require_jq
+
+readonly OFFLINE_FLAG_DIR="$PROJECT_DIR/.flow-kit"
 readonly OFFLINE_FLAG="$OFFLINE_FLAG_DIR/.offline-mode"
 
 #------------------------------------------------------------------------------
@@ -111,6 +116,8 @@ lint_yaml_json_format() {
             *.yaml|*.yml)
                 if ! command -v python3 >/dev/null 2>&1; then
                     errors+=("YAML 验证需要 python3: $file")
+                elif ! python3 -c 'import yaml' 2>/dev/null; then
+                    errors+=("YAML 验证需要 PyYAML (pip3 install pyyaml): $file")
                 elif ! python3 - "$file" << 'PY' 2>/dev/null
 import sys
 import yaml

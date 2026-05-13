@@ -7,6 +7,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
+source "$SCRIPT_DIR/../lib/session-state.sh"
 
 PHASE_NUM="${1:-}"
 
@@ -72,8 +73,16 @@ main() {
     local project_type
     project_type=$(get_project_type)
 
-    echo "[phase-executor] 项目类型: $project_type"
-    echo "[phase-executor] Phase: $PHASE_NUM"
+    echo "[phase-exec] type=$project_type phase=$PHASE_NUM"
+
+    # v2.9.0: 持久化当前阶段到 .flow-kit/current-phase
+    # v3.0.0: 同时更新 session-state.json
+    local phase_num_only="${PHASE_NUM%%-*}"
+    [[ "$phase_num_only" =~ ^[0-9]+$ ]] || phase_num_only="0"
+    mkdir -p "$(dirname "$CURRENT_PHASE_FILE")"
+    printf '%s\n' "$phase_num_only" > "$CURRENT_PHASE_FILE"
+    session_set phase "$phase_num_only"
+    session_set status wip
 
     local workflow_file
     workflow_file=$(load_workflow "$PHASE_NUM" "$project_type")
@@ -83,22 +92,16 @@ main() {
         exit 1
     fi
 
-    echo "[phase-executor] 加载工作流: $workflow_file"
+    echo "[phase-exec] workflow=$workflow_file"
     echo ""
 
     # 加载工作流文件内容
     cat "$workflow_file"
 
     echo ""
-    echo "=========================================="
-    if [ "$project_type" = "brownfield" ]; then
-        echo "🛡️  棕地项目建议: /flow-kit:guard full"
-        echo "   启用全部护栏 B1-B6，保护现有代码库"
-    else
-        echo "🛡️  绿地项目建议: /flow-kit:guard minimal"
-        echo "   启用核心护栏 B2/B4/B6"
-    fi
-    echo "=========================================="
+    local guard_cmd="minimal"
+    [ "$project_type" = "brownfield" ] && guard_cmd="full"
+    echo "[phase-exec] guard: /flow-kit:guard $guard_cmd"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

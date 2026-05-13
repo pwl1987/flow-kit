@@ -2,6 +2,124 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [3.1.0] - 2026-05-13
+
+### P0: session-state.sh 修复
+
+- **session-state.sh** — `_ss_migrate` 用 `ls -1t` 替代 `find -printf`（macOS/BSD 兼容）
+- **session-state.sh** — `session_set` 添加 key 白名单校验，防止 jq path 注入
+- **`.claude/commands/flow-kit:resume.md`** — 新建，resume 命令可被发现
+
+### P1: Token 优化
+
+- **next-phase.sh** — 输出从 7 行精简为 2 行
+- **dispatch.sh** — 分隔线从 `━━━` 缩短为 `───`
+- **phase-executor.sh** — 输出精简为单行 `[phase-exec] type=X phase=Y`
+- **flow-kit.sh** — 版本 fallback 从 `v2.7.0` 改为 `unknown`
+- **命令 execute** — init/status/guard 添加 execute 字段
+- **phase 文档** — 4-dev/5-test/6-review 接入 session-state 指引
+
+### P2: 测试补全 + Schema
+
+- **tests/test-session-state.sh** — 新建 22 项单元测试（init/set/get/task/migrate/注入防护）
+- **validate-phase.sh** — help 文本 `phase (0, 1, 2)` → `phase (0-8)`
+- **dispatch.sh** — source session-state.sh，完成时 `session_set status done`
+- **9 个 schema** — 全部添加 `additionalProperties: false`
+
+---
+
+## [3.0.0] - 2026-05-13
+
+### P0: Bug 修复 (8 项)
+
+- **dispatch.sh** — `jq -c '.agents[]'` → `jq -r`，修复带引号 agent id 导致文件名错误
+- **init-change.sh** — 碰撞检查路径从插件相对路径改为 `$PROJECT_DIR/.specs`
+- **phase-executor.sh** — 提取 `${PHASE_NUM%%-*}` 纯数字，防止写入非数字 phase
+- **p0-check.sh** — 审批命令名 `p0-approve` → `p0-approval`
+- **hooks/pre-tool-guard.sh, notification.sh** — 日志路径改用 `$LOGS_DIR`（source paths.sh）
+- **offline-mode.sh** — 状态文件改用 `$PROJECT_DIR/.flow-kit`（source paths.sh）
+- **stop-quality-gate.sh** — 覆盖率路径改用 `$COVERAGE_DIR`（source paths.sh）
+- **dispatch.sh** — collect_results 从 agent-1 硬依赖改为 glob 检查
+
+### P1: 会话记忆系统 (核心功能)
+
+- **lib/session-state.sh** — 新建会话状态管理库
+  - `session_init/set/get/task_set/next/block/resume_prompt` API
+  - caveman 压缩风格：极简 JSON（~120 token）、`id:status` 逗号串
+  - 原子写入（tmp+mv）、自动时间戳
+  - graceful fallback：缺 session-state.json 时从旧文件自动迁移
+- **`.flow-kit/session-state.json`** — 核心状态文件
+  - 存储: change-id、phase、status、ptype、mode、tasks、next、blockers、ts
+- **init-change.sh** — 创建变更时初始化 session-state
+- **phase-executor.sh** — 进入 phase 时更新 session-state
+- **next-phase.sh** — 推进 phase 时更新 session-state
+- **session-start.sh** — 重写：`/clear` 后恢复完整上下文（~30 token caveman 摘要）
+- **flow-kit.sh status** — 从 session-state.json 读取状态
+- **`/flow-kit:resume`** — 新命令，显式恢复完整状态
+- **generate-commands.sh** — 注册 resume 命令
+- **lib/paths.sh** — 添加 `SESSION_STATE_FILE` 常量
+- **.flow-kit/.gitignore** — 补全运行时状态忽略规则
+
+---
+
+## [2.9.0] - 2026-05-13
+
+### P0: Phase 状态持久化
+
+- **phase-executor.sh** — 执行 phase 时写入 `.flow-kit/current-phase`
+  - `/flow-kit:phase-N` 执行后持久化当前阶段，`/clear` 后 `/flow-kit:next` 可正确恢复
+- **generate-commands.sh** — `/flow-kit:next` 斜杠命令添加 `execute` 字段
+  - 斜杠命令现在实际执行 `next-phase.sh`，而非仅显示文本
+- **session-start.sh** — 恢复阶段上下文提示
+  - `/clear` 后自动输出当前阶段提示，让 Claude 知道上次停在哪个 phase
+
+### P1: Schema 扩展 + 代码集成
+
+- **Phase 3-8 validation schema** — 新增 6 个 JSON Schema
+  - `phase-{3,4,5,6,7,8}-output.schema.json`
+  - `validate-phase.sh` 扩展到支持全部 9 个阶段
+- **dispatch.sh** — source `lib/time-utils.sh`，提取 `date_to_epoch` 到共享库
+  - 消除 dispatch.sh 中 `get_epoch_ms` 和 `date_to_epoch` 的内联重复
+- **preflight.sh** — 集成到各脚本入口
+  - `dispatch.sh` 添加 `require_jq`
+  - `generate-commands.sh` 添加 `require_bash4`
+  - `offline-mode.sh` 添加 `require_jq`
+- **phase-0-output.schema.json** — 更新 `change_id` pattern 兼容碰撞后缀
+  - `^[a-z0-9-]+-[0-9]{8}(-[0-9]+)?$`
+
+---
+
+## [2.8.0] - 2026-05-13
+
+### P0: 核心稳定性修复
+
+- **dispatch.sh** — 僵尸进程双重检测
+  - `kill -0` + 结果文件存在性双重检测，解决僵尸进程导致假超时
+- **dispatch.sh** — 锁清理 mismatch 修复
+  - `cleanup_children` 改用 `rmdir` + `rm -rf` 回退清理 mkdir 创建的锁目录
+- **dispatch.sh** — `--timeout` 参数透传
+  - `execute_subagents` 和 manifest JSON 使用 `$WAIT_TIMEOUT` 替代硬编码 300s
+- **plugin.json** — 版本号 2.6.1 → 2.8.0 与 VERSION 同步
+- **e2e-full-flow.sh** — 重写 flock 测试为 mkdir/rmdir 锁机制验证
+
+### P1: 功能修复
+
+- **p0-check.sh** — 实现 `--force` 参数，跳过 P0 检测
+- **pr-description.sh** — `gh` 从硬依赖改为可选，模板生成无需 `gh`
+- **init-change.sh** — 同日同 slug 碰撞时追加 `-N` 序号
+- **next-phase.sh** — 原子写入（tmp + mv）防并发竞态
+- **offline-mode.sh** — 添加 PyYAML 可用性预检
+- **session-start.sh** — 使用 `CLAUDE_PROJECT_DIR` 环境变量
+
+### P2: 代码质量
+
+- **lib/time-utils.sh** — 新建共享时间工具，`get_epoch_ms` 去重（3 hooks）
+- **lib/preflight.sh** — 新建统一依赖预检库
+- **caveman-compress.sh** — TODO 正则修复匹配 `- TODO` / `- [ ] TODO`
+- **CLAUDE.md** — 命令数更新为 21（12 核心 + 9 阶段）
+
+---
+
 ## [1.12.17] - 2026-05-10
 
 ### P0: 核心脚本修复

@@ -27,7 +27,10 @@ fi
 # B6 测试覆盖率检测（v2.7.0 新增，v2.7.0 修复除零错误）
 #------------------------------------------------------------------------------
 check_test_coverage() {
-    local coverage_file=".flow-kit/coverage/lcov.info"
+    # 使用 paths.sh 常量而非相对路径
+    local SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$SCRIPT_DIR/../lib/paths.sh" 2>/dev/null || true
+    local coverage_file="${COVERAGE_DIR:-.flow-kit/coverage}/lcov.info"
     local threshold=80
 
     if [ ! -f "$coverage_file" ]; then

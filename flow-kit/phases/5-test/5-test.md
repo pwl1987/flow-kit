@@ -110,3 +110,5 @@ echo "project_type: brownfield" > .flow-kit/project-type
 ---
 
 END flow-kit/phases/5-test/5-test.md ---
+
+<!-- v3.1.0 session-state: 测试通过时 session_set status done，失败时 session_set status blocked -->

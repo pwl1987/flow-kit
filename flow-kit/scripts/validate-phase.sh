@@ -1,7 +1,7 @@
 #!/bin/bash
 # validate-phase.sh — 阶段产物 JSON Schema 验证
 # v2.7.0 P0 修复：临时文件安全清理 + set -euo pipefail
-# 验证 phase-0/1/2 产物是否符合 JSON Schema
+# 验证 phase-0~8 产物是否符合 JSON Schema
 
 set -euo pipefail
 
@@ -39,7 +39,7 @@ validate-phase.sh — 阶段产物 JSON Schema 验证
   validate-phase.sh --all
 
 参数:
-  phase          阶段号 (0, 1, 2)
+  phase          阶段号 (0-8)
   output_file    产物文件路径（可选，默认从 OUTPUT_DIR 读取）
 
 示例:
@@ -510,7 +510,7 @@ validate_all() {
 
     local failed=0
 
-    for phase in 0 1 2; do
+    for phase in 0 1 2 3 4 5 6 7 8; do
         if ! validate_phase "$phase"; then
             failed=$((failed + 1))
         fi
@@ -542,7 +542,7 @@ main() {
         --all|-a)
             validate_all
             ;;
-        0|1|2)
+        0|1|2|3|4|5|6|7|8)
             validate_phase "$1" "${2:-}"
             ;;
         *)

@@ -4,7 +4,12 @@
   "title": "Phase 2 Output Schema",
   "description": "设计文档产物验证 schema — v1.12.4 新增",
   "type": "object",
-  "required": ["change_id", "design_decisions", "architecture", "created_at"],
+  "required": [
+    "change_id",
+    "design_decisions",
+    "architecture",
+    "created_at"
+  ],
   "properties": {
     "change_id": {
       "type": "string",
@@ -14,18 +19,32 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "decision", "rationale"],
+        "required": [
+          "id",
+          "decision",
+          "rationale"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "decision": { "type": "string" },
-          "rationale": { "type": "string" },
+          "id": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
           "alternatives_considered": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           },
           "consequences": {
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -48,7 +67,9 @@
         },
         "components": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
         "data_flow": {
           "type": "string",
@@ -64,9 +85,15 @@
           "items": {
             "type": "object",
             "properties": {
-              "method": { "type": "string" },
-              "path": { "type": "string" },
-              "description": { "type": "string" }
+              "method": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
             }
           }
         }
@@ -74,7 +101,9 @@
     },
     "db_schema_changes": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "description": "数据库 schema 变更描述"
     },
     "created_at": {
@@ -87,7 +116,13 @@
     },
     "status": {
       "type": "string",
-      "enum": ["draft", "review", "approved", "rejected"]
+      "enum": [
+        "draft",
+        "review",
+        "approved",
+        "rejected"
+      ]
     }
-  }
+  },
+  "additionalProperties": false
 }

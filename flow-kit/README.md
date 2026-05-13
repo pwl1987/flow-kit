@@ -10,7 +10,7 @@
 # flow-kit
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Ready-blue)](https://claude.ai/code)
-[![Phases](https://img.shields.io/badge/Phases-8-green)](./phases)
+[![Phases](https://img.shields.io/badge/Phases-9-green)](./phases)
 [![Language](https://img.shields.io/badge/Markdown-Zero%20Dependencies-orange)](https://example.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
@@ -33,14 +33,14 @@
 
 ## 特性
 
-| 特性             | 描述                                    |
-| ---------------- | --------------------------------------- |
+| 特性                          | 描述                                    |
+| ----------------------------- | --------------------------------------- |
 | **9 阶段 (Phase 0-8) 工作流** | 从需求到集成的完整开发流程              |
-| **棕地护栏**     | B1-B6 六大护栏，保护现有代码库          |
-| **元技能包**     | 7 个可复用技能模块                      |
-| **多语言支持**   | TypeScript、Python、Java、Go、Rust、PHP |
-| **工程规范**     | 前端/后端硬规则、TDD 标准、ADR 模板     |
-| **团队协作**     | 角色定义、P0 审批、成本报告             |
+| **棕地护栏**                  | B1-B6 六大护栏，保护现有代码库          |
+| **元技能包**                  | 7 个可复用技能模块                      |
+| **多语言支持**                | TypeScript、Python、Java、Go、Rust、PHP |
+| **工程规范**                  | 前端/后端硬规则、TDD 标准、ADR 模板     |
+| **团队协作**                  | 角色定义、P0 审批、成本报告             |
 
 ---
 
@@ -94,7 +94,7 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 | 场景                 | 推荐流程                |
 | -------------------- | ----------------------- |
 | 简单变更（1-3 文件） | 极简模式，跳过测试/审查 |
-| 中等复杂度（新功能） | 标准 9 阶段 (Phase 0-8)             |
+| 中等复杂度（新功能） | 标准 9 阶段 (Phase 0-8) |
 | 复杂架构变更         | 完整流程 + 设计评审     |
 | 棕地项目迭代         | 启用 B1-B6 护栏         |
 
@@ -131,15 +131,22 @@ mkdir .specs/$(date +%Y%m%d%H%M%S)
 
 ## 命令参考
 
-| 命令                | 描述                       |
-| ------------------- | -------------------------- |
-| `/flow-kit:health`  | 代码健康度扫描             |
-| `/flow-kit:scan`    | 技术债务扫描（TODO/FIXME） |
-| `/flow-kit:archive` | 归档完成变更               |
-| `/flow-kit:guard`   | 护栏管理（full/minimal）   |
-| `/flow-kit:status`  | 显示当前状态               |
-| `/flow-kit:next`    | 推进到下一阶段             |
-| `/flow-kit:scale`   | 扩展级别评估               |
+| 命令                            | 描述                       |
+| ------------------------------- | -------------------------- |
+| `/flow-kit:init`                | 初始化变更规格             |
+| `/flow-kit:health`              | 代码健康度扫描             |
+| `/flow-kit:scan`                | 技术债务扫描（TODO/FIXME） |
+| `/flow-kit:archive`             | 归档完成变更               |
+| `/flow-kit:guard`               | 护栏管理（full/minimal）   |
+| `/flow-kit:status`              | 显示当前状态               |
+| `/flow-kit:next`                | 推进到下一阶段             |
+| `/flow-kit:scale`               | 扩展级别评估               |
+| `/flow-kit:mode`                | 执行模式切换               |
+| `/flow-kit:hooks`               | Hooks 使用指南             |
+| `/flow-kit:register-commands`   | 注册斜杠命令               |
+| `/flow-kit:generate-commands`   | 重新生成斜杠命令           |
+| `/flow-kit:resume`              | 恢复上次会话状态           |
+| `/flow-kit:phase-0` ~ `phase-8` | 启动对应阶段工作流         |
 
 详细命令文档请参阅 [GO.md](./GO.md)。
 
@@ -213,11 +220,46 @@ flow-kit/
 
 [MIT License](../LICENSE)
 
-_Generated with flow-kit v2.7.0_
+_Generated with flow-kit v3.1.0_
 
 ---
 
 ## Changelog
+
+### v3.1.0 (2026-05-13)
+
+- session-state.sh macOS/BSD 兼容修复（`ls -1t` 替代 `find -printf`）
+- `session_set` key 白名单防 jq 注入
+- Token 优化: next-phase/dispatch/phase-executor 输出精简
+- 9 个 schema 添加 `additionalProperties: false`
+- 22 项 session-state 单元测试
+
+### v3.0.0 (2026-05-13)
+
+- **会话记忆系统**: `session-state.json` + `session-state.sh` 库
+- `/clear` 后完整上下文恢复（caveman 风格，~30 token）
+- 新增 `/flow-kit:resume` 命令
+- 8 项 P0 bug 修复（dispatch jq、路径一致、phase 数字、命令名）
+
+### v2.9.0 (2026-05-13)
+
+- Phase 状态持久化：`phase-executor.sh` 写入 `current-phase`，`/clear` 后可恢复
+- `/flow-kit:next` 斜杠命令添加 `execute` 字段，实际执行阶段推进
+- `session-start.sh` 恢复阶段上下文提示
+- 新增 Phase 3-8 validation schema，`validate-phase.sh` 支持全部 9 阶段
+- `dispatch.sh` source 共享 `time-utils.sh`，提取 `date_to_epoch`
+- `preflight.sh` 集成到 dispatch/generate-commands/offline-mode
+- `phase-0` schema pattern 兼容碰撞后缀
+
+### v2.8.0 (2026-05-13)
+
+- dispatch.sh 僵尸进程双重检测、锁清理 rmdir、`--timeout` 透传
+- 版本号 plugin.json 与 VERSION 同步
+- E2E flock 测试重写为 mkdir/rmdir 验证
+- `p0-check.sh --force`、`pr-description.sh` gh 可选、`init-change.sh` 碰撞序号
+- `next-phase.sh` 原子写入、`offline-mode.sh` PyYAML 预检
+- 新建 `lib/time-utils.sh`、`lib/preflight.sh`
+- `caveman-compress.sh` TODO 正则修复、`get_epoch_ms` 去重 3 hooks
 
 ### v2.6.1 (2026-05-12)
 

@@ -7,6 +7,10 @@ set -euo pipefail
 
 FORCE=false
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# v2.9.0: 依赖预检
+source "$SCRIPT_DIR/../lib/preflight.sh"
+require_bash4
 # REPO_ROOT: flow-kit 根目录（scripts/ → flow-kit/）
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # OUTPUT_PATH: 项目根目录 .claude/commands/（优先 CLAUDE_PROJECT_DIR，回退向上两级）
@@ -35,6 +39,7 @@ declare -A CORE_COMMANDS=(
   ["generate-commands"]="flow-kit/commands/generate-commands.md"
   ["archive"]="flow-kit/commands/archive.md"
   ["scale"]="flow-kit/commands/scale-level.md"
+  ["resume"]="flow-kit/commands/resume.md"
 )
 
 declare -A PHASE_COMMANDS=(
@@ -112,6 +117,10 @@ generate_entry() {
     printf 'description: %s\n' "$description"
     printf '%s\n' 'category: dev'
     printf 'reference: %s\n' "$reference"
+    # v2.9.0: next 命令需要 execute 字段以执行 next-phase.sh
+    case "$cmd_name" in
+      next) printf 'execute: bash flow-kit/scripts/next-phase.sh\n' ;;
+    esac
     printf '%s\n' '---'
     printf '/flow-kit:%s: %s\n' "$cmd_name" "$description"
   } > "$output_file"

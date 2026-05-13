@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-5-output.schema.json",
+  "title": "Phase 5 Output Schema",
+  "description": "测试验证产物验证 schema — v2.9.0 新增",
+  "type": "object",
+  "required": [
+    "change_id",
+    "test_results",
+    "created_at"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "test_results": {
+      "type": "object",
+      "required": [
+        "total",
+        "passed",
+        "failed"
+      ],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "regression_results": {
+      "type": "object",
+      "properties": {
+        "existing_tests_passed": {
+          "type": "boolean"
+        },
+        "regressions_found": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "performance_notes": {
+      "type": "string",
+      "description": "性能测试备注"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

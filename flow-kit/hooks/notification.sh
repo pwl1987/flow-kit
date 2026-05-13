@@ -7,16 +7,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# v2.7.0 修复: 跨平台毫秒时间戳
-get_epoch_ms() {
-    if date +%s%3N 2>/dev/null | grep -qE '^[0-9]+$'; then
-        date +%s%3N
-    elif python3 -c "import time; print(int(time.time() * 1000))" >/dev/null 2>&1; then
-        python3 -c "import time; print(int(time.time() * 1000))"
-    else
-        perl -MTime::HiRes -e 'printf "%d\n", int(Time::HiRes::time() * 1000)'
-    fi
-}
+# 引入共享时间工具
+source "$SCRIPT_DIR/../lib/time-utils.sh"
+source "$SCRIPT_DIR/../lib/paths.sh"
 
 START_TIME=$(get_epoch_ms)
 
@@ -82,8 +75,8 @@ fi
 # hooks 执行遥测
 END_TIME=$(get_epoch_ms)
 ELAPSED=$((END_TIME - START_TIME))
-mkdir -p "${SCRIPT_DIR}/../../.flow-kit/logs"
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [notification] [OK] [${ELAPSED}ms]" >> "${SCRIPT_DIR}/../../.flow-kit/logs/hooks-execution.log" 2>/dev/null || true
+mkdir -p "$LOGS_DIR"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [notification] [OK] [${ELAPSED}ms]" >> "$LOGS_DIR/hooks-execution.log" 2>/dev/null || true
 
 exit 0
 

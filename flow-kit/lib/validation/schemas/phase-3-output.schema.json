@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://flow-kit.dev/schemas/phase-3-output.schema.json",
+  "title": "Phase 3 Output Schema",
+  "description": "任务拆解产物验证 schema — v2.9.0 新增",
+  "type": "object",
+  "required": [
+    "change_id",
+    "tasks",
+    "created_at"
+  ],
+  "properties": {
+    "change_id": {
+      "type": "string",
+      "description": "关联的变更 ID"
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "estimate"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "estimate": {
+            "type": "string",
+            "description": "预估时间，如 30min, 2h"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "P0",
+              "P1",
+              "P2"
+            ]
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignee": {
+            "type": "string"
+          },
+          "risk": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          }
+        }
+      },
+      "minItems": 1,
+      "description": "任务列表"
+    },
+    "dag_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "DAG 拓扑排序的任务 ID 列表"
+    },
+    "parallel_groups": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "可并行执行的任务分组"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

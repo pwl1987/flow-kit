@@ -1,11 +1,6 @@
 ---
-description: "技术情报扫描 - 代码库深度分析"
+description: 扫描代码库以获取技术栈清单、TODO/FIXME/HACK 注释、大文件和架构问题。生成分类的情报报告。
 category: dev
 reference: flow-kit/commands/I-intel-scan.md
 ---
-
-读取并执行以下命令文档：
-
-@flow-kit/commands/I-intel-scan.md
-
-执行技术情报扫描：架构分析、技术栈识别、代码模式检测。
+/flow-kit:scan: 扫描代码库以获取技术栈清单、TODO/FIXME/HACK 注释、大文件和架构问题。生成分类的情报报告。
