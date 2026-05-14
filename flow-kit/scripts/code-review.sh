@@ -159,7 +159,7 @@ run_syntax_check() {
         fi
     done
 
-    echo "[review] 语法检查: $total 文件, $failed 语法错误"
+    echo "[review] 语法检查: $total 文件, $failed 语法错误" >&2
     cat "$findings_file"
 }
 
@@ -221,7 +221,7 @@ run_security_scan() {
 
     local count
     count=$(jq 'length' "$findings_file")
-    echo "[review] 安全扫描: $count 个发现"
+    echo "[review] 安全扫描: $count 个发现" >&2
     cat "$findings_file"
 }
 

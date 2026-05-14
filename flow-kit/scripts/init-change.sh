@@ -40,6 +40,15 @@ main() {
 
     # 3. 创建标准文件骨架
     create_skeleton_files "$specs_dir" "$change_id"
+
+    # 3.5 校验模板变量
+    local undefined_vars
+    undefined_vars=$(grep -ho '{{[A-Z_]*}}' "$specs_dir"/*.md 2>/dev/null | sort -u | grep -v '{{change_id}}' || true)
+    if [ -n "$undefined_vars" ]; then
+        echo "[init-change] ⚠️  模板含未替换变量:"
+        echo "$undefined_vars" | sed 's/{{/  - /;s/}}//'
+    fi
+
     local escaped_change_id
     escaped_change_id=$(printf '%s\n' "$change_id" | sed 's/[&\\/]/\\&/g')
     sed -i.bak "s/{{change_id}}/${escaped_change_id}/g" "$specs_dir"/*.md

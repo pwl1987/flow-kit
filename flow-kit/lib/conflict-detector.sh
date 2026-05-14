@@ -80,6 +80,77 @@ detect_conflict() {
 }
 
 #------------------------------------------------------------------------------
+# 文件冲突检测
+#------------------------------------------------------------------------------
+detect_file_conflicts() {
+    local new_change="${1:-}"
+    local project_dir="${2:-$PROJECT_DIR}"
+    [ -z "$new_change" ] && return 1
+
+    local current_change
+    current_change=$(session_get change 2>/dev/null || echo "")
+    [ -z "$current_change" ] && return 1
+
+    # 提取两个变更涉及的文件列表
+    local current_files new_files
+    current_files=$(_extract_change_files "$current_change" "$project_dir")
+    new_files=$(_extract_change_files "$new_change" "$project_dir")
+
+    [ -z "$current_files" ] || [ -z "$new_files" ] && return 1
+
+    # 找交集（按行精确匹配）
+    local conflicts=""
+    while IFS= read -r f; do
+        [ -z "$f" ] && continue
+        if echo "$current_files" | grep -qxF "$f"; then
+            [ -n "$conflicts" ] && conflicts="$conflicts,"
+            conflicts="${conflicts}${f}"
+        fi
+    done <<< "$new_files"
+
+    if [ -n "$conflicts" ]; then
+        echo "$conflicts"
+        return 0
+    fi
+    return 1
+}
+
+# 从 .specs/<change>/ 提取涉及的文件列表
+_extract_change_files() {
+    local change="$1"
+    local project_dir="$2"
+    local specs_dir="$project_dir/.specs/$change"
+
+    [ -d "$specs_dir" ] || return
+
+    # 从 TASK.md/REQUIREMENT.md 提取文件引用
+    grep -oE '[a-zA-Z0-9_/-]+\.(sh|md|json|js|ts)' "$specs_dir"/*.md 2>/dev/null | sort -u || true
+}
+
+#------------------------------------------------------------------------------
+# 依赖冲突检测
+#------------------------------------------------------------------------------
+detect_dependency_conflicts() {
+    local target_module="${1:-}"
+    local project_dir="${2:-$PROJECT_DIR}"
+    [ -z "$target_module" ] && return 1
+
+    local current_change
+    current_change=$(session_get change 2>/dev/null || echo "")
+    [ -z "$current_change" ] && return 1
+
+    # 检查当前变更是否修改了目标模块
+    local current_files
+    current_files=$(_extract_change_files "$current_change" "$project_dir")
+
+    if echo "$current_files" | grep -qF "$target_module"; then
+        echo "$target_module"
+        return 0
+    fi
+    return 1
+}
+
+#------------------------------------------------------------------------------
 # 决策处理
 #------------------------------------------------------------------------------
 handle_conflict_decision() {

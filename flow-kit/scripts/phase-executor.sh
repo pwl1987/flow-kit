@@ -107,6 +107,13 @@ main() {
     local guard_cmd="minimal"
     [ "$project_type" = "brownfield" ] && guard_cmd="full"
     echo "[phase-exec] guard: /flow-kit:guard $guard_cmd"
+
+    # v3.5.0: 护栏自动激活提示
+    local guard_active_file="$PROJECT_DIR/.flow-kit/guardrails-active"
+    if [ ! -f "$guard_active_file" ]; then
+        echo "[phase-exec] 💡 建议激活护栏: /flow-kit:guard $guard_cmd"
+        echo "[phase-exec] 激活后将不再提示"
+    fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
