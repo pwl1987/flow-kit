@@ -51,7 +51,7 @@ EOF
 # 参数解析
 #------------------------------------------------------------------------------
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --input)    INPUT_FILE="$2"; shift 2 ;;
             --output)   OUTPUT_FILE="$2"; shift 2 ;;
@@ -68,7 +68,7 @@ parse_args() {
         OUTPUT_FILE="$PROJECT_DIR/$OUTPUT_FILE"
     fi
 
-    if [ -z "$TARGET_VERSION" ] && [ -f "$FLOW_KIT_DIR/VERSION" ]; then
+    if [[ -z "$TARGET_VERSION" && -f "$FLOW_KIT_DIR/VERSION" ]]; then
         TARGET_VERSION=$(cat "$FLOW_KIT_DIR/VERSION" | tr -d '\n')
     fi
     TARGET_VERSION="${TARGET_VERSION:-v3.4.0}"
@@ -84,7 +84,7 @@ parse_review() {
     echo '[]' > "$findings_json"
     > "$findings_ndjson"
 
-    if [ ! -f "$review_file" ]; then
+    if [[ ! -f "$review_file" ]]; then
         echo "[plan] 错误: 评审报告不存在 $review_file" >&2
         return 1
     fi
@@ -142,7 +142,7 @@ parse_review() {
     local count
     count=$(wc -l < "$findings_ndjson" | tr -d ' ')
 
-    if [ "$count" -gt 0 ]; then
+    if [[ "$count" -gt 0 ]]; then
         jq -s '.' "$findings_ndjson" > "$findings_json"
     fi
 
@@ -163,7 +163,7 @@ group_by_module() {
     echo '{}' > "$groups_file"
 
     for module in $modules; do
-        [ -z "$module" ] && continue
+        [[ -z "$module" ]] && continue
         local module_findings
         module_findings=$(echo "$findings" | jq --arg m "$module" '[.[] | select(.module == $m)]')
 
@@ -338,7 +338,7 @@ write_dev_plan() {
             name=$(echo "$milestones" | jq -r ".$m.name")
             timeline=$(echo "$milestones" | jq -r ".$m.timeline")
             count=$(echo "$milestones" | jq -r ".$m.count")
-            [ "$count" = "0" ] && continue
+            [[ "$count" == "0" ]] && continue
             echo "| $m | $name | $timeline | $count |"
         done
         echo ""
@@ -347,7 +347,7 @@ write_dev_plan() {
         for m in m1 m2 m3 m4; do
             local count
             count=$(echo "$milestones" | jq -r ".$m.count")
-            [ "$count" = "0" ] && continue
+            [[ "$count" == "0" ]] && continue
 
             local name timeline
             name=$(echo "$milestones" | jq -r ".$m.name")
@@ -387,7 +387,7 @@ main() {
     REVIEW_TMP_DIR=$(mktemp -d)
     trap 'rm -rf "$REVIEW_TMP_DIR"' EXIT
 
-    if [ ! -f "$INPUT_FILE" ]; then
+    if [[ ! -f "$INPUT_FILE" ]]; then
         echo "[plan] 错误: 评审报告不存在 $INPUT_FILE" >&2
         echo "[plan] 提示: 先运行 /flow-kit:code-review 生成评审报告" >&2
         exit 1
@@ -405,7 +405,7 @@ main() {
     local total
     total=$(echo "$findings" | jq 'length')
 
-    if [ "$total" -eq 0 ]; then
+    if [[ "$total" -eq 0 ]]; then
         echo "[plan] 无发现问题，生成空方案"
         echo "# 开发方案" > "$OUTPUT_FILE"
         echo "" >> "$OUTPUT_FILE"

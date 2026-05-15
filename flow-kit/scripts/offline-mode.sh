@@ -16,7 +16,7 @@ readonly OFFLINE_FLAG="$OFFLINE_FLAG_DIR/.offline-mode"
 # 获取当前离线状态（仅输出 true/false）
 #------------------------------------------------------------------------------
 is_offline() {
-    if [ -f "$OFFLINE_FLAG" ]; then
+    if [[ -f "$OFFLINE_FLAG" ]]; then
         echo "true"
     else
         echo "false"
@@ -49,7 +49,7 @@ lint_placeholder_completeness() {
     local issues=()
 
     for file in "${files[@]}"; do
-        if [ -f "$file" ]; then
+        if [[ -f "$file" ]]; then
             while IFS= read -r line; do
                 if [[ "$line" =~ \{\{[A-Za-z0-9_]+\}\} ]]; then
                     issues+=("文件 $file 包含未填充占位符: $line")
@@ -58,7 +58,7 @@ lint_placeholder_completeness() {
         fi
     done
 
-    if [ ${#issues[@]} -eq 0 ]; then
+    if [[ ${#issues[@]} -eq 0 ]]; then
         echo "valid: true"
     else
         echo "valid: false"
@@ -78,17 +78,17 @@ lint_required_files() {
     # 检查阶段必需文件
     case "$phase" in
         0)
-            [ -f ".planning/PROJECT.md" ] || missing+=(".planning/PROJECT.md")
+            [[ -f ".planning/PROJECT.md" ]] || missing+=(".planning/PROJECT.md")
             ;;
         1)
-            [ -f ".planning/REQUIREMENTS.md" ] || missing+=(".planning/REQUIREMENTS.md")
+            [[ -f ".planning/REQUIREMENTS.md" ]] || missing+=(".planning/REQUIREMENTS.md")
             ;;
         2)
-            [ -f ".planning/ARCHITECTURE.md" ] || missing+=(".planning/ARCHITECTURE.md")
+            [[ -f ".planning/ARCHITECTURE.md" ]] || missing+=(".planning/ARCHITECTURE.md")
             ;;
     esac
 
-    if [ ${#missing[@]} -eq 0 ]; then
+    if [[ ${#missing[@]} -eq 0 ]]; then
         echo "valid: true"
     else
         echo "valid: false"
@@ -104,7 +104,7 @@ lint_yaml_json_format() {
     local errors=()
 
     for file in "${files[@]}"; do
-        if [ ! -f "$file" ]; then
+        if [[ ! -f "$file" ]]; then
             continue
         fi
         case "$file" in
@@ -132,7 +132,7 @@ PY
         esac
     done
 
-    if [ ${#errors[@]} -eq 0 ]; then
+    if [[ ${#errors[@]} -eq 0 ]]; then
         echo "valid: true"
     else
         echo "valid: false"
@@ -183,7 +183,7 @@ main() {
             ;;
         lint)
             shift
-            if [ $# -eq 0 ]; then
+            if [[ $# -eq 0 ]]; then
                 echo "[ERROR] lint 需要文件参数"
                 exit 1
             fi

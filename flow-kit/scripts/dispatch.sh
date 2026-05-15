@@ -23,11 +23,12 @@ source "$SCRIPT_DIR/../lib/time-utils.sh"
 source "$SCRIPT_DIR/../lib/preflight.sh"
 source "$SCRIPT_DIR/dispatch-parse.sh"
 source "$SCRIPT_DIR/dispatch-lock.sh"
+source "$SCRIPT_DIR/dispatch-aggregate.sh"
 require_jq
 
 cleanup_children() {
     local exit_code=$?
-    if [ ${#CHILD_PIDS[@]} -gt 0 ]; then
+    if [[ ${#CHILD_PIDS[@]} -gt 0 ]]; then
         echo "[dispatch] 🛑 清理 ${#CHILD_PIDS[@]} 个子进程..."
         for pid in "${CHILD_PIDS[@]}"; do
             if kill -0 "$pid" 2>/dev/null; then
@@ -37,7 +38,7 @@ cleanup_children() {
         done
         # P0 修复：循环等待而非固定 sleep 1
         local wait_elapsed=0
-        while [ $wait_elapsed -lt 5 ]; do
+        while [[ $wait_elapsed -lt 5 ]]; do
             local all_dead=true
             for pid in "${CHILD_PIDS[@]}"; do
                 if kill -0 "$pid" 2>/dev/null; then
@@ -45,7 +46,7 @@ cleanup_children() {
                     break
                 fi
             done
-            if [ "$all_dead" = true ]; then
+            if [[ "$all_dead" == true ]]; then
                 break
             fi
             sleep 0.5
@@ -58,20 +59,20 @@ cleanup_children() {
         done
     fi
     # v2.7.0 改进：清理临时文件（仅在错误退出时删除结果文件）
-    if [ "$exit_code" -ne 0 ]; then
+    if [[ "$exit_code" -ne 0 ]]; then
         # 错误退出：清理所有临时文件包括结果文件
-        if [ -d "$TMP_DIR" ]; then
+        if [[ -d "$TMP_DIR" ]]; then
             rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*-result.json "$TMP_DIR"/subagent-*-status.json "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
         fi
     else
         # 成功退出：仅清理临时文件，保留结果文件供后续聚合
-        if [ -d "$TMP_DIR" ]; then
+        if [[ -d "$TMP_DIR" ]]; then
             rm -rf "$TMP_DIR"/*.tmp "$TMP_DIR"/subagent-*.pid "$TMP_DIR"/subagent-*.log 2>/dev/null || true
         fi
     fi
     # v2.8.0 修复：slot 锁是目录（mkdir 创建），必须用 rmdir 或 rm -rf 清理
     for lockdir in "$TMP_DIR"/slot-*.lock; do
-        [ -d "$lockdir" ] && rmdir "$lockdir" 2>/dev/null || rm -rf "$lockdir" 2>/dev/null || true
+        [[ -d "$lockdir" ]] && rmdir "$lockdir" 2>/dev/null || rm -rf "$lockdir" 2>/dev/null || true
     done
     rm -f "$TMP_DIR"/slot-*.id "$TMP_DIR"/slot-*.fd 2>/dev/null || true
     exit $exit_code
@@ -256,8 +257,8 @@ run_single_agent() {
         local attempt=0
         local success=false
 
-        while [ $attempt -le $max_retries ] && [ "$success" = false ]; do
-            if [ $attempt -gt 0 ]; then
+        while [[ $attempt -le $max_retries && "$success" == false ]]; do
+            if [[ $attempt -gt 0 ]]; then
                 echo "[agent-$agent_id] 第 $attempt 次重试（等待 ${retry_interval}s）..."
                 sleep $retry_interval
             fi
@@ -266,7 +267,7 @@ run_single_agent() {
             echo "[agent-$agent_id] 尝试执行 (第 $attempt 次)"
 
             # 验证prompt文件存在
-            if [ ! -f "$prompt_file" ]; then
+            if [[ ! -f "$prompt_file" ]]; then
                 echo "[agent-$agent_id] ❌ Prompt文件不存在: $prompt_file"
                 jq -n --arg id "$agent_id" --arg role "$role" --arg pf "$prompt_file" --argjson att "$attempt" \
                   '{id: $id, role: $role, status: "FAILED", summary: "Prompt文件不存在", files_modified: [], issues: ["Prompt文件不存在: \($pf)"], context_consumed_pct: "0%", attempts: $att}' \
@@ -312,7 +313,7 @@ EOF
             success=true
         done
 
-        if [ "$success" = false ]; then
+        if [[ "$success" == false ]]; then
             echo "[agent-$agent_id] ❌ 执行失败（已重试 $max_retries 次）"
         fi
     } >> "$log_file" 2>&1
@@ -325,7 +326,7 @@ EOF
 execute_subagents() {
     local summary_file="$TMP_DIR/dispatch-summary.json"
 
-    if [ ! -f "$summary_file" ]; then
+    if [[ ! -f "$summary_file" ]]; then
         echo "[dispatch] 错误: dispatch-summary.json 不存在，请先运行不带 --execute 的命令" >&2
         exit 1
     fi
@@ -370,11 +371,11 @@ execute_subagents() {
         else
             echo "[dispatch]  ⚠️  获取并发槽位失败，等待释放..."
             local slot_wait=0
-            while [ $slot_wait -lt 30 ] && ! acquire_slot "$MAX_CONCURRENT"; do
+            while [[ $slot_wait -lt 30 ]] && ! acquire_slot "$MAX_CONCURRENT"; do
                 sleep 1
                 slot_wait=$((slot_wait + 1))
             done
-            if [ $slot_wait -ge 30 ]; then
+            if [[ $slot_wait -ge 30 ]]; then
                 echo "[dispatch]  ❌ 获取槽位超时，跳过 agent: $agent_id" >&2
                 continue
             fi
@@ -392,7 +393,7 @@ execute_subagents() {
         PID_TO_AGENT[$pid]="$agent_id"
 
         # 构建agents数组
-        if [ "$first" = true ]; then
+        if [[ "$first" == true ]]; then
             agents_array="\"$agent_id\""
             first=false
         else
@@ -450,12 +451,12 @@ execute_subagents() {
     # kill -0 对僵尸进程返回 true（进程条目仍存在），导致假超时
     # 修复：双重检测 — kill -0 + 结果文件存在性。子进程完成时会写入 result 文件。
     # 如果 result 文件已存在但 kill -0 仍为 true（僵尸），视为完成并回收。
-    while [ ${#remaining_pids[@]} -gt 0 ]; do
+    while [[ ${#remaining_pids[@]} -gt 0 ]]; do
         local now_epoch
         now_epoch=$(date +%s)
         local elapsed=$((now_epoch - start_epoch))
 
-        if [ $elapsed -ge $timeout_seconds ]; then
+        if [[ $elapsed -ge $timeout_seconds ]]; then
             echo "[dispatch] ⏱️ 整体执行超时 (${elapsed}s >= ${timeout_seconds}s)"
             for pid in "${remaining_pids[@]}"; do
                 kill -TERM $pid 2>/dev/null || true
@@ -482,24 +483,24 @@ execute_subagents() {
 
             # 双重检测：进程已死 OR 结果文件已生成（即使进程是僵尸）
             local completed=false
-            if [ "$alive" = false ]; then
+            if [[ "$alive" == false ]]; then
                 completed=true
-            elif [ -n "$agent_id" ] && [ -f "$result_file" ]; then
+            elif [[ -n "$agent_id" && -f "$result_file" ]]; then
                 # 僵尸进程：仍存活但结果文件已生成
                 completed=true
             fi
 
-            if [ "$completed" = true ]; then
+            if [[ "$completed" == true ]]; then
                 # 进程已完成或结果已就绪，回收僵尸
-                if [ "$alive" = true ]; then
+                if [[ "$alive" == true ]]; then
                     kill -TERM "$pid" 2>/dev/null || true
                     sleep 0.1 2>/dev/null || true
                     kill -9 "$pid" 2>/dev/null || true
                 fi
                 wait "$pid" 2>/dev/null || true
 
-                if [ -n "$agent_id" ]; then
-                    if [ ! -f "$result_file" ]; then
+                if [[ -n "$agent_id" ]]; then
+                    if [[ ! -f "$result_file" ]]; then
                         echo "[dispatch] ❌ $agent_id 执行失败"
                         cat > "$result_file" << EOF
 {
@@ -519,16 +520,16 @@ EOF
             else
                 # 进程仍在运行，检查单代理超时
                 local timed_out=false
-                if [ -n "$agent_id" ]; then
+                if [[ -n "$agent_id" ]]; then
                     local status_file="$TMP_DIR/subagent-${agent_id}-status.json"
-                    if [ -f "$status_file" ]; then
+                    if [[ -f "$status_file" ]]; then
                         local started_at
                         started_at=$(jq -r '.started_at' "$status_file" 2>/dev/null)
-                        if [ -n "$started_at" ] && [ "$started_at" != "null" ]; then
+                        if [[ -n "$started_at" && "$started_at" != "null" ]]; then
                             local start_epoch_agent
                             start_epoch_agent=$(date_to_epoch "$started_at")
                             local agent_elapsed=$((now_epoch - start_epoch_agent))
-                            if [ $agent_elapsed -gt $timeout_seconds ]; then
+                            if [[ $agent_elapsed -gt $timeout_seconds ]]; then
                                 echo "[dispatch] ⏱️ $agent_id 执行超时 (${agent_elapsed}s)"
                                 kill -TERM $pid 2>/dev/null || true
                                 sleep 1
@@ -541,19 +542,19 @@ EOF
                         fi
                     fi
                 fi
-                if [ "$timed_out" = false ]; then
+                if [[ "$timed_out" == false ]]; then
                     new_remaining+=("$pid")
                 fi
             fi
         done
         remaining_pids=(${new_remaining[@]+"${new_remaining[@]}"})
-        if [ ${#remaining_pids[@]} -gt 0 ]; then
+        if [[ ${#remaining_pids[@]} -gt 0 ]]; then
             sleep $check_interval
         fi
     done
 
     # v2.7.0 fix: 无超时代理时跳过提示
-    if [ ${#timed_out_agents[@]} -gt 0 ]; then
+    if [[ ${#timed_out_agents[@]} -gt 0 ]]; then
         echo "[dispatch] ⚠️ 超时代理: ${timed_out_agents[*]}"
     fi
 
@@ -565,12 +566,12 @@ EOF
 
     for agent_id in "${agent_ids[@]}"; do
         local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-        if [ -f "$result_file" ]; then
+        if [[ -f "$result_file" ]]; then
             local data
             data=$(cat "$result_file")
             local status
             status=$(echo "$data" | jq -r '.status' 2>/dev/null || echo "FAILED")
-            if [ -z "$status" ] || [ "$status" = "null" ]; then
+            if [[ -z "$status" || "$status" == "null" ]]; then
                 echo "[dispatch] ❌ result JSON 无效: $result_file"
                 failed=$((failed + 1))
                 continue
@@ -592,10 +593,10 @@ EOF
     local first=true
     for agent_id in "${agent_ids[@]}"; do
         local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-        if [ -f "$result_file" ]; then
+        if [[ -f "$result_file" ]]; then
             local agent_data
             agent_data=$(jq -c '.' "$result_file")
-            if [ "$first" = true ]; then
+            if [[ "$first" == true ]]; then
                 agents_json="$agent_data"
                 first=false
             else
@@ -629,7 +630,7 @@ wait_for_subagents() {
     local check_interval=5
     local elapsed=0
 
-    if [ ! -f "$launch_manifest" ]; then
+    if [[ ! -f "$launch_manifest" ]]; then
         echo "[dispatch] 错误: launch-manifest.json 不存在，请先运行 --execute" >&2
         exit 1
     fi
@@ -639,7 +640,7 @@ wait_for_subagents() {
     local agents
     agents=$(jq -r '.agents[]' "$launch_manifest" 2>/dev/null || echo "")
 
-    while [ $elapsed -lt $timeout_seconds ]; do
+    while [[ $elapsed -lt $timeout_seconds ]]; do
         local all_complete=true
         local completed=0
         local total=0
@@ -648,14 +649,14 @@ wait_for_subagents() {
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
             total=$((total + 1))
 
-            if [ -f "$result_file" ]; then
+            if [[ -f "$result_file" ]]; then
                 completed=$((completed + 1))
             else
                 all_complete=false
             fi
         done
 
-        if [ "$all_complete" = true ]; then
+        if [[ "$all_complete" == true ]]; then
             echo "[dispatch] ✅ 所有子代理已完成"
             command -v session_set >/dev/null 2>&1 && session_set status done 2>/dev/null || true
             return 0
@@ -678,7 +679,7 @@ collect_results() {
     local launch_manifest="$TMP_DIR/launch-manifest.json"
 
     # 优先使用 launch-manifest
-    if [ -f "$launch_manifest" ]; then
+    if [[ -f "$launch_manifest" ]]; then
         local task_id
         task_id=$(jq -r '.task_id' "$launch_manifest")
         local task_desc
@@ -703,7 +704,7 @@ collect_results() {
 
         for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-            if [ -f "$result_file" ]; then
+            if [[ -f "$result_file" ]]; then
                 local data
                 data=$(cat "$result_file")
                 local status
@@ -733,10 +734,10 @@ collect_results() {
         echo "修改文件清单:"
         local all_files="[]"
         local result_files=("$TMP_DIR"/subagent-*-result.json)
-        if [ ${#result_files[@]} -gt 0 ] && [ -f "${result_files[0]}" ]; then
+        if [[ ${#result_files[@]} -gt 0 && -f "${result_files[0]}" ]]; then
             all_files=$(jq -s '[.[] | .files_modified // []] | add | unique' "${result_files[@]}" 2>/dev/null || echo "[]")
         fi
-        if [ "$all_files" = "[]" ]; then
+        if [[ "$all_files" == "[]" ]]; then
             echo "  (无)"
         else
             echo "$all_files" | jq -r '.[]' 2>/dev/null || echo "  (无)"
@@ -747,8 +748,8 @@ collect_results() {
         local first=true
         for agent_id in $agents; do
             local result_file="$TMP_DIR/subagent-${agent_id}-result.json"
-            if [ -f "$result_file" ]; then
-                if [ "$first" = true ]; then
+            if [[ -f "$result_file" ]]; then
+                if [[ "$first" == true ]]; then
                     agents_json=$(jq -c '.' "$result_file")
                     first=false
                 else
@@ -775,7 +776,7 @@ collect_results() {
             '{task_id: $tid, task_desc: $tdesc, parallel_n: $pn, agents: $aj, created_at: $ca, executed_at: $ea, status: "COMPLETED", summary: {total: $tot, successful: $suc, failed: $fail, partial: $part}}' \
             > "$summary_file"
 
-    elif [ -f "$summary_file" ]; then
+    elif [[ -f "$summary_file" ]]; then
         echo ""
         echo "[dispatch] 聚合报告(summary)"
         echo "task=$(jq -r '.task_id' "$summary_file")"
@@ -815,7 +816,7 @@ collect_results() {
             echo "  $status_icon $id ($role): $status"
         done < <(jq -c '.agents[]' "$summary_file" 2>/dev/null)
 
-        if [ "$has_agents" != true ]; then
+        if [[ "$has_agents" != true ]]; then
             echo "  (尚未执行，请使用 --execute 运行)"
         fi
 
@@ -824,7 +825,7 @@ collect_results() {
         echo "修改文件清单:"
         local all_files="[]"
         for result_file in "$TMP_DIR"/subagent-*-result.json; do
-            if [ -f "$result_file" ]; then
+            if [[ -f "$result_file" ]]; then
                 local files
                 files=$(jq -r '.files_modified // []' "$result_file" 2>/dev/null)
                 all_files=$(jq -s '.[0] + .[1] | unique' <(echo "$all_files") <(echo "$files") 2>/dev/null || echo "$all_files")
@@ -847,14 +848,14 @@ main() {
     parse_args "$@"
 
     # aggregate 和 wait 模式只需要初始化目录
-    if [ "$AGGREGATE_MODE" = true ]; then
+    if [[ "$AGGREGATE_MODE" == true ]]; then
         init_dirs
         echo "[dispatch] 📊 聚合模式"
         collect_results
         return 0
     fi
 
-    if [ "$WAIT_MODE" = true ]; then
+    if [[ "$WAIT_MODE" == true ]]; then
         init_dirs
         echo "[dispatch] ⏳ 等待模式（超时: ${WAIT_TIMEOUT}s）"
         wait_for_subagents $WAIT_TIMEOUT
@@ -871,7 +872,7 @@ main() {
     split_task "$TASK_DESC" "$PARALLEL_N"
     check_lock_conflicts
 
-    if [ "$EXECUTE_MODE" = true ]; then
+    if [[ "$EXECUTE_MODE" == true ]]; then
         execute_subagents
         collect_results
         # v3.3.0: 追加执行历史

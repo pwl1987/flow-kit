@@ -14,7 +14,7 @@ set -euo pipefail
 init_context_file() {
     local context_file="$1"
 
-    if [ -f "$context_file" ]; then
+    if [[ -f "$context_file" ]]; then
         return 0
     fi
 
@@ -57,7 +57,7 @@ main() {
     local change_desc="${2:-}"
     local phase="${3:-unknown}"
 
-    if [ -z "$change_desc" ]; then
+    if [[ -z "$change_desc" ]]; then
         echo "[ERROR] 变更描述不能为空"
         echo "用法: context-updater.sh <context_file> <change_desc> <phase>"
         return 1
@@ -103,7 +103,7 @@ EOF
     { print }
     ' "$context_file" > "$temp_file"
 
-    if [ ! -s "$temp_file" ]; then
+    if [[ ! -s "$temp_file" ]]; then
         echo "[ERROR] 更新失败，临时文件为空"
         rm -f "$temp_file"
         return 1

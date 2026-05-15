@@ -53,7 +53,7 @@ EOF
 # 参数解析
 #------------------------------------------------------------------------------
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --name)      SESSION_NAME="$2"; shift 2 ;;
             --worktrees)
@@ -79,7 +79,7 @@ parse_args() {
 #------------------------------------------------------------------------------
 preflight_tmux() {
     # 不在 tmux 内运行
-    if [ -n "${TMUX:-}" ]; then
+    if [[ -n "${TMUX:-}" ]]; then
         echo "[tmux-init] 错误: 不能在 tmux 会话内运行" >&2
         exit 1
     fi
@@ -90,7 +90,7 @@ preflight_tmux() {
     local major minor
     major=$(echo "$tmux_ver" | cut -d. -f1)
     minor=$(echo "$tmux_ver" | cut -d. -f2)
-    if [ "$major" -lt 2 ]; then
+    if [[ "$major" -lt 2 ]]; then
         echo "[tmux-init] 错误: tmux 版本 >= 2.0 需要（当前 $tmux_ver）" >&2
         exit 1
     fi
@@ -119,7 +119,7 @@ create_worktrees() {
         local branch_name="flow-kit/worker-$i"
 
         # 清理已存在的 worktree
-        if [ -d "$wt_path" ]; then
+        if [[ -d "$wt_path" ]]; then
             git -C "$PROJECT_DIR" worktree remove --force "$wt_path" 2>/dev/null || rm -rf "$wt_path"
         fi
 
@@ -132,7 +132,7 @@ create_worktrees() {
             }
         fi
 
-        if [ "$worktrees" != "[" ]; then
+        if [[ "$worktrees" != "[" ]]; then
             worktrees+=","
         fi
         worktrees+="{\"index\":$i,\"path\":\"$wt_path\",\"branch\":\"$branch_name\"}"
@@ -160,7 +160,7 @@ create_tmux_session() {
         local wt_path
         wt_path=$(echo "$worktrees_json" | jq -r ".[$((i-1))].path")
 
-        if [ "$i" -eq 1 ]; then
+        if [[ "$i" -eq 1 ]]; then
             # 第一个窗口使用默认窗口
             tmux send-keys -t "$name" "cd $wt_path && clear" Enter
         else

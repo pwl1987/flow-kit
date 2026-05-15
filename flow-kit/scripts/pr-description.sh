@@ -39,7 +39,7 @@ get_git_info() {
 
     local commits
     local changed_files
-    if [ -n "$branch" ]; then
+    if [[ -n "$branch" ]]; then
         commits=$(git log --oneline -20 "$branch" 2>/dev/null || echo "")
         changed_files=$(git diff --stat "origin/main..$branch" 2>/dev/null || echo "")
     else
@@ -64,7 +64,7 @@ generate_pr_description() {
     echo "=========================================="
 
     # 获取当前分支
-    if [ -z "$branch" ]; then
+    if [[ -z "$branch" ]]; then
         branch=$(git branch --show-current 2>/dev/null || echo "unknown")
     fi
 
@@ -121,8 +121,8 @@ EOF
 EOF
 
     # 如果不是 preview，提示创建 PR
-    if [ "$preview" = "false" ]; then
-        if [ "$GH_AVAILABLE" = true ]; then
+    if [[ "$preview" == "false" ]]; then
+        if [[ "$GH_AVAILABLE" == true ]]; then
             echo ""
             echo "[INFO] 可使用以下命令创建 PR:"
             echo "  gh pr create --title \"$(echo "$branch" | tr '-' ' ')\" --body-file -"

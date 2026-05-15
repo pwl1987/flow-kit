@@ -1,99 +1,102 @@
 #!/bin/bash
-set -euo pipefail
 # post-edit-format.sh — PostToolUse hook: 自动格式化代码
-# v2.7.0 P1 修复: 简化 PROJECT_DIR 解析 + date 兼容性
+# v2.8.2 修复: 移除所有 source 依赖，自包含轻量实现，防止进程爆炸
 # Reference: Claude Code hooks 社区最佳实践
+
+set -uo pipefail
 
 INPUT=$(cat)
 
 # 获取项目目录
-if echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
-    PROJECT_DIR="${PROJECT_DIR:-$(echo "$INPUT" | jq -r '.project_dir // empty')}"
-    if [[ -z "$PROJECT_DIR" || "$PROJECT_DIR" == "empty" ]]; then
-        PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-    fi
-else
-    PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-}"
+if [[ -z "$PROJECT_DIR" ]]; then
+    PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
 
-# 引入统一错误处理框架和共享时间工具
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../lib/error-handler.sh"
-source "$SCRIPT_DIR/../lib/time-utils.sh"
+START_TIME=$(date +%s%3N 2>/dev/null || echo "0")
 
-START_TIME=$(get_epoch_ms)
+# === 并发限制（防资源耗尽） ===
+LOCK_DIR="$PROJECT_DIR/.flow-kit/locks"
+mkdir -p "$LOCK_DIR"
 
-TOOL=$(echo "$INPUT" | jq -r '.tool_name')
+MAX_JOBS=4
+
+# 简单并发检查 — 用文件计数
+for ((waited=0; waited<10; waited++)); do
+    RUNNING=$(ls "$LOCK_DIR"/*.lock 2>/dev/null | wc -l)
+    if (( RUNNING < MAX_JOBS )); then
+        break
+    fi
+    sleep 0.5
+done
+if (( waited >= 10 )); then
+    exit 0
+fi
+
+# 解析 JSON — 轻量提取
+TOOL=""
+FILE_PATH=""
+if command -v jq &>/dev/null && echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
+    TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
+    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+fi
 
 # 仅处理 Edit 和 Write
-if [ "$TOOL" != "Edit" ] && [ "$TOOL" != "Write" ]; then
+if [[ "$TOOL" != "Edit" && "$TOOL" != "Write" ]]; then
     exit 0
 fi
 
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-
-if [ -z "$FILE_PATH" ] || [ ! -f "$FILE_PATH" ]; then
+if [[ -z "$FILE_PATH" || ! -f "$FILE_PATH" ]]; then
     exit 0
 fi
 
-# P1 修复：prettier 错误写入日志而非丢弃
-if command -v npx &> /dev/null; then
-    prettier_log="$PROJECT_DIR/.flow-kit/logs/prettier-errors.log"
-    mkdir -p "$PROJECT_DIR/.flow-kit/logs"
-
-    if ! timeout 3 npx prettier --write "$FILE_PATH" > "$prettier_log" 2>&1; then
-        log_warn "prettier 格式化失败或超时: $FILE_PATH，详情: $prettier_log"
+# === 文件锁（防同一文件重复格式化） ===
+FILE_LOCK="$LOCK_DIR/$(echo "$FILE_PATH" | md5sum | cut -d' ' -f1).lock"
+if [[ -f "$FILE_LOCK" ]]; then
+    LOCK_AGE=$(($(date +%s) - $(stat -c %Y "$FILE_LOCK" 2>/dev/null || echo 0)))
+    if (( LOCK_AGE < 30 )); then
+        exit 0
     fi
+    rm -f "$FILE_LOCK"
 fi
+touch "$FILE_LOCK"
 
-# v2.7.0 改进：多语言格式化支持
-detect_and_format() {
-    local file="$1"
+cleanup() { rm -f "$FILE_LOCK"; }
+trap cleanup EXIT
 
-    case "$file" in
-        *.py)
-            if command -v black &>/dev/null; then
-                timeout 5 black "$file" 2>/dev/null && return 0
-            fi
-            if command -v autopep8 &>/dev/null; then
-                timeout 5 autopep8 --in-place "$file" 2>/dev/null && return 0
-            fi
-            ;;
-        *.go)
-            if command -v gofmt &>/dev/null; then
-                timeout 5 gofmt -w "$file" 2>/dev/null && return 0
-            fi
-            ;;
-        *.rs)
-            if command -v rustfmt &>/dev/null; then
-                timeout 5 rustfmt "$file" 2>/dev/null && return 0
-            fi
-            ;;
-        *.sh|*.bash)
-            if command -v shfmt &>/dev/null; then
-                timeout 5 shfmt -w "$file" 2>/dev/null && return 0
-            fi
-            ;;
-        *.java|*.c|*.cpp|*.h|*.hpp)
-            if command -v clang-format &>/dev/null; then
-                timeout 5 clang-format -i "$file" 2>/dev/null && return 0
-            fi
-            ;;
-    esac
-    return 1
-}
+# v3.5.2: prettier 仅对 JS/TS/CSS/JSON/MD 且有 .prettierrc 时启用，超时 1s
+case "$FILE_PATH" in
+    *.js|*.ts|*.jsx|*.tsx|*.css|*.json|*.md)
+        if [[ -f "$PROJECT_DIR/.prettierrc" || -f "$PROJECT_DIR/.prettierrc.json" ]]; then
+            command -v prettier &>/dev/null && timeout 1 prettier --write "$FILE_PATH" 2>/dev/null || true
+        fi
+        ;;
+esac
 
-detect_and_format "$FILE_PATH" || true
+# 多语言格式化支持
+case "$FILE_PATH" in
+    *.py)
+        command -v black &>/dev/null && timeout 5 black "$FILE_PATH" 2>/dev/null || true
+        ;;
+    *.go)
+        command -v gofmt &>/dev/null && timeout 5 gofmt -w "$FILE_PATH" 2>/dev/null || true
+        ;;
+    *.rs)
+        command -v rustfmt &>/dev/null && timeout 5 rustfmt "$FILE_PATH" 2>/dev/null || true
+        ;;
+    *.sh|*.bash)
+        command -v shfmt &>/dev/null && timeout 5 shfmt -w "$FILE_PATH" 2>/dev/null || true
+        ;;
+    *.java|*.c|*.cpp|*.h|*.hpp)
+        command -v clang-format &>/dev/null && timeout 5 clang-format -i "$FILE_PATH" 2>/dev/null || true
+        ;;
+esac
 
-# hooks 执行遥测
-END_TIME=$(get_epoch_ms)
+# 遥测 — 轻量实现
+END_TIME=$(date +%s%3N 2>/dev/null || echo "0")
 ELAPSED=$((END_TIME - START_TIME))
-mkdir -p "$PROJECT_DIR/.flow-kit/logs"
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$PROJECT_DIR/.flow-kit/logs/hooks-execution.log" 2>/dev/null || true
+LOGS_DIR="$PROJECT_DIR/.flow-kit/logs"
+mkdir -p "$LOGS_DIR"
+echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$LOGS_DIR/hooks-execution.log" 2>/dev/null || true
 
 exit 0
-
-# v2.7.0 修复：URL 放在 bash 注释中避免被解析
-# 参考来源：
-# - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
-# - garrytan/gstack：https://github.com/garrytan/gstack

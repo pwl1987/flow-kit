@@ -16,7 +16,7 @@ check_dependencies() {
 # 配置
 #------------------------------------------------------------------------------
 # 防止 TOKEN_BUDGET 被显式设为 0 导致除零
-if [ "${TOKEN_BUDGET:-100000}" -eq 0 ] 2>/dev/null; then
+if [[ "${TOKEN_BUDGET:-100000}" -eq 0 ]] 2>/dev/null; then
     TOKEN_BUDGET=100000
 fi
 readonly TOKEN_BUDGET="${TOKEN_BUDGET:-100000}"
@@ -31,7 +31,7 @@ count_loc_in_dir() {
     local total_loc=0
     local phase_stats=()
 
-    if [ ! -d "$target_dir" ]; then
+    if [[ ! -d "$target_dir" ]]; then
         echo "目录不存在: $target_dir" >&2
         return 1
     fi
@@ -105,10 +105,10 @@ main() {
     local pct=$((estimated_tokens * 100 / TOKEN_BUDGET))
     echo "Usage: $pct%"
 
-    if [ "$pct" -ge 100 ]; then
+    if [[ "$pct" -ge 100 ]]; then
         echo "Status: [BLOCK] Token budget exhausted"
         return 2
-    elif [ "$pct" -ge 80 ]; then
+    elif [[ "$pct" -ge 80 ]]; then
         echo "Status: [WARNING] Approaching token budget"
         return 1
     else

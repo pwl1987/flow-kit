@@ -40,7 +40,7 @@ main() {
     echo "Output: $report_file"
     echo ""
 
-    if [ ! -d "$phases_dir" ]; then
+    if [[ ! -d "$phases_dir" ]]; then
         echo "[ERROR] 目录不存在: $phases_dir"
         return 1
     fi
@@ -83,24 +83,24 @@ main() {
         echo "| Total Changes | ${#phase_totals[@]} |"
         echo "| Total LOC | $total_loc |"
         echo "| Est. Tokens | $total_tokens |"
-        echo "| Avg Tokens/Phase | $([ ${#phase_totals[@]} -gt 0 ] && echo "$(( total_tokens / ${#phase_totals[@]} ))" || echo "0") |"
+        echo "| Avg Tokens/Phase | $( [[ ${#phase_totals[@]} -gt 0 ]] && echo "$(( total_tokens / ${#phase_totals[@]} ))" || echo "0") |"
         echo ""
         echo "## Recommendations"
         echo ""
 
         local budget=100000
         local pct=0
-        if [ "$budget" -gt 0 ] && [ "$total_tokens" -gt 0 ]; then
+        if [[ "$budget" -gt 0 && "$total_tokens" -gt 0 ]]; then
             pct=$((total_tokens * 100 / budget))
         fi
 
-        if [ "$pct" -gt 80 ]; then
+        if [[ "$pct" -gt 80 ]]; then
             echo "- Token usage high ($pct%). Consider archiving expired contexts."
         fi
 
-        if [ ${#phase_totals[@]} -gt 0 ]; then
+        if [[ ${#phase_totals[@]} -gt 0 ]]; then
             local avg_phase_loc=$((total_loc / ${#phase_totals[@]}))
-            if [ "$avg_phase_loc" -gt 1000 ]; then
+            if [[ "$avg_phase_loc" -gt 1000 ]]; then
                 echo "- Phase documentation verbose. Consider summarizing."
             fi
         fi

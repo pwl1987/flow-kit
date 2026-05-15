@@ -15,7 +15,7 @@ get_git_root() {
 # 检查是否有未提交的更改
 #------------------------------------------------------------------------------
 has_uncommitted_changes() {
-    [ -n "$(git status --porcelain 2>/dev/null)" ]
+    [[ -n "$(git status --porcelain 2>/dev/null)" ]]
 }
 
 #------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ main() {
     local git_root
     git_root=$(get_git_root)
 
-    if [ -z "$git_root" ]; then
+    if [[ -z "$git_root" ]]; then
         echo "[ERROR] 当前目录不是 git 仓库"
         return 1
     fi

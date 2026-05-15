@@ -72,7 +72,7 @@ validate_required() {
     for field in $required; do
         local value
         value=$(jq -r --arg f "$field" '.[$f]' "$json_file" 2>/dev/null || echo "null")
-        if [ "$value" = "null" ] || [ -z "$value" ]; then
+        if [[ "$value" == "null" || -z "$value" ]]; then
             errors+=("缺少必填字段: $field")
         fi
     done
@@ -99,30 +99,30 @@ validate_types() {
         local actual_type
         actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
-        if [ "$actual_value" != "null" ] && [ -n "$actual_value" ]; then
+        if [[ "$actual_value" != "null" && -n "$actual_value" ]]; then
             case "$expected_type" in
                 string)
-                    if [ "$actual_type" != "string" ]; then
+                    if [[ "$actual_type" != "string" ]]; then
                         errors+=("字段 $prop: 期望 string，实际 $actual_type")
                     fi
                     ;;
                 number|integer)
-                    if [ "$actual_type" != "number" ] && [ "$actual_type" != "integer" ]; then
+                    if [[ "$actual_type" != "number" && "$actual_type" != "integer" ]]; then
                         errors+=("字段 $prop: 期望 number，实际 $actual_type")
                     fi
                     ;;
                 boolean)
-                    if [ "$actual_type" != "boolean" ]; then
+                    if [[ "$actual_type" != "boolean" ]]; then
                         errors+=("字段 $prop: 期望 boolean，实际 $actual_type")
                     fi
                     ;;
                 array)
-                    if [ "$actual_type" != "array" ]; then
+                    if [[ "$actual_type" != "array" ]]; then
                         errors+=("字段 $prop: 期望 array，实际 $actual_type")
                     fi
                     ;;
                 object)
-                    if [ "$actual_type" != "object" ]; then
+                    if [[ "$actual_type" != "object" ]]; then
                         errors+=("字段 $prop: 期望 object，实际 $actual_type")
                     fi
                     ;;
@@ -150,18 +150,18 @@ validate_string_length() {
         local actual_type
         actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
-        if [ "$actual_type" = "string" ] && [ "$actual_value" != "null" ]; then
+        if [[ "$actual_type" == "string" && "$actual_value" != "null" ]]; then
             local min_length
             min_length=$(jq -r --arg p "$prop" '.properties[$p].minLength // empty' "$schema_file" 2>/dev/null)
             local max_length
             max_length=$(jq -r --arg p "$prop" '.properties[$p].maxLength // empty' "$schema_file" 2>/dev/null)
             local str_length=${#actual_value}
 
-            if [ -n "$min_length" ] && [ "$str_length" -lt "$min_length" ]; then
+            if [[ -n "$min_length" && "$str_length" -lt "$min_length" ]]; then
                 errors+=("字段 $prop: 长度 $str_length 小于最小长度 $min_length")
             fi
 
-            if [ -n "$max_length" ] && [ "$str_length" -gt "$max_length" ]; then
+            if [[ -n "$max_length" && "$str_length" -gt "$max_length" ]]; then
                 errors+=("字段 $prop: 长度 $str_length 超过最大长度 $max_length")
             fi
         fi
@@ -185,7 +185,7 @@ validate_number_range() {
         local actual_type
         actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
-        if [ "$actual_type" = "number" ] || [ "$actual_type" = "integer" ]; then
+        if [[ "$actual_type" == "number" || "$actual_type" == "integer" ]]; then
             local actual_value
             actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
             local minimum
@@ -193,18 +193,18 @@ validate_number_range() {
             local maximum
             maximum=$(jq -r --arg p "$prop" '.properties[$p].maximum // empty' "$schema_file" 2>/dev/null)
 
-            if [ -n "$minimum" ]; then
+            if [[ -n "$minimum" ]]; then
                 local cmp_result
                 cmp_result=$(jq -n --argjson val "$actual_value" --argjson min "$minimum" 'if $val < $min then "lt" else "ge" end' 2>/dev/null || echo "ge")
-                if [ "$cmp_result" = "lt" ]; then
+                if [[ "$cmp_result" == "lt" ]]; then
                     errors+=("字段 $prop: 值 $actual_value 小于最小值 $minimum")
                 fi
             fi
 
-            if [ -n "$maximum" ]; then
+            if [[ -n "$maximum" ]]; then
                 local cmp_result
                 cmp_result=$(jq -n --argjson val "$actual_value" --argjson max "$maximum" 'if $val > $max then "gt" else "le" end' 2>/dev/null || echo "le")
-                if [ "$cmp_result" = "gt" ]; then
+                if [[ "$cmp_result" == "gt" ]]; then
                     errors+=("字段 $prop: 值 $actual_value 超过最大值 $maximum")
                 fi
             fi
@@ -229,11 +229,11 @@ validate_array_items() {
         local actual_type
         actual_type=$(jq -r --arg p "$prop" '.[$p] | type' "$json_file" 2>/dev/null || echo "null")
 
-        if [ "$actual_type" = "array" ]; then
+        if [[ "$actual_type" == "array" ]]; then
             local items_type
             items_type=$(jq -r --arg p "$prop" '.properties[$p].items.type // empty' "$schema_file" 2>/dev/null)
 
-            if [ -n "$items_type" ]; then
+            if [[ -n "$items_type" ]]; then
                 local array_length
                 array_length=$(jq -r --arg p "$prop" '.[$p] | length' "$json_file" 2>/dev/null)
 
@@ -245,19 +245,19 @@ validate_array_items() {
 
                     case "$items_type" in
                         string)
-                            if [ "$item_type" != "string" ]; then
+                            if [[ "$item_type" != "string" ]]; then
                                 # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 string，实际 $item_type (值: $item_value)")
                             fi
                             ;;
                         number|integer)
-                            if [ "$item_type" != "number" ] && [ "$item_type" != "integer" ]; then
+                            if [[ "$item_type" != "number" && "$item_type" != "integer" ]]; then
                                 # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 number，实际 $item_type (值: $item_value)")
                             fi
                             ;;
                         object)
-                            if [ "$item_type" != "object" ]; then
+                            if [[ "$item_type" != "object" ]]; then
                                 # shellcheck disable=SC1087
                                 errors+=("字段 $prop[$i]: 期望 object，实际 $item_type (值: $item_value)")
                             fi
@@ -274,11 +274,11 @@ validate_array_items() {
             local array_length
             array_length=$(jq -r --arg p "$prop" '.[$p] | length' "$json_file" 2>/dev/null)
 
-            if [ -n "$min_items" ] && [ "$array_length" -lt "$min_items" ]; then
+            if [[ -n "$min_items" && "$array_length" -lt "$min_items" ]]; then
                 errors+=("字段 $prop: 数组长度 $array_length 小于最小项数 $min_items")
             fi
 
-            if [ -n "$max_items" ] && [ "$array_length" -gt "$max_items" ]; then
+            if [[ -n "$max_items" && "$array_length" -gt "$max_items" ]]; then
                 errors+=("字段 $prop: 数组长度 $array_length 超过最大项数 $max_items")
             fi
         fi
@@ -312,13 +312,13 @@ validate_nested_object() {
         expected_type=$(jq -r --arg p "$prop" '.properties[$p].type' "$schema_file" 2>/dev/null)
 
         # 验证类型
-        if [ "$actual_type" != "$expected_type" ] && [ "$actual_type" != "null" ]; then
+        if [[ "$actual_type" != "$expected_type" && "$actual_type" != "null" ]]; then
             errors+=("字段 $full_prop: 期望 $expected_type，实际 $actual_type")
             continue
         fi
 
         # 如果是object，递归验证
-        if [ "$expected_type" = "object" ] && [ "$actual_type" = "object" ]; then
+        if [[ "$expected_type" == "object" && "$actual_type" == "object" ]]; then
             local nested_schema
             nested_schema=$(jq -c --arg p "$prop" '.properties[$p]' "$schema_file" 2>/dev/null)
             local nested_json
@@ -336,7 +336,7 @@ validate_nested_object() {
             for field in $nested_required; do
                 local value
                 value=$(jq -r --arg f "$field" '.[$f]' "$tmp_json" 2>/dev/null || echo "null")
-                if [ "$value" = "null" ] || [ -z "$value" ]; then
+                if [[ "$value" == "null" || -z "$value" ]]; then
                     errors+=("字段 $full_prop.$field: 缺少必填字段")
                 fi
             done
@@ -360,7 +360,7 @@ validate_enum() {
     for prop in $props; do
         local has_enum
         has_enum=$(jq -r --arg p "$prop" '.properties[$p].enum != null' "$schema_file" 2>/dev/null)
-        if [ "$has_enum" = "true" ]; then
+        if [[ "$has_enum" == "true" ]]; then
             local actual_value
             actual_value=$(jq -c --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
             local enum_count
@@ -370,13 +370,13 @@ validate_enum() {
             for ((i=0; i<enum_count; i++)); do
                 local enum_val
                 enum_val=$(jq -c --arg p "$prop" --arg idx "$i" '.properties[$p].enum[$idx | tonumber]' "$schema_file" 2>/dev/null)
-                if [ "$actual_value" = "$enum_val" ]; then
+                if [[ "$actual_value" == "$enum_val" ]]; then
                     found=true
                     break
                 fi
             done
 
-            if [ "$found" = false ]; then
+            if [[ "$found" == false ]]; then
                 local allowed
                 allowed=$(jq -r --arg p "$prop" '.properties[$p].enum | join(", ")' "$schema_file" 2>/dev/null)
                 errors+=("字段 $prop: 值 '$actual_value' 不在允许的枚举值中 [$allowed]")
@@ -401,10 +401,10 @@ validate_patterns() {
     for prop in $props; do
         local pattern
         pattern=$(jq -r --arg p "$prop" '.properties[$p].pattern' "$schema_file" 2>/dev/null)
-        if [ "$pattern" != "null" ] && [ -n "$pattern" ]; then
+        if [[ "$pattern" != "null" && -n "$pattern" ]]; then
             local actual_value
             actual_value=$(jq -r --arg p "$prop" '.[$p]' "$json_file" 2>/dev/null)
-            if [ -n "$actual_value" ] && [ "$actual_value" != "null" ]; then
+            if [[ -n "$actual_value" && "$actual_value" != "null" ]]; then
                 if ! jq -n -e --arg value "$actual_value" --arg pattern "$pattern" '$value | test($pattern)' >/dev/null 2>&1; then
                     errors+=("字段 $prop: 值 '$actual_value' 不匹配 pattern: $pattern")
                 fi
@@ -424,16 +424,16 @@ validate_phase() {
 
     local schema_file="$SCHEMA_DIR/phase-${phase}-output.schema.json"
 
-    if [ ! -f "$schema_file" ]; then
+    if [[ ! -f "$schema_file" ]]; then
         echo "[validate-phase] ❌ Schema 文件不存在: $schema_file"
         return 1
     fi
 
-    if [ -z "$json_file" ]; then
+    if [[ -z "$json_file" ]]; then
         json_file="$OUTPUT_DIR/phase-${phase}-output.json"
     fi
 
-    if [ ! -f "$json_file" ]; then
+    if [[ ! -f "$json_file" ]]; then
         echo "[validate-phase] ❌ 产物文件不存在: $json_file"
         return 1
     fi
@@ -448,45 +448,45 @@ validate_phase() {
     # 执行各类验证
     echo "检查必填字段..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_required "$json_file" "$schema_file" "$phase")
 
     echo "检查类型匹配..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_types "$json_file" "$schema_file")
 
     echo "检查字符串长度..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_string_length "$json_file" "$schema_file")
 
     echo "检查数字范围..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_number_range "$json_file" "$schema_file")
 
     echo "检查数组items..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_array_items "$json_file" "$schema_file")
 
     echo "检查嵌套对象..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_nested_object "$json_file" "$schema_file")
 
     echo "检查 enum 值..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_enum "$json_file" "$schema_file")
 
     echo "检查 pattern..."
     while IFS= read -r error; do
-        [ -n "$error" ] && all_errors+=("$error")
+        [[ -n "$error" ]] && all_errors+=("$error")
     done < <(validate_patterns "$json_file" "$schema_file")
 
-    if [ ${#all_errors[@]} -eq 0 ]; then
+    if [[ ${#all_errors[@]} -eq 0 ]]; then
         echo ""
         echo "[validate-phase] ✅ Phase $phase 产物验证通过"
         return 0
@@ -518,7 +518,7 @@ validate_all() {
 
     echo ""
     echo "[validate] 汇总"
-    if [ $failed -eq 0 ]; then
+    if [[ $failed -eq 0 ]]; then
         echo "[validate-phase] ✅ 所有阶段产物验证通过"
         return 0
     else
@@ -531,7 +531,7 @@ validate_all() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    if [[ $# -eq 0 || "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
         show_help
         exit 0
     fi

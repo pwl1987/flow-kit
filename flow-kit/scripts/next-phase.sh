@@ -1,7 +1,37 @@
 #!/bin/bash
 set -euo pipefail
-# next-phase.sh — 推进到下一个 Phase
-# v1.13 新增
+
+usage() {
+    cat << 'EOF'
+用法: next-phase.sh [选项]
+
+选项:
+  -h, --help     显示此帮助
+
+描述:
+  推进当前 Phase 到下一个 Phase (0→1→2...→8)
+
+示例:
+  next-phase.sh
+  next-phase.sh --help
+EOF
+}
+
+# 参数解析
+while getopts ":h" opt; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        \?)
+            echo "未知选项: -$OPTARG" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
@@ -9,7 +39,7 @@ source "$SCRIPT_DIR/../lib/session-state.sh"
 
 get_current_phase() {
     local current
-    if [ -f "$CURRENT_PHASE_FILE" ]; then
+    if [[ -f "$CURRENT_PHASE_FILE" ]]; then
         current=$(cat "$CURRENT_PHASE_FILE")
     else
         current="0"
@@ -27,7 +57,7 @@ advance_phase() {
     local current="$1"
     local next=$((current + 1))
 
-    if [ $next -gt 8 ]; then
+    if [[ $next -gt 8 ]]; then
         echo "已经是最后一个 Phase (8)"
         echo "流程完成！"
         return 0

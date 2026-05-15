@@ -21,7 +21,7 @@ extract_from_dir() {
     echo "" >> "$OUTPUT"
 
     for script in "$dir"/*.sh; do
-        [ -f "$script" ] || continue
+        [[ -f "$script" ]] || continue
         local basename
         basename=$(basename "$script")
         echo "### $basename" >> "$OUTPUT"
@@ -31,7 +31,7 @@ extract_from_dir() {
         while IFS= read -r line; do
             # 函数定义
             if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)\(\) ]]; then
-                if [ -n "$fn_name" ]; then
+                if [[ -n "$fn_name" ]]; then
                     echo "" >> "$OUTPUT"
                 fi
                 fn_name="${BASH_REMATCH[1]}"
@@ -43,7 +43,7 @@ extract_from_dir() {
             if $in_fn && [[ "$line" =~ ^#\ (.*) ]]; then
                 echo "  ${BASH_REMATCH[1]}" >> "$OUTPUT"
             elif [[ ! "$line" =~ ^# ]]; then
-                if $in_fn && [ -n "$fn_name" ]; then
+                if $in_fn && [[ -n "$fn_name" ]]; then
                     echo "" >> "$OUTPUT"
                 fi
                 in_fn=false

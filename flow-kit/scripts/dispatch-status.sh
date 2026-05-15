@@ -3,11 +3,13 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -z "${SCRIPT_DIR:-}" ]]; then
+    readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 source "$SCRIPT_DIR/../lib/paths.sh"
 
 main() {
-    if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
         echo "用法: ./dispatch-status.sh [summary_file]"
         exit 0
     fi
@@ -16,7 +18,7 @@ main() {
 
     echo ""
 
-    if [ ! -f "$summary_file" ]; then
+    if [[ ! -f "$summary_file" ]]; then
         echo "[status] 暂无执行中任务"
         echo "[status] 启动: ./dispatch.sh [N] \"任务描述\""
         return
@@ -52,7 +54,7 @@ main() {
 
     echo ""
     local locks_count=0
-    [ -d "$LOCK_DIR" ] && locks_count=$(ls -d "$LOCK_DIR"/*.lock 2>/dev/null | wc -l || echo 0)
+    [[ -d "$LOCK_DIR" ]] && locks_count=$(ls -d "$LOCK_DIR"/*.lock 2>/dev/null | wc -l || echo 0)
     echo "[status] locks=$locks_count"
 }
 

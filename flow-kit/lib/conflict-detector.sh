@@ -40,7 +40,7 @@ classify_requirement() {
 #------------------------------------------------------------------------------
 detect_conflict() {
     local new_req="${1:-}"
-    [ -z "$new_req" ] && return 1
+    [[ -z "$new_req" ]] && return 1
 
     # 读取当前状态
     local current_change current_phase current_status
@@ -49,12 +49,12 @@ detect_conflict() {
     current_status=$(session_get status 2>/dev/null || echo "init")
 
     # 无进行中变更，无冲突
-    if [ -z "$current_change" ] || [ "$current_status" = "init" ]; then
+    if [[ -z "$current_change" || "$current_status" == "init" ]]; then
         return 1
     fi
 
     # 有进行中变更，检测冲突
-    if [ "$current_status" = "wip" ] || [ "$current_status" = "pending" ]; then
+    if [[ "$current_status" == "wip" || "$current_status" == "pending" ]]; then
         local req_type
         req_type=$(classify_requirement "$new_req")
 
@@ -85,30 +85,30 @@ detect_conflict() {
 detect_file_conflicts() {
     local new_change="${1:-}"
     local project_dir="${2:-$PROJECT_DIR}"
-    [ -z "$new_change" ] && return 1
+    [[ -z "$new_change" ]] && return 1
 
     local current_change
     current_change=$(session_get change 2>/dev/null || echo "")
-    [ -z "$current_change" ] && return 1
+    [[ -z "$current_change" ]] && return 1
 
     # 提取两个变更涉及的文件列表
     local current_files new_files
     current_files=$(_extract_change_files "$current_change" "$project_dir")
     new_files=$(_extract_change_files "$new_change" "$project_dir")
 
-    [ -z "$current_files" ] || [ -z "$new_files" ] && return 1
+    [[ -z "$current_files" || -z "$new_files" ]] && return 1
 
     # 找交集（按行精确匹配）
     local conflicts=""
     while IFS= read -r f; do
-        [ -z "$f" ] && continue
+        [[ -z "$f" ]] && continue
         if echo "$current_files" | grep -qxF "$f"; then
-            [ -n "$conflicts" ] && conflicts="$conflicts,"
+            [[ -n "$conflicts" ]] && conflicts="$conflicts,"
             conflicts="${conflicts}${f}"
         fi
     done <<< "$new_files"
 
-    if [ -n "$conflicts" ]; then
+    if [[ -n "$conflicts" ]]; then
         echo "$conflicts"
         return 0
     fi
@@ -121,7 +121,7 @@ _extract_change_files() {
     local project_dir="$2"
     local specs_dir="$project_dir/.specs/$change"
 
-    [ -d "$specs_dir" ] || return
+    [[ -d "$specs_dir" ]] || return
 
     # 从 TASK.md/REQUIREMENT.md 提取文件引用
     grep -oE '[a-zA-Z0-9_/-]+\.(sh|md|json|js|ts)' "$specs_dir"/*.md 2>/dev/null | sort -u || true
@@ -133,11 +133,11 @@ _extract_change_files() {
 detect_dependency_conflicts() {
     local target_module="${1:-}"
     local project_dir="${2:-$PROJECT_DIR}"
-    [ -z "$target_module" ] && return 1
+    [[ -z "$target_module" ]] && return 1
 
     local current_change
     current_change=$(session_get change 2>/dev/null || echo "")
-    [ -z "$current_change" ] && return 1
+    [[ -z "$current_change" ]] && return 1
 
     # 检查当前变更是否修改了目标模块
     local current_files
@@ -155,7 +155,7 @@ detect_dependency_conflicts() {
 #------------------------------------------------------------------------------
 handle_conflict_decision() {
     local choice="${1:-}"
-    [ -z "$choice" ] && return 1
+    [[ -z "$choice" ]] && return 1
 
     case "$choice" in
         1)
@@ -195,7 +195,7 @@ interactive_conflict_resolution() {
     fi
 
     # 非交互式环境，仅显示冲突
-    if [ ! -t 0 ]; then
+    if [[ ! -t 0 ]]; then
         echo "[conflict] 非交互式环境，请手动处理冲突"
         return 0
     fi

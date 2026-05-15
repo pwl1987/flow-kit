@@ -26,7 +26,7 @@ parse_args() {
     AGGREGATE_MODE=false
     WAIT_TIMEOUT=300
 
-    if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    if [[ $# -eq 0 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
         dispatch_show_help
         exit 0
     fi
@@ -35,11 +35,11 @@ parse_args() {
     local skip_next=false
     local timeout_next=false
     for arg in "$@"; do
-        if [ "$skip_next" = true ]; then
+        if [[ "$skip_next" == true ]]; then
             skip_next=false
             continue
         fi
-        if [ "$timeout_next" = true ]; then
+        if [[ "$timeout_next" == true ]]; then
             WAIT_TIMEOUT="$arg"
             timeout_next=false
             continue
@@ -63,13 +63,13 @@ parse_args() {
         esac
     done
 
-    if [ "$AGGREGATE_MODE" = true ] || [ "$WAIT_MODE" = true ]; then
+    if [[ "$AGGREGATE_MODE" == true ]] || [[ "$WAIT_MODE" == true ]]; then
         TASK_DESC=""
         PARALLEL_N=0
         return 0
     fi
 
-    if [ ${#args[@]} -eq 0 ]; then
+    if [[ ${#args[@]} -eq 0 ]]; then
         echo "[dispatch] 错误: 缺少任务描述参数" >&2
         return 1
     fi
@@ -83,7 +83,7 @@ parse_args() {
 
     TASK_DESC="${args[*]}"
 
-    if [ -z "$TASK_DESC" ]; then
+    if [[ -z "$TASK_DESC" ]]; then
         echo "[dispatch] 错误: 任务描述不能为空" >&2
         exit 1
     fi

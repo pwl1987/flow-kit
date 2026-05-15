@@ -38,8 +38,8 @@ float_cmp() {
     if ! is_number "$a" || ! is_number "$b" || ! is_cmp_op "$op"; then
         return 1
     fi
-    if [ "$HAS_BC" = true ]; then
-        [ "$(printf '%s %s %s\n' "$a" "$op" "$b" | bc -l 2>/dev/null)" = "1" ]
+    if [[ "$HAS_BC" == true ]]; then
+        [[ "$(printf '%s %s %s\n' "$a" "$op" "$b" | bc -l 2>/dev/null)" == "1" ]]
     else
         # 降级：使用 awk 进行浮点比较
         awk -v a="$a" -v b="$b" "BEGIN {exit !(a $op b)}" 2>/dev/null
@@ -53,7 +53,7 @@ float_mul() {
         echo "0"
         return
     fi
-    if [ "$HAS_BC" = true ]; then
+    if [[ "$HAS_BC" == true ]]; then
         printf '%s * %s\n' "$a" "$b" | bc -l 2>/dev/null | cut -d. -f1
     else
         # 降级：使用 awk
@@ -68,7 +68,7 @@ float_scale() {
         echo "$a"
         return
     fi
-    if [ "$HAS_BC" = true ]; then
+    if [[ "$HAS_BC" == true ]]; then
         printf 'scale=%s; %s\n' "$scale" "$a" | bc -l 2>/dev/null
     else
         # 降级：使用 awk
@@ -124,14 +124,14 @@ detect_language_type() {
 
     local total_chars=${#text}
 
-    if [ "$total_chars" -eq 0 ]; then
+    if [[ "$total_chars" -eq 0 ]]; then
         echo "mixed"
         return
     fi
 
     # 如果中文字符超过30%，认为是中文为主
     local chinese_pct=$((chinese_count * 100 / total_chars))
-    if [ "$chinese_pct" -gt 30 ]; then
+    if [[ "$chinese_pct" -gt 30 ]]; then
         echo "chinese"
     else
         echo "english"
@@ -160,12 +160,12 @@ detect_content_type() {
 #------------------------------------------------------------------------------
 estimate_tokens() {
     local text="${1:-}"
-    if [ -z "$text" ]; then
+    if [[ -z "$text" ]]; then
         text=$(cat)
     fi
 
     local char_count=${#text}
-    if [ "$char_count" -eq 0 ]; then
+    if [[ "$char_count" -eq 0 ]]; then
         echo "0"
         return
     fi
@@ -188,9 +188,9 @@ estimate_tokens() {
 
     # 选择合适的系数
     local factor
-    if [ "$content_type" = "code" ]; then
+    if [[ "$content_type" == "code" ]]; then
         factor=$code_factor
-    elif [ "$lang_type" = "chinese" ]; then
+    elif [[ "$lang_type" == "chinese" ]]; then
         factor=$chinese_factor
     else
         factor=$english_factor
@@ -200,7 +200,7 @@ estimate_tokens() {
     local token_estimate
     token_estimate=$(float_mul "$char_count" "$factor")
     # P1 修复：改进降级判断 - 仅在计算失败时降级（非空且非零才认为是成功）
-    if [ -z "$token_estimate" ] || ! [[ "$token_estimate" =~ ^[0-9]+$ ]] || [ "$token_estimate" -eq 0 ]; then
+    if [[ -z "$token_estimate" ]] || ! [[ "$token_estimate" =~ ^[0-9]+$ ]] || [[ "$token_estimate" -eq 0 ]]; then
         token_estimate=$((char_count / 4))
     fi
 
@@ -212,7 +212,7 @@ estimate_tokens() {
 #------------------------------------------------------------------------------
 estimate_file_tokens() {
     local file="$1"
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         echo "0"
         return
     fi
@@ -257,7 +257,7 @@ estimate_dir_tokens() {
 
     # 使用 find 替代 glob（兼容性更好）
     while IFS= read -r file; do
-        if [ -f "$file" ]; then
+        if [[ -f "$file" ]]; then
             total=$((total + $(estimate_file_tokens "$file")))
         fi
     done < <(find "$dir" -name "*.md" -type f 2>/dev/null || echo "")
@@ -273,7 +273,7 @@ check_budget() {
     local total_budget="${2:-$DEFAULT_BUDGET}"
 
     # 防止除零
-    if [ "$total_budget" -eq 0 ] 2>/dev/null; then
+    if [[ "$total_budget" -eq 0 ]] 2>/dev/null; then
         echo "[context-budget] total_budget=0，跳过预算检查"
         return 0
     fi
@@ -293,9 +293,9 @@ check_budget() {
     fi
 
     local warnings_json="[]"
-    if [ "$status" = "WARNING" ]; then
+    if [[ "$status" == "WARNING" ]]; then
         warnings_json='["Budget approaching 80%"]'
-    elif [ "$status" = "BLOCK" ]; then
+    elif [[ "$status" == "BLOCK" ]]; then
         warnings_json='["Budget exhausted, action required"]'
     fi
 
@@ -329,7 +329,7 @@ get_budget_status() {
     # 估算当前会话上下文的 token（粗略估算）
     local context_file="$project_dir/.flow-kit/context/current.md"
     local context_tokens=0
-    if [ -f "$context_file" ]; then
+    if [[ -f "$context_file" ]]; then
         context_tokens=$(estimate_file_tokens "$context_file")
     fi
 
@@ -346,7 +346,7 @@ trigger_compress() {
 
     echo "[context-budget] 🚨 触发上下文压缩 (reason: $reason)"
 
-    if [ -f "$CAVEMAN_SCRIPT" ]; then
+    if [[ -f "$CAVEMAN_SCRIPT" ]]; then
         echo "[context-budget] 执行 caveman 压缩..."
         bash "$CAVEMAN_SCRIPT"
         return $?
@@ -416,14 +416,14 @@ main() {
             get_budget_status "${2:-.}"
             ;;
         --estimate|-e)
-            if [ -n "${2:-}" ]; then
+            if [[ -n "${2:-}" ]]; then
                 estimate_tokens "$2"
             else
                 estimate_tokens
             fi
             ;;
         --estimate-file|-f)
-            if [ -z "${2:-}" ]; then
+            if [[ -z "${2:-}" ]]; then
                 echo "[context-budget] 错误: 需要指定文件路径" >&2
                 exit 1
             fi
@@ -436,7 +436,7 @@ main() {
             trigger_compress "${2:-manual}"
             ;;
         --model)
-            if [ -z "${2:-}" ]; then
+            if [[ -z "${2:-}" ]]; then
                 echo "[context-budget] 错误: 需要指定模型名称" >&2
                 exit 1
             fi

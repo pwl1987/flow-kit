@@ -1,35 +1,29 @@
 #!/bin/bash
-set -euo pipefail
 # pre-tool-guard.sh — PreToolUse hook: 阻止危险命令和敏感文件编辑
-# v2.7.0 P1 修复: jq 精确提取 + DDL 高危检测
-# v2.7.0 P1 修复: DDL 正则补全 RENAME TO + set -euo pipefail
+# v2.7.1 修复: 移除 source 链，自包含轻量实现，防止 hook 卡死
 # Reference: gstack /careful + Morph Claude Code Hooks
 
-# 引入统一错误处理框架和共享时间工具
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../lib/error-handler.sh"
-source "$SCRIPT_DIR/../lib/time-utils.sh"
-source "$SCRIPT_DIR/../lib/paths.sh"
-
-START_TIME=$(get_epoch_ms)
+set -uo pipefail
 
 INPUT=$(cat)
 
-# 检查输入是否为 JSON，若是则用 jq 精确提取
+# 轻量 JSON 解析（避免 source error-handler/time-utils/paths 链）
+TOOL=""
+COMMAND=""
+FILE_PATH=""
+
 if echo "$INPUT" | jq -e '.' >/dev/null 2>&1; then
-    TOOL=$(echo "$INPUT" | jq -r '.tool_name')
+    TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
     COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
     FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-else
-    # 非 JSON 输入，回退到直接使用
-    log_warn "pre-tool-guard" "非 JSON 输入格式，使用回退解析 - 可能与新版 Claude Code 不兼容"
-    TOOL=$(echo "$INPUT" | grep -oE '"tool_name"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4 || echo "")
-    COMMAND=""
-    FILE_PATH=""
 fi
 
-# 放行只读语句（DDL/DML 中的查询类操作）
-# P2 修复：排除 SELECT INTO OUTFILE 等写文件操作
+# 空 TOOL 直接放行
+if [[ -z "$TOOL" ]]; then
+    exit 0
+fi
+
+# 放行只读语句
 if echo "$COMMAND" | grep -qE '^(COMMENT|COMMENT ON|SHOW|DESCRIBE|EXPLAIN)[[:space:]]'; then
     exit 0
 fi
@@ -38,8 +32,8 @@ if echo "$COMMAND" | grep -qE '^SELECT[[:space:]]' && ! echo "$COMMAND" | grep -
 fi
 
 # 阻止危险的 Bash 命令
-if [ "$TOOL" = "Bash" ]; then
-    # 高危模式（必须拦截）
+if [[ "$TOOL" == "Bash" ]]; then
+    # 高危模式
     if echo "$COMMAND" | grep -qiE 'git[[:space:]]+push[[:space:]]+--force|git[[:space:]]+reset[[:space:]]+--hard|DROP[[:space:]]+TABLE|dd[[:space:]]+if='; then
         echo "BLOCKED: 危险命令被 flow-kit 护栏拦截。请确认后重试。" >&2
         exit 2
@@ -50,8 +44,7 @@ if [ "$TOOL" = "Bash" ]; then
             exit 2
         fi
     fi
-    # P1 修复：DDL 高危操作（补全 RENAME TO 格式）
-    # v2.7.0 修复：SQL 关键字间支持任意空白（DROP[[:space:]]+COLUMN 等）
+    # DDL 高危操作
     if echo "$COMMAND" | grep -qiE 'DROP[[:space:]]+COLUMN|ALTER[[:space:]]+TABLE[[:space:]]+[^[:space:]]+[[:space:]]+(RENAME|RENAME[[:space:]]+TO|RENAME[[:space:]]+COLUMN)|TRUNCATE[[:space:]]+TABLE'; then
         echo "BLOCKED: DDL 高危操作被 flow-kit 护栏拦截（DROP COLUMN/ALTER TABLE RENAME/TRUNCATE TABLE）。" >&2
         exit 2
@@ -59,22 +52,11 @@ if [ "$TOOL" = "Bash" ]; then
 fi
 
 # 阻止编辑敏感文件
-if [ "$TOOL" = "Edit" ] || [ "$TOOL" = "Write" ]; then
+if [[ "$TOOL" == "Edit" || "$TOOL" == "Write" ]]; then
     if echo "$FILE_PATH" | grep -qE '(^|/)\.env([._-]|$)|migrations/|package-lock\.json|\.git/'; then
         echo "BLOCKED: $FILE_PATH 是受保护文件。" >&2
         exit 2
     fi
 fi
 
-# hooks 执行遥测
-END_TIME=$(get_epoch_ms)
-ELAPSED=$((END_TIME - START_TIME))
-mkdir -p "$LOGS_DIR"
-echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [pre-tool-guard] [OK] [${ELAPSED}ms]" >> "$LOGS_DIR/hooks-execution.log" 2>/dev/null || true
-
 exit 0
-
-# v2.7.0 修复：URL 放在 bash 注释中避免被解析
-# 参考来源：
-# - Claude Code Hooks 官方文档：https://docs.anthropic.com/en/docs/claude-code/hooks
-# - garrytan/gstack：https://github.com/garrytan/gstack

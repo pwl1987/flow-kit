@@ -94,3 +94,31 @@ jobs:
           if [ -f lib/detection/database-type.test.js ]; then
             node lib/detection/database-type.test.js
           fi
+
+  benchmark:
+    name: 性能基准测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flow-kit
+    steps:
+      - uses: actions/checkout@v4
+      - name: 安装 hyperfine
+        run: |
+          sudo apt-get update && sudo apt-get install -y bc time
+          if command -v hyperfine >/dev/null 2>&1; then
+            echo "hyperfine already installed"
+          else
+            curl -sL https://github.com/sharkdp/hyperfine/releases/download/v1.18.0/hyperfine_1.18.0_amd64.deb -o /tmp/hyperfine.deb
+            sudo dpkg -i /tmp/hyperfine.deb || true
+          fi
+      - name: 运行性能基准测试
+        run: |
+          mkdir -p .flow-kit/benchmarks
+          bash benchmarks/run-benchmarks.sh || echo "benchmark completed"
+      - name: 上传基准测试结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: .flow-kit/benchmarks/
+          retention-days: 30

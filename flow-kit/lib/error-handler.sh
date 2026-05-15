@@ -8,7 +8,7 @@ set -euo pipefail
 #------------------------------------------------------------------------------
 # 错误码常量（防重复 source）
 #------------------------------------------------------------------------------
-if [ -z "${_ERROR_HANDLER_LOADED:-}" ]; then
+if [[ -z "${_ERROR_HANDLER_LOADED:-}" ]]; then
 readonly EXIT_SUCCESS=0
 readonly EXIT_GENERAL_ERROR=1
 readonly EXIT_GUARD_BLOCK=2
@@ -58,7 +58,7 @@ log_error() {
 
 # 调试日志（仅 DEBUG 模式启用）
 log_debug() {
-    if [ "${DEBUG:-0}" = "1" ]; then
+    if [[ "${DEBUG:-0}" == "1" ]]; then
         local module="${1:-unknown}"
         local message="${2:-}"
         echo "[$(get_timestamp)][DEBUG][$module] $message"
@@ -84,7 +84,7 @@ check_result() {
     local module="${1:-unknown}"
     local message="${2:-Operation failed}"
 
-    if [ $exit_code -ne 0 ]; then
+    if [[ $exit_code -ne 0 ]]; then
         log_error "$module" "$message (exit code: $exit_code)"
         return $exit_code
     fi
@@ -103,7 +103,7 @@ create_error_context() {
     local error_type="${2:-UNKNOWN}"
     local context="${3:-unknown}"
 
-    if [ -z "$error_file" ]; then
+    if [[ -z "$error_file" ]]; then
         error_file="$ERROR_CONTEXT_DIR/error-$(date +%Y%m%d%H%M%S)-$$.json"
     fi
 
@@ -165,23 +165,23 @@ safe_exit() {
     local error_file="${2:-}"
     local message="${3:-}"
 
-    if [ -n "$message" ]; then
+    if [[ -n "$message" ]]; then
         log_info "exit" "$message"
     fi
 
-    if [ -n "$error_file" ] && [ -f "$error_file" ]; then
+    if [[ -n "$error_file" && -f "$error_file" ]]; then
         # P0 修复：使用 jq 优先，sed 回退（macOS/Linux 全兼容）
         local error_type
         if command -v jq &>/dev/null; then
             error_type=$(jq -r '.type // empty' "$error_file" 2>/dev/null || echo "UNKNOWN")
         elif command -v sed &>/dev/null; then
             error_type=$(sed -n 's/.*"type": *"\([^"]*\)".*/\1/p' "$error_file" 2>/dev/null | head -1)
-            [ -z "$error_type" ] && error_type="UNKNOWN"
+            [[ -z "$error_type" ]] && error_type="UNKNOWN"
         else
             error_type="UNKNOWN"
         fi
 
-        if [ "$exit_code" -ne 0 ]; then
+        if [[ "$exit_code" -ne 0 ]]; then
             local suggestion
             suggestion=$(get_error_recovery_suggestion "$error_type")
             log_warn "exit" "错误类型: $error_type"
@@ -198,7 +198,7 @@ aggregate_errors() {
     shift
     local errors=("$@")
 
-    if [ ${#errors[@]} -eq 0 ]; then
+    if [[ ${#errors[@]} -eq 0 ]]; then
         return 0
     fi
 
@@ -216,3 +216,5 @@ aggregate_errors() {
           errors: $errs
         }' > "$error_log"
 }
+
+# v3.5.2: 移除 _check_log_override（会自我 source 导致进程爆炸）

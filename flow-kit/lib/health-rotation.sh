@@ -32,7 +32,7 @@ get_file_size_bytes() {
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    if [ ! -f "$HISTORY_FILE" ]; then
+    if [[ ! -f "$HISTORY_FILE" ]]; then
         echo "[health-rotation] 文件不存在: $HISTORY_FILE"
         exit 0
     fi
@@ -41,7 +41,7 @@ main() {
     size_bytes=$(get_file_size_bytes "$HISTORY_FILE")
     local size_kb=$((size_bytes / 1024))
 
-    if [ "$size_kb" -lt "$MAX_SIZE_KB" ]; then
+    if [[ "$size_kb" -lt "$MAX_SIZE_KB" ]]; then
         echo "[health-rotation] 健康历史文件大小 ${size_kb}KB < ${MAX_SIZE_KB}KB，无需轮转"
         exit 0
     fi
@@ -67,7 +67,7 @@ main() {
     local count=0
     while IFS= read -r archive; do
         count=$((count + 1))
-        if [ "$count" -gt 5 ]; then
+        if [[ "$count" -gt 5 ]]; then
             rm -f "$archive"
         fi
     done < <(ls -t "$ARCHIVE_DIR"/health-history-*.json 2>/dev/null)

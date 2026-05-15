@@ -11,24 +11,24 @@ check_lock_conflicts() {
     echo "[dispatch] 🔒 检查锁冲突..."
 
     local locks_count=0
-    if [ -d "$LOCK_DIR" ]; then
-        locks_count=$(find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | wc -l)
+    if [[ -d "$LOCK_DIR" ]]; then
+        locks_count=$(find "$LOCK_DIR" -name "*.lock" -type f 2>/dev/null | wc -l)
     fi
 
     echo "[dispatch] 当前活跃锁数: $locks_count"
 
-    if [ "$locks_count" -gt 0 ]; then
+    if [[ "$locks_count" -gt 0 ]]; then
         echo "[dispatch] 🚫 检测到 $locks_count 个活跃锁，等待解锁..."
 
         local wait_timeout=30
         local wait_elapsed=0
         local wait_interval=2
 
-        while [ "$wait_elapsed" -lt "$wait_timeout" ]; do
+        while [[ "$wait_elapsed" -lt "$wait_timeout" ]]; do
             local current_locks
-            current_locks=$(find "$LOCK_DIR" -name "*.lock" -type d 2>/dev/null | wc -l)
+            current_locks=$(find "$LOCK_DIR" -name "*.lock" -type f 2>/dev/null | wc -l)
 
-            if [ "$current_locks" -eq 0 ]; then
+            if [[ "$current_locks" -eq 0 ]]; then
                 echo "[dispatch] ✅ 锁已释放，继续执行"
                 return 0
             fi

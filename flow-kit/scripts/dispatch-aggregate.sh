@@ -5,10 +5,11 @@
 
 set -euo pipefail
 
-#------------------------------------------------------------------------------
 # 配置
 #------------------------------------------------------------------------------
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -z "${SCRIPT_DIR:-}" ]]; then
+    readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 source "$SCRIPT_DIR/../lib/paths.sh"
 # 注意：TMP_DIR 复用 paths.sh 中的定义
 
@@ -34,14 +35,14 @@ EOF
 # 主函数
 #------------------------------------------------------------------------------
 main() {
-    if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
         show_help
         exit 0
     fi
 
     local summary_file="${1:-$TMP_DIR/dispatch-summary.json}"
 
-    if [ ! -f "$summary_file" ]; then
+    if [[ ! -f "$summary_file" ]]; then
         echo "[dispatch-aggregate] 错误: 文件不存在 $summary_file" >&2
         echo "[dispatch-aggregate] 提示: 请先运行 ./dispatch.sh --execute" >&2
         exit 1
@@ -85,7 +86,7 @@ main() {
         echo "  $status_icon $id ($role): $status"
     done < <(jq -c '.agents[]' "$summary_file" 2>/dev/null)
 
-    if [ "$has_agents" != true ]; then
+    if [[ "$has_agents" != true ]]; then
         echo "  (尚未执行，请使用 --execute 运行)"
     fi
 
@@ -93,7 +94,7 @@ main() {
     echo "修改文件清单:"
     local all_files
     local result_files=("$TMP_DIR"/subagent-*-result.json)
-    if [ ${#result_files[@]} -gt 0 ] && [ -f "${result_files[0]}" ]; then
+    if [[ ${#result_files[@]} -gt 0 && -f "${result_files[0]}" ]]; then
         all_files=$(jq -s '[.[].files_modified // [] | flatten] | add | unique' "${result_files[@]}" 2>/dev/null || echo "[]")
     else
         all_files="[]"

@@ -28,7 +28,7 @@ extract_decisions() {
 
     local all_decisions=()
 
-    if [ ! -d "$input_dir" ]; then
+    if [[ ! -d "$input_dir" ]]; then
         return 1
     fi
 
@@ -46,7 +46,7 @@ extract_decisions() {
         done < "$file"
     done < <(find "$input_dir" -name "*.md" -type f -print0)
 
-    if [ ${#all_decisions[@]} -gt 0 ]; then
+    if [[ ${#all_decisions[@]} -gt 0 ]]; then
         echo "## Key Decisions"
         echo ""
         for decision in "${all_decisions[@]}"; do
@@ -64,7 +64,7 @@ extract_todos() {
 
     local all_todos=()
 
-    if [ ! -d "$input_dir" ]; then
+    if [[ ! -d "$input_dir" ]]; then
         return 1
     fi
 
@@ -82,7 +82,7 @@ extract_todos() {
         done < "$file"
     done < <(find "$input_dir" -name "*.md" -type f -print0)
 
-    if [ ${#all_todos[@]} -gt 0 ]; then
+    if [[ ${#all_todos[@]} -gt 0 ]]; then
         echo "## Pending Items"
         echo ""
         for todo in "${all_todos[@]}"; do
@@ -100,7 +100,7 @@ extract_file_changes() {
 
     local all_changes=()
 
-    if [ ! -d "$input_dir" ]; then
+    if [[ ! -d "$input_dir" ]]; then
         return 1
     fi
 
@@ -118,7 +118,7 @@ extract_file_changes() {
         done < "$file"
     done < <(find "$input_dir" -name "*.md" -type f -print0)
 
-    if [ ${#all_changes[@]} -gt 0 ]; then
+    if [[ ${#all_changes[@]} -gt 0 ]]; then
         echo "## File Changes"
         echo ""
         for change in "${all_changes[@]}"; do
@@ -140,7 +140,7 @@ main() {
     echo "Output: $output_file"
     echo ""
 
-    if [ ! -d "$input_dir" ]; then
+    if [[ ! -d "$input_dir" ]]; then
         echo -e "${RED}[ERROR]${NC} Input directory not found: $input_dir"
         return 1
     fi
@@ -170,7 +170,7 @@ main() {
     echo -e "${GREEN}[OK]${NC} Compressed context written to: $output_file"
     echo "Lines: $line_count"
 
-    if [ "$line_count" -gt "$MAX_LINES" ]; then
+    if [[ "$line_count" -gt "$MAX_LINES" ]]; then
         echo -e "${YELLOW}[WARN]${NC} Output exceeds $MAX_LINES lines"
     fi
 }

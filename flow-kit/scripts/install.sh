@@ -152,7 +152,7 @@ check_dependency() {
             esac
             ;;
         macOS)
-            if [ "$pkg_mgr" = "brew" ]; then
+            if [[ "$pkg_mgr" == "brew" ]]; then
                 install_cmd="brew install $cmd"
             else
                 log_error "Homebrew 未安装。请访问 https://brew.sh 安装 Homebrew"
@@ -161,12 +161,12 @@ check_dependency() {
             ;;
     esac
 
-    if [ -z "$install_cmd" ]; then
+    if [[ -z "$install_cmd" ]]; then
         log_error "无法确定 $cmd 的安装命令"
         return 1
     fi
 
-    if [ "$INTERACTIVE" = true ]; then
+    if [[ "$INTERACTIVE" == true ]]; then
         echo ""
         echo "安装 $cmd:"
         echo "  $install_cmd"
@@ -206,11 +206,11 @@ check_all_dependencies() {
 
     # bash 版本检查
     local bash_major="${BASH_VERSINFO[0]:-0}"
-    if [ "$bash_major" -ge 4 ]; then
+    if [[ "$bash_major" -ge 4 ]]; then
         log_success "bash $BASH_VERSION (>= 4.0)"
     else
         log_error "bash 版本过低: $BASH_VERSION (需要 >= 4.0)"
-        if [ "$os" = "macOS" ]; then
+        if [[ "$os" == "macOS" ]]; then
             log_info "macOS 安装: brew install bash"
         fi
         failed=$((failed + 1))
@@ -232,7 +232,7 @@ check_all_dependencies() {
 
     echo ""
 
-    if [ $failed -gt 0 ]; then
+    if [[ $failed -gt 0 ]]; then
         log_error "$failed 个依赖缺失或安装失败"
         return 1
     fi
@@ -247,7 +247,7 @@ check_all_dependencies() {
 register_commands() {
     log_info "注册斜杠命令..."
 
-    if [ ! -f "$SCRIPTS_DIR/generate-commands.sh" ]; then
+    if [[ ! -f "$SCRIPTS_DIR/generate-commands.sh" ]]; then
         log_error "generate-commands.sh 不存在"
         return 1
     fi
@@ -269,7 +269,7 @@ verify_hooks() {
 
     local settings_file="${CLAUDE_PROJECT_DIR:-$PROJECT_DIR}/.claude/settings.json"
 
-    if [ ! -f "$settings_file" ]; then
+    if [[ ! -f "$settings_file" ]]; then
         log_warn "settings.json 不存在: $settings_file"
         log_info "Hooks 配置需要手动设置"
         return 0
@@ -293,7 +293,7 @@ run_tests() {
     log_info "运行功能测试..."
     echo ""
 
-    if [ ! -f "$FLOW_KIT_DIR/tests/run-tests.sh" ]; then
+    if [[ ! -f "$FLOW_KIT_DIR/tests/run-tests.sh" ]]; then
         log_error "run-tests.sh 不存在"
         return 1
     fi
@@ -314,7 +314,7 @@ run_tests() {
 #------------------------------------------------------------------------------
 main() {
     # 解析参数
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --interactive)
                 INTERACTIVE=true
@@ -373,7 +373,7 @@ main() {
     echo ""
 
     # 5. 运行测试
-    if [ "$INTERACTIVE" = true ]; then
+    if [[ "$INTERACTIVE" == true ]]; then
         read -p "是否运行功能测试？(y/n): " -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             if ! run_tests; then
@@ -382,7 +382,7 @@ main() {
         else
             log_info "跳过功能测试"
         fi
-    elif [ "$SILENT" = false ]; then
+    elif [[ "$SILENT" == false ]]; then
         if ! run_tests; then
             log_warn "测试失败，但安装已完成"
         fi

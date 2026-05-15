@@ -5,7 +5,41 @@
 
 set -euo pipefail
 
+usage() {
+    cat << 'EOF'
+用法: generate-commands.sh [选项]
+
+选项:
+  -h, --help     显示此帮助
+  -f, --force    强制重新生成所有命令（覆盖已存在）
+
+示例:
+  generate-commands.sh
+  generate-commands.sh --force
+EOF
+}
+
 FORCE=false
+
+# 参数解析
+while getopts ":hf" opt; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        f)
+            FORCE=true
+            ;;
+        \?)
+            echo "未知选项: -$OPTARG" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # v2.9.0: 依赖预检
@@ -18,8 +52,8 @@ readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # 向上查找项目根目录（优先 CLAUDE_PROJECT_DIR，回退查找 .git）
 _find_project_root() {
     local dir="$REPO_ROOT"
-    while [ "$dir" != "/" ]; do
-        [ -d "$dir/.git" ] && echo "$dir" && return
+    while [[ "$dir" != "/" ]]; do
+        [[ -d "$dir/.git" ]] && echo "$dir" && return
         dir="$(dirname "$dir")"
     done
     cd "$REPO_ROOT/../.." && pwd

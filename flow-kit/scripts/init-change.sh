@@ -2,7 +2,55 @@
 set -euo pipefail
 # init-change.sh — flow-kit 变更初始化脚本 v2.7.0
 # 功能: 自动创建变更规格目录 + change-id + 项目类型检测 + 护栏推荐 + 下一步建议
-# 用法: ./init-change.sh "变更描述"
+
+usage() {
+    cat << 'EOF'
+用法: init-change.sh [选项] "变更描述"
+
+选项:
+  -h, --help              显示此帮助
+  -c, --change-id ID     指定变更 ID（可选，默认自动生成）
+  -t, --type TYPE        变更类型：feature|bugfix|refactor|docs|config
+  -m, --mode MODE        项目模式：green|brown（默认自动检测）
+
+参数:
+  变更描述                变更的简要描述（必须）
+
+示例:
+  init-change.sh "添加用户反馈中心模块"
+  init-change.sh -t feature -m green "添加登录功能"
+  init-change.sh --change-id my-change-20260515 -t bugfix "修复认证问题"
+EOF
+}
+
+# 参数解析
+CHANGE_ID=""
+CHANGE_TYPE=""
+PROJECT_MODE=""
+
+while getopts ":hc:t:m:" opt; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        c)
+            CHANGE_ID="$OPTARG"
+            ;;
+        t)
+            CHANGE_TYPE="$OPTARG"
+            ;;
+        m)
+            PROJECT_MODE="$OPTARG"
+            ;;
+        \?)
+            echo "未知选项: -$OPTARG" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 # 加载路径管理
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,7 +65,7 @@ source "$SCRIPT_DIR/../lib/conflict-detector.sh"
 main() {
     local description="${1:-}"
 
-    if [ -z "$description" ]; then
+    if [[ -z "$description" ]]; then
         echo "用法: ./init-change.sh \"变更描述\""
         echo "示例: ./init-change.sh \"添加用户反馈中心模块\""
         exit 1
@@ -44,7 +92,7 @@ main() {
     # 3.5 校验模板变量
     local undefined_vars
     undefined_vars=$(grep -ho '{{[A-Z_]*}}' "$specs_dir"/*.md 2>/dev/null | sort -u | grep -v '{{change_id}}' || true)
-    if [ -n "$undefined_vars" ]; then
+    if [[ -n "$undefined_vars" ]]; then
         echo "[init-change] ⚠️  模板含未替换变量:"
         echo "$undefined_vars" | sed 's/{{/  - /;s/}}//'
     fi
@@ -68,7 +116,7 @@ main() {
     # v3.0.0: 初始化会话状态
     # v3.3.0: 追加执行历史
     local ss_ptype="green"
-    [ "$project_type" = "brownfield" ] && ss_ptype="brown"
+    [[ "$project_type" == "brownfield" ]] && ss_ptype="brown"
     session_init "$change_id" "$ss_ptype"
     session_history_add "init"
 
@@ -92,7 +140,7 @@ generate_change_id() {
     local chinese
     chinese=$(echo "$desc" | grep -oE '测试|变更|添加|用户|功能|开发|设计|模块|配置|管理|数据|接口|前端|后端|商务|论坛|博客|系统|新增|删除|修改|查询|列表|详情|登录|注册|退出' | head -4 | tr -d '\n')
 
-    if [ -n "$chinese" ]; then
+    if [[ -n "$chinese" ]]; then
         slug="$chinese"
     else
         # 如果没有中文，用 sed 清理英文
@@ -100,7 +148,7 @@ generate_change_id() {
     fi
 
     # 如果仍然为空，使用默认值
-    if [ -z "$slug" ]; then
+    if [[ -z "$slug" ]]; then
         slug="change"
     fi
 
@@ -109,9 +157,9 @@ generate_change_id() {
     # v2.8.0: 防止同日同 slug 碰撞覆盖已有 spec
     local specs_base
     specs_base="$PROJECT_DIR/.specs"
-    if [ -d "$specs_base/$change_id" ] && [ "$(ls -A "$specs_base/$change_id" 2>/dev/null)" ]; then
+    if [[ -d "$specs_base/$change_id" && "$(ls -A "$specs_base/$change_id" 2>/dev/null)" ]]; then
         local seq=2
-        while [ -d "$specs_base/${change_id}-${seq}" ]; do
+        while [[ -d "$specs_base/${change_id}-${seq}" ]]; do
             seq=$((seq + 1))
         done
         change_id="${change_id}-${seq}"
@@ -245,10 +293,10 @@ EOF
 
 # 检测项目类型
 detect_project_type() {
-    if [ -f "$PROJECT_TYPE_FILE" ]; then
+    if [[ -f "$PROJECT_TYPE_FILE" ]]; then
         local project_type
         project_type=$(grep -m1 "^project_type:" "$PROJECT_TYPE_FILE" 2>/dev/null | cut -d' ' -f2 || true)
-        if [ -n "$project_type" ]; then
+        if [[ -n "$project_type" ]]; then
             echo "$project_type"
             return
         fi
@@ -262,7 +310,7 @@ detect_project_type() {
 print_guardrail_recommendation() {
     local project_type="$1"
     local guard_cmd="minimal"
-    [ "$project_type" = "brownfield" ] && guard_cmd="full"
+    [[ "$project_type" == "brownfield" ]] && guard_cmd="full"
     echo "[init] ptype=$project_type guard=$guard_cmd"
 }
 

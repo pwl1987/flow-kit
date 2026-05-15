@@ -58,7 +58,7 @@ EOF
 # 参数解析
 #------------------------------------------------------------------------------
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --dir)        TARGET_DIR="$2"; shift 2 ;;
             --output)     OUTPUT_FILE="$2"; shift 2 ;;
@@ -130,10 +130,10 @@ run_syntax_check() {
         fi
 
         # run shellcheck if available
-        if [ "$HAS_SHELLCHECK" = true ]; then
+        if [[ "$HAS_SHELLCHECK" == true ]]; then
             local sc_output
             sc_output=$(shellcheck --format=json "$file" 2>/dev/null || true)
-            if [ -n "$sc_output" ] && [ "$sc_output" != "[]" ]; then
+            if [[ -n "$sc_output" ]] && [ "$sc_output" != "[]" ]; then
                 local sc_findings
                 sc_findings=$(echo "$sc_output" | jq -c '
                     [.[] | {
@@ -150,7 +150,7 @@ run_syntax_check() {
                     }]
                 ' --arg file "$rel" 2>/dev/null || echo '[]')
 
-                if [ "$sc_findings" != "[]" ]; then
+                if [[ "$sc_findings" != "[]" ]]; then
                     local tmp
                     tmp=$(jq -s 'add' "$findings_file" <(echo "$sc_findings") 2>/dev/null || echo '[]')
                     echo "$tmp" > "$findings_file"
@@ -182,7 +182,7 @@ run_security_scan() {
 
     for pattern in "${secret_patterns[@]}"; do
         while IFS= read -r match; do
-            [ -z "$match" ] && continue
+            [[ -z "$match" ]] && continue
             local file line_num
             file=$(echo "$match" | cut -d: -f1)
             line_num=$(echo "$match" | cut -d: -f2)
@@ -205,7 +205,7 @@ run_security_scan() {
 
     for pattern in "${dangerous_patterns[@]}"; do
         while IFS= read -r match; do
-            [ -z "$match" ] && continue
+            [[ -z "$match" ]] && continue
             local file line_num
             file=$(echo "$match" | cut -d: -f1)
             line_num=$(echo "$match" | cut -d: -f2)
@@ -232,7 +232,7 @@ run_style_check() {
     local findings_file="$REVIEW_TMP_DIR/style-findings.json"
     echo '[]' > "$findings_file"
 
-    if [ "$HAS_SHFMT" != true ]; then
+    if [[ "$HAS_SHFMT" != true ]]; then
         cat "$findings_file"
         return
     fi
@@ -245,7 +245,7 @@ run_style_check() {
         local diff_output
         diff_output=$(shfmt -d "$file" 2>/dev/null || true)
 
-        if [ -n "$diff_output" ]; then
+        if [[ -n "$diff_output" ]]; then
             local diff_lines
             diff_lines=$(echo "$diff_output" | grep -c '^@@' || echo 0)
 
@@ -308,7 +308,7 @@ generate_review_report() {
     {
         echo "# 代码评审报告"
         echo ""
-        echo "日期: $date | 目标: $target_name/ | 扫描器: bash-n$([ "$HAS_SHELLCHECK" = true ] && echo " + shellcheck" || echo "")"
+        echo "日期: $date | 目标: $target_name/ | 扫描器: bash-n$([[ "$HAS_SHELLCHECK" == true ]] && echo " + shellcheck" || echo "")"
         echo ""
         echo "## 汇总"
         echo ""
@@ -321,7 +321,7 @@ generate_review_report() {
         echo "| **总计**  | **$total** |"
         echo ""
 
-        if [ "$total" -eq 0 ]; then
+        if [[ "$total" -eq 0 ]]; then
             echo "未发现问题。代码质量良好。"
             return
         fi
@@ -345,7 +345,7 @@ generate_review_report() {
             local count
             count=$(echo "$items" | jq 'length')
 
-            if [ "$count" -eq 0 ]; then
+            if [[ "$count" -eq 0 ]]; then
                 continue
             fi
 
@@ -359,7 +359,7 @@ generate_review_report() {
                 code=$(echo "$item" | jq -r '.code')
                 msg=$(echo "$item" | jq -r '.message')
 
-                if [ "$line" = "0" ] || [ "$line" = "null" ]; then
+                if [[ "$line" == "0" || "$line" == "null" ]]; then
                     echo "- \`${file}\`: ${msg} [${code}]"
                 else
                     echo "- \`${file}:${line}\`: ${msg} [${code}]"
@@ -384,7 +384,7 @@ generate_review_report() {
 main() {
     parse_args "$@"
 
-    if [ ! -d "$TARGET_DIR" ]; then
+    if [[ ! -d "$TARGET_DIR" ]]; then
         echo "[review] 错误: 目录不存在 $TARGET_DIR" >&2
         exit 1
     fi

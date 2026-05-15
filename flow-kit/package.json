@@ -1,0 +1,13 @@
+{
+  "name": "flow-kit",
+  "version": "3.6.0",
+  "private": true,
+  "description": "flow-kit JS test dependencies",
+  "scripts": {
+    "test:js": "vitest run",
+    "test:js:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0"
+  }
+}

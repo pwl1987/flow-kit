@@ -32,7 +32,7 @@ require_pyyaml() {
 
 require_bash4() {
     local major="${BASH_VERSINFO[0]:-0}"
-    if [ "$major" -lt 4 ]; then
+    if [[ "$major" -lt 4 ]]; then
         echo "[preflight] 错误: 需要 bash >= 4.0 (当前 $BASH_VERSION)" >&2
         echo "[preflight] macOS: brew install bash && 在脚本中添加 #!/usr/bin/env bash" >&2
         return 1

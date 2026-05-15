@@ -56,7 +56,7 @@ scan_hardcoded_secrets() {
         done < <(grep -rlE "$pattern" --include="*.sh" --include="*.js" --include="*.ts" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' | grep -v -E '(\.md|\.txt|test_|_test\.|spec\.)' || true)
     done
 
-    if [ "$found" -eq 0 ]; then
+    if [[ "$found" -eq 0 ]]; then
         scan_info "未发现硬编码密钥"
     fi
 
@@ -81,14 +81,14 @@ scan_sql_injection() {
         while IFS= read -r file; do
             local matches
             matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
-            if [ "$matches" -gt 0 ]; then
+            if [[ "$matches" -gt 0 ]]; then
                 scan_warn "发现疑似 SQL 注入风险: $file ($matches 处)"
                 found=$((found + 1))
             fi
         done < <(grep -rlE "$pattern" --include="*.js" --include="*.ts" --include="*.py" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
     done
 
-    if [ "$found" -eq 0 ]; then
+    if [[ "$found" -eq 0 ]]; then
         scan_info "未发现 SQL 注入风险"
     fi
 
@@ -113,14 +113,14 @@ scan_xss() {
         while IFS= read -r file; do
             local matches
             matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
-            if [ "$matches" -gt 0 ]; then
+            if [[ "$matches" -gt 0 ]]; then
                 scan_warn "发现疑似 XSS 风险: $file ($matches 处)"
                 found=$((found + 1))
             fi
         done < <(grep -rlE "$pattern" --include="*.js" --include="*.ts" --include="*.html" "$SCAN_DIR" 2>/dev/null | grep -v node_modules | grep -v '.git' || true)
     done
 
-    if [ "$found" -eq 0 ]; then
+    if [[ "$found" -eq 0 ]]; then
         scan_info "未发现 XSS 风险"
     fi
 
@@ -149,7 +149,7 @@ scan_dangerous_shell() {
         done < <(grep -rlE "$pattern" --include="*.sh" "$SCAN_DIR" 2>/dev/null | grep -v '.git' || true)
     done
 
-    if [ "$found" -eq 0 ]; then
+    if [[ "$found" -eq 0 ]]; then
         scan_info "未发现危险 shell 命令"
     fi
 
@@ -162,7 +162,7 @@ scan_dangerous_shell() {
 main() {
     SCAN_DIR="${1:-.}"
 
-    if [ ! -d "$SCAN_DIR" ]; then
+    if [[ ! -d "$SCAN_DIR" ]]; then
         die "$EXIT_MISSING_DEPS" "security-scanner" "扫描目录不存在: $SCAN_DIR"
     fi
 
@@ -182,7 +182,7 @@ main() {
 
     echo ""
     echo "=========================================="
-    if [ "$total_issues" -gt 0 ]; then
+    if [[ "$total_issues" -gt 0 ]]; then
         scan_error "发现 $total_issues 个安全问题"
         return 1
     else

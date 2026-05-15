@@ -5,69 +5,48 @@
 
 set -euo pipefail
 
+usage() {
+    cat << 'EOF'
+用法: phase-executor.sh [选项] <phase-num>
+
+选项:
+  -h, --help     显示此帮助
+
+参数:
+  phase-num      Phase 编号 (0-8)，如 0、1、2... 或 0-change、1-requirement 等
+
+示例:
+  phase-executor.sh 0
+  phase-executor.sh 4-dev
+  phase-executor.sh --help
+EOF
+}
+
+# 参数解析
+while getopts ":h" opt; do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        \?)
+            echo "未知选项: -$OPTARG" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/session-state.sh"
+source "$SCRIPT_DIR/../lib/project-info.sh"
 
 PHASE_NUM="${1:-}"
 
-# 获取项目类型
-get_project_type() {
-    local type_file="$PROJECT_DIR/.flow-kit/project-type"
-    if [ -f "$type_file" ]; then
-        local project_type
-        project_type=$(grep -m1 "^project_type:" "$type_file" 2>/dev/null | cut -d' ' -f2 || true)
-        if [ -n "$project_type" ]; then
-            echo "$project_type"
-            return
-        fi
-    fi
-
-    # 未检测，默认棕地（保守策略）
-    echo "brownfield"
-}
-
-# 加载工作流文件
-load_workflow() {
-    local phase="$1"
-    local project_type="$2"
-    local workflow_file=""
-
-    # 查找 Phase 目录（支持 0-change, 1-requirement 等格式）
-    local phase_dir
-    phase_dir=$(ls -d "$PHASES_DIR/${phase}" "$PHASES_DIR/${phase}-"* 2>/dev/null | head -1)
-
-    if [ -z "$phase_dir" ]; then
-        echo ""
-        return
-    fi
-
-    # 优先加载项目类型专用工作流
-    case "$project_type" in
-        brownfield)
-            workflow_file="$phase_dir/brownfield.md"
-            [ -f "$workflow_file" ] || workflow_file=""
-            ;;
-        greenfield)
-            workflow_file="$phase_dir/greenfield.md"
-            [ -f "$workflow_file" ] || workflow_file=""
-            ;;
-        *)
-            workflow_file=""
-            ;;
-    esac
-
-    # 如果没有专用工作流，加载通用工作流
-    if [ -z "$workflow_file" ] || [ ! -f "$workflow_file" ]; then
-        local main_md="$phase_dir/${phase##*-}.md"
-        [ -f "$main_md" ] && workflow_file="$main_md" || workflow_file=$(ls "$phase_dir"/*.md 2>/dev/null | grep -v -e brownfield.md -e greenfield.md | head -1)
-    fi
-
-    echo "$workflow_file"
-}
-
 main() {
-    if [ -z "$PHASE_NUM" ]; then
+    if [[ -z "$PHASE_NUM" ]]; then
         echo "用法: $0 <phase-num>"
         echo "示例: $0 0-change"
         exit 1
@@ -92,7 +71,7 @@ main() {
     local workflow_file
     workflow_file=$(load_workflow "$PHASE_NUM" "$project_type")
 
-    if [ -z "$workflow_file" ]; then
+    if [[ -z "$workflow_file" ]]; then
         echo "[phase-executor] 错误: 未找到 Phase $PHASE_NUM 的工作流文件"
         exit 1
     fi
@@ -105,12 +84,12 @@ main() {
 
     echo ""
     local guard_cmd="minimal"
-    [ "$project_type" = "brownfield" ] && guard_cmd="full"
+    [[ "$project_type" == "brownfield" ]] && guard_cmd="full"
     echo "[phase-exec] guard: /flow-kit:guard $guard_cmd"
 
     # v3.5.0: 护栏自动激活提示
     local guard_active_file="$PROJECT_DIR/.flow-kit/guardrails-active"
-    if [ ! -f "$guard_active_file" ]; then
+    if [[ ! -f "$guard_active_file" ]]; then
         echo "[phase-exec] 💡 建议激活护栏: /flow-kit:guard $guard_cmd"
         echo "[phase-exec] 激活后将不再提示"
     fi

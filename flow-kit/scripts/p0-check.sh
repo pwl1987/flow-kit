@@ -52,7 +52,7 @@ check_p0_files() {
     local p0_reasons=()
 
     while IFS= read -r file; do
-        if [ -z "$file" ]; then
+        if [[ -z "$file" ]]; then
             continue
         fi
 
@@ -70,7 +70,7 @@ check_p0_files() {
         fi
     done <<< "$files"
 
-    if [ ${#p0_files[@]} -gt 0 ]; then
+    if [[ ${#p0_files[@]} -gt 0 ]]; then
         echo "P0_BLOCK"
         return 1
     fi
@@ -113,7 +113,7 @@ main() {
         esac
     done
 
-    if [ "$force_skip" = true ]; then
+    if [[ "$force_skip" == true ]]; then
         log_info "=========================================="
         log_info "P0 变更检测已通过 --force 跳过"
         log_info "=========================================="
@@ -128,12 +128,12 @@ main() {
     echo "=========================================="
     echo ""
 
-    if [ -z "$files" ]; then
+    if [[ -z "$files" ]]; then
         log_info "未指定文件列表，从 git diff 获取..."
         files=$(get_changed_files "$base_branch")
     fi
 
-    if [ -z "$files" ]; then
+    if [[ -z "$files" ]]; then
         log_info "未检测到任何文件变更"
         exit 0
     fi
@@ -145,7 +145,7 @@ main() {
     local result
     result=$(check_p0_files "$files") || result="P0_BLOCK"
 
-    if [ "$result" = "P0_BLOCK" ]; then
+    if [[ "$result" == "P0_BLOCK" ]]; then
         log_error "=========================================="
         log_error "P0 变更检测阻断"
         log_error "=========================================="

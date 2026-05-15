@@ -18,7 +18,7 @@ get_newest_mtime() {
     local target_dir="$1"
     local newest_mtime=0
 
-    if [ ! -d "$target_dir" ]; then
+    if [[ ! -d "$target_dir" ]]; then
         echo "0"
         return
     fi
@@ -37,7 +37,7 @@ get_newest_mtime() {
             mtime=$(stat -f %m "$file" 2>/dev/null)
         fi
 
-        if [ "$mtime" -gt "$newest_mtime" ]; then
+        if [[ "$mtime" -gt "$newest_mtime" ]]; then
             newest_mtime=$mtime
         fi
     done < <(find "$target_dir" -name "*.md" -type f -print0 2>/dev/null)
@@ -61,7 +61,7 @@ main() {
     echo "Target: $target_dir"
     echo ""
 
-    if [ ! -d "$target_dir" ]; then
+    if [[ ! -d "$target_dir" ]]; then
         echo "[ERROR] 目录不存在: $target_dir"
         return 1
     fi
@@ -69,7 +69,7 @@ main() {
     local newest_mtime
     newest_mtime=$(get_newest_mtime "$target_dir")
 
-    if [ "$newest_mtime" -eq 0 ]; then
+    if [[ "$newest_mtime" -eq 0 ]]; then
         echo "[INFO] 未找到任何 .md 文件"
         echo "Context age: 0 days (healthy)"
         return 0
@@ -77,7 +77,7 @@ main() {
 
     local now
     now=$(date +%s 2>/dev/null)
-    if [ -z "$now" ] || [ "$now" = "0" ]; then
+    if [[ -z "$now" || "$now" == "0" ]]; then
         echo "[expiry-checker] 错误: 无法获取当前时间" >&2
         return 1
     fi
@@ -91,14 +91,14 @@ main() {
     echo "Days since: $days_since"
     echo ""
 
-    if [ "$days_since" -ge "$BLOCK_DAYS" ]; then
+    if [[ "$days_since" -ge "$BLOCK_DAYS" ]]; then
         local remaining=0
         echo "[BLOCK] Context expired ($days_since days >= $BLOCK_DAYS days)"
         echo ""
         echo "Auto-archiving required. Run /flow-kit:archive to archive manually,"
         echo "or /flow-kit:recovery to restore from archive."
         return 2
-    elif [ "$days_since" -ge "$WARNING_DAYS" ]; then
+    elif [[ "$days_since" -ge "$WARNING_DAYS" ]]; then
         local remaining=$((BLOCK_DAYS - days_since))
         echo "[WARNING] Context will expire in $remaining days"
         echo ""

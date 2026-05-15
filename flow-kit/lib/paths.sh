@@ -7,7 +7,7 @@
 # 各调用脚本应自行设置 set -euo pipefail
 
 # v2.7.0 改进：防止重复加载
-if [ -n "${PATHS_LOADED:-}" ]; then
+if [[ -n "${PATHS_LOADED:-}" ]]; then
     return 0
 fi
 readonly PATHS_LOADED=true
@@ -21,13 +21,13 @@ PATHS_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATHS_FLOW_KIT_DIR="$(dirname "$PATHS_SCRIPT_DIR")"
 # 项目根目录（优先 CLAUDE_PROJECT_DIR，回退向上查找 .git）
 # CLAUDE_PROJECT_DIR 由 Claude Code 设置，总是指向项目根目录
-if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
+if [[ -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
     PATHS_PROJECT_DIR="$CLAUDE_PROJECT_DIR"
 else
     _paths_find_root() {
         local dir="$PATHS_FLOW_KIT_DIR"
-        while [ "$dir" != "/" ]; do
-            [ -d "$dir/.git" ] && echo "$dir" && return
+        while [[ "$dir" != "/" ]]; do
+            [[ -d "$dir/.git" ]] && echo "$dir" && return
             dir="$(dirname "$dir")"
         done
         cd "$PATHS_FLOW_KIT_DIR/../.." && pwd
@@ -144,7 +144,7 @@ rotate_logs() {
     local archive_subdir="${4:-archive}"
     local log_pattern="${5:-*.log}"
 
-    if [ ! -d "$log_dir" ]; then
+    if [[ ! -d "$log_dir" ]]; then
         return 0
     fi
 
@@ -154,10 +154,10 @@ rotate_logs() {
     mkdir -p "$archive_dir"
 
     for log_file in "$log_dir"/$log_pattern; do
-        [ -f "$log_file" ] || continue
+        [[ -f "$log_file" ]] || continue
         local file_size
         file_size=$(wc -c < "$log_file" 2>/dev/null || echo "0")
-        if [ "$file_size" -gt "$threshold_bytes" ]; then
+        if [[ "$file_size" -gt "$threshold_bytes" ]]; then
             local base
             base=$(basename "$log_file")
             local timestamp
@@ -169,9 +169,9 @@ rotate_logs() {
     # 清理超过保留数量的归档文件
     local count=0
     while IFS= read -r archived; do
-        [ -n "$archived" ] || continue
+        [[ -n "$archived" ]] || continue
         count=$((count + 1))
-        if [ "$count" -gt "$keep_count" ]; then
+        if [[ "$count" -gt "$keep_count" ]]; then
             rm -f "$archived" 2>/dev/null || true
         fi
     done < <(ls -t "$archive_dir"/$log_pattern 2>/dev/null)

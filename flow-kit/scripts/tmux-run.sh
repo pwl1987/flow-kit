@@ -49,7 +49,7 @@ EOF
 }
 
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --tasks)    TASK_FILE="$2"; shift 2 ;;
             --timeout)  TIMEOUT="$2"; shift 2 ;;
@@ -66,12 +66,12 @@ parse_args() {
 read_manifest() {
     local manifest_file="$TMP_DIR/tmux-manifest.json"
 
-    if [ ! -f "$manifest_file" ]; then
+    if [[ ! -f "$manifest_file" ]]; then
         echo "[tmux-run] 错误: manifest 不存在，先运行 tmux-init.sh" >&2
         exit 1
     fi
 
-    if [ -z "$SESSION_NAME" ]; then
+    if [[ -z "$SESSION_NAME" ]]; then
         SESSION_NAME=$(jq -r '.session_name' "$manifest_file")
     fi
 
@@ -84,7 +84,7 @@ read_manifest() {
 parse_task_file() {
     local file="$1"
 
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         echo "[tmux-run] 错误: 任务文件不存在 $file" >&2
         exit 1
     fi
@@ -128,10 +128,10 @@ resolve_dag() {
         local ready_count
         ready_count=$(echo "$ready" | jq 'length')
 
-        if [ "$ready_count" -eq 0 ]; then
+        if [[ "$ready_count" -eq 0 ]]; then
             local remain_count
             remain_count=$(echo "$remaining" | jq 'length')
-            if [ "$remain_count" -gt 0 ]; then
+            if [[ "$remain_count" -gt 0 ]]; then
                 echo "[tmux-run] 错误: 检测到循环依赖" >&2
                 exit 1
             fi
@@ -165,7 +165,7 @@ send_to_pane() {
     local command="$3"
 
     local target
-    if [ "$pane" -eq 1 ]; then
+    if [[ "$pane" -eq 1 ]]; then
         target="$session"
     else
         target="$session:worker-$pane"
@@ -182,7 +182,7 @@ check_pane_status() {
     local pane="$2"
 
     local target
-    if [ "$pane" -eq 1 ]; then
+    if [[ "$pane" -eq 1 ]]; then
         target="$session"
     else
         target="$session:worker-$pane"
@@ -243,19 +243,19 @@ run_tasks() {
         # 等待当前层级完成
         local elapsed=0
         local check_interval=5
-        while [ "$elapsed" -lt "$timeout" ]; do
+        while [[ "$elapsed" -lt "$timeout" ]]; do
             local all_done=true
             echo "$level_tasks" | jq -c '.[]' | while IFS= read -r task; do
                 local pane
                 pane=$(echo "$task" | jq -r '.pane')
                 local status
                 status=$(check_pane_status "$session" "$pane")
-                if [ "$status" = "running" ]; then
+                if [[ "$status" == "running" ]]; then
                     all_done=false
                 fi
             done
 
-            if [ "$all_done" = true ]; then
+            if [[ "$all_done" == true ]]; then
                 break
             fi
 
@@ -274,7 +274,7 @@ run_tasks() {
 main() {
     parse_args "$@"
 
-    if [ -z "$TASK_FILE" ]; then
+    if [[ -z "$TASK_FILE" ]]; then
         echo "[tmux-run] 错误: 需要 --tasks 参数" >&2
         show_help
         exit 1

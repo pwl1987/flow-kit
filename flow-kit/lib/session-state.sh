@@ -41,26 +41,31 @@ _ss_skeleton() {
 }
 
 _ss_ensure() {
-    [ -f "$SESSION_STATE_FILE" ] && return 0
+    # v3.5.1: 双重 fallback 消除 — 仅首次执行 migrate+init
+    [[ "$_ss_initialized" == true ]] && return 0
     _ss_migrate 2>/dev/null || true
-    if [ ! -f "$SESSION_STATE_FILE" ]; then
+    if [[ ! -f "$SESSION_STATE_FILE" ]]; then
         mkdir -p "$(dirname "$SESSION_STATE_FILE")"
         _ss_skeleton > "$SESSION_STATE_FILE"
     fi
+    _ss_initialized=true
 }
+
+# v3.5.1: 初始化标志，避免重复 migrate
+_ss_initialized=false
 
 # 从旧文件迁移
 _ss_migrate() {
     local phase="" ptype="green" mode="auto"
 
-    [ -f "$CURRENT_PHASE_FILE" ] && phase=$(head -1 "$CURRENT_PHASE_FILE" 2>/dev/null || echo "")
+    [[ -f "$CURRENT_PHASE_FILE" ]] && phase=$(head -1 "$CURRENT_PHASE_FILE" 2>/dev/null || echo "")
     [[ ! "$phase" =~ ^[0-9]+$ ]] && phase="0"
 
-    if [ -f "$PROJECT_TYPE_FILE" ]; then
+    if [[ -f "$PROJECT_TYPE_FILE" ]]; then
         grep -q "brownfield" "$PROJECT_TYPE_FILE" 2>/dev/null && ptype="brown"
     fi
 
-    [ -f "$MODE_FILE" ] && mode=$(head -1 "$MODE_FILE" 2>/dev/null | tr '[:upper:]' '[:lower:]' || echo "auto")
+    [[ -f "$MODE_FILE" ]] && mode=$(head -1 "$MODE_FILE" 2>/dev/null | tr '[:upper:]' '[:lower:]' || echo "auto")
     case "$mode" in
         team|ralph) ;;
         *) mode="auto" ;;
@@ -70,7 +75,7 @@ _ss_migrate() {
     local change=""
     local specs_dir
     specs_dir="$(cd "$_SS_SCRIPT_DIR/../.." && pwd)/.specs"
-    if [ -d "$specs_dir" ]; then
+    if [[ -d "$specs_dir" ]]; then
         change=$(ls -1t "$specs_dir" 2>/dev/null | head -1 || true)
     fi
 
@@ -105,7 +110,7 @@ _ss_migrate() {
 # 读字段: session_get "phase"
 session_get() {
     local key="${1:-}"
-    [ -z "$key" ] && return 1
+    [[ -z "$key" ]] && return 1
     _ss_ensure
     jq -r ".$key // empty" "$SESSION_STATE_FILE" 2>/dev/null || echo ""
 }
@@ -114,7 +119,7 @@ session_get() {
 session_set() {
     local key="${1:-}"
     local val="${2:-}"
-    [ -z "$key" ] && return 1
+    [[ -z "$key" ]] && return 1
     # 防止 jq path 注入：只允许字母下划线
     [[ ! "$key" =~ ^[a-z_]+$ ]] && return 1
     _ss_ensure
@@ -137,7 +142,7 @@ session_set() {
 session_init() {
     local change="${1:-}"
     local ptype="${2:-green}"
-    [ -z "$change" ] && return 1
+    [[ -z "$change" ]] && return 1
     mkdir -p "$(dirname "$SESSION_STATE_FILE")"
     local tmp="${SESSION_STATE_FILE}.tmp.$$"
     jq -n \
@@ -168,19 +173,19 @@ session_init() {
 session_task_set() {
     local tid="${1:-}"
     local status="${2:-todo}"
-    [ -z "$tid" ] && return 1
+    [[ -z "$tid" ]] && return 1
     _ss_ensure
     local current
     current=$(session_get tasks)
 
     # 移除旧条目
     local updated=""
-    if [ -n "$current" ]; then
+    if [[ -n "$current" ]]; then
         updated=$(echo "$current" | tr ',' '\n' | grep -v "^${tid}:" | tr '\n' ',' | sed 's/,$//')
     fi
 
     # 添加新条目
-    if [ -n "$updated" ]; then
+    if [[ -n "$updated" ]]; then
         updated="${updated},${tid}:${status}"
     else
         updated="${tid}:${status}"
@@ -212,7 +217,7 @@ session_resume_prompt() {
     next=$(session_get next)
 
     local tasks_summary=""
-    if [ -n "$tasks" ]; then
+    if [[ -n "$tasks" ]]; then
         local done=0 wip=0 todo=0
         for entry in $(echo "$tasks" | tr ',' ' '); do
             local s="${entry##*:}"
@@ -226,7 +231,7 @@ session_resume_prompt() {
     fi
 
     local blocker_count=0
-    [ -n "$blockers" ] && blocker_count=$(echo "$blockers" | tr ',' '\n' | wc -l | tr -d ' ')
+    [[ -n "$blockers" ]] && blocker_count=$(echo "$blockers" | tr ',' '\n' | wc -l | tr -d ' ')
 
     echo "[flow-kit] change=${change:-(none)} phase=${phase}(${status}) ptype=${ptype} tasks=${tasks_summary:--} blockers=${blocker_count} next=${next:-(not set)}"
 }
@@ -238,13 +243,13 @@ session_resume_prompt() {
 # 追加执行历史: session_history_add "phase-0"
 session_history_add() {
     local action="${1:-}"
-    [ -z "$action" ] && return 1
+    [[ -z "$action" ]] && return 1
     _ss_ensure
 
     # v1 → v2 自动迁移
     local version
     version=$(session_get v)
-    if [ "$version" = "1" ]; then
+    if [[ "$version" == "1" ]]; then
         session_set v 2
         session_set history ""
         session_set decisions ""
@@ -257,7 +262,7 @@ session_history_add() {
     epoch=$(date +%s)
     local entry="${epoch}:${action}"
 
-    if [ -n "$current" ]; then
+    if [[ -n "$current" ]]; then
         session_set history "${current},${entry}"
     else
         session_set history "$entry"
@@ -268,13 +273,13 @@ session_history_add() {
 session_decision_add() {
     local id="${1:-}"
     local choice="${2:-}"
-    [ -z "$id" ] || [ -z "$choice" ] && return 1
+    [[ -z "$id" || -z "$choice" ]] && return 1
     _ss_ensure
 
     # v1 → v2 自动迁移
     local version
     version=$(session_get v)
-    if [ "$version" = "1" ]; then
+    if [[ "$version" == "1" ]]; then
         session_set v 2
         session_set history ""
         session_set decisions ""
@@ -285,7 +290,7 @@ session_decision_add() {
     current=$(session_get decisions)
     local entry="${id}:${choice}"
 
-    if [ -n "$current" ]; then
+    if [[ -n "$current" ]]; then
         session_set decisions "${current},${entry}"
     else
         session_set decisions "$entry"
@@ -295,13 +300,13 @@ session_decision_add() {
 # 设置交互摘要: session_interaction_set "用户确认使用 JWT 认证"
 session_interaction_set() {
     local summary="${1:-}"
-    [ -z "$summary" ] && return 1
+    [[ -z "$summary" ]] && return 1
     _ss_ensure
 
     # v1 → v2 自动迁移
     local version
     version=$(session_get v)
-    if [ "$version" = "1" ]; then
+    if [[ "$version" == "1" ]]; then
         session_set v 2
         session_set history ""
         session_set decisions ""
@@ -309,7 +314,7 @@ session_interaction_set() {
     fi
 
     # 限制长度 <100 字符
-    if [ ${#summary} -gt 100 ]; then
+    if [[ ${#summary} -gt 100 ]]; then
         summary="${summary:0:97}..."
     fi
 
@@ -321,7 +326,7 @@ session_history_get() {
     _ss_ensure
     local history
     history=$(session_get history)
-    [ -z "$history" ] && return 0
+    [[ -z "$history" ]] && return 0
     echo "$history" | tr ',' '\n'
 }
 

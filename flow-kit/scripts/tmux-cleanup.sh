@@ -42,7 +42,7 @@ EOF
 }
 
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --force)          FORCE=true; shift ;;
             --keep-worktrees) KEEP_WORKTREES=true; shift ;;
@@ -81,7 +81,7 @@ cleanup_worktrees() {
         wt_path=$(echo "$worktrees_json" | jq -r ".[$i].path")
         branch=$(echo "$worktrees_json" | jq -r ".[$i].branch")
 
-        if [ -d "$wt_path" ]; then
+        if [[ -d "$wt_path" ]]; then
             git -C "$PROJECT_DIR" worktree remove --force "$wt_path" 2>/dev/null || rm -rf "$wt_path"
             echo "[tmux-cleanup] worktree 已移除: $wt_path"
         fi
@@ -97,7 +97,7 @@ cleanup_worktrees() {
 cleanup_manifest() {
     local manifest_file="$TMP_DIR/tmux-manifest.json"
 
-    if [ -f "$manifest_file" ]; then
+    if [[ -f "$manifest_file" ]]; then
         rm -f "$manifest_file"
         echo "[tmux-cleanup] manifest 已删除"
     fi
@@ -116,12 +116,12 @@ main() {
 
     local manifest_file="$TMP_DIR/tmux-manifest.json"
 
-    if [ ! -f "$manifest_file" ]; then
+    if [[ ! -f "$manifest_file" ]]; then
         echo "[tmux-cleanup] 无 manifest，无需清理"
         return 0
     fi
 
-    if [ -z "$SESSION_NAME" ]; then
+    if [[ -z "$SESSION_NAME" ]]; then
         SESSION_NAME=$(jq -r '.session_name' "$manifest_file")
     fi
 
@@ -129,13 +129,13 @@ main() {
     worktrees_json=$(jq -c '.worktrees' "$manifest_file")
 
     # 确认
-    if [ "$FORCE" = false ]; then
-        if [ ! -t 0 ]; then
+    if [[ "$FORCE" == false ]]; then
+        if [[ ! -t 0 ]]; then
             echo "[tmux-cleanup] 错误: 非 TTY 环境需要 --force" >&2
             exit 1
         fi
         echo "将清理: tmux session=$SESSION_NAME"
-        [ "$KEEP_WORKTREES" = false ] && echo "将清理: worktrees"
+        [[ "$KEEP_WORKTREES" == false ]] && echo "将清理: worktrees"
         echo "将清理: manifest"
         echo ""
         read -p "确认清理? (y/n): " -r
@@ -148,7 +148,7 @@ main() {
     cleanup_tmux_session "$SESSION_NAME"
 
     # 2. 清理 worktrees
-    if [ "$KEEP_WORKTREES" = false ]; then
+    if [[ "$KEEP_WORKTREES" == false ]]; then
         cleanup_worktrees "$worktrees_json"
     else
         echo "[tmux-cleanup] 保留 worktrees（--keep-worktrees）"

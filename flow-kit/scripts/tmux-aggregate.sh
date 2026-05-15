@@ -40,7 +40,7 @@ EOF
 }
 
 parse_args() {
-    while [ $# -gt 0 ]; do
+    while [[ $# -gt 0 ]]; do
         case "$1" in
             --format)   FORMAT="$2"; shift 2 ;;
             --session)  SESSION_NAME="$2"; shift 2 ;;
@@ -56,12 +56,12 @@ parse_args() {
 read_manifest() {
     local manifest_file="$TMP_DIR/tmux-manifest.json"
 
-    if [ ! -f "$manifest_file" ]; then
+    if [[ ! -f "$manifest_file" ]]; then
         echo "[tmux-aggregate] 错误: manifest 不存在" >&2
         exit 1
     fi
 
-    if [ -z "$SESSION_NAME" ]; then
+    if [[ -z "$SESSION_NAME" ]]; then
         SESSION_NAME=$(jq -r '.session_name' "$manifest_file")
     fi
 
@@ -81,12 +81,12 @@ collect_worktree_output() {
 
     # 检查完成标记文件
     local done_file="$wt_path/.flow-kit-done"
-    if [ -f "$done_file" ]; then
+    if [[ -f "$done_file" ]]; then
         status=$(cat "$done_file" 2>/dev/null || echo "done")
     fi
 
     # 检查 SUMMARY.md
-    if [ -f "$wt_path/SUMMARY.md" ]; then
+    if [[ -f "$wt_path/SUMMARY.md" ]]; then
         summary=$(head -5 "$wt_path/SUMMARY.md" | tr '\n' ' ' | cut -c1-200)
     fi
 
@@ -124,9 +124,9 @@ detect_file_conflicts() {
             local overlap
             overlap=$(comm -12 <(echo "$files_i" | sort) <(echo "$files_j" | sort) 2>/dev/null || echo "")
 
-            if [ -n "$overlap" ]; then
+            if [[ -n "$overlap" ]]; then
                 while IFS= read -r file; do
-                    [ -z "$file" ] && continue
+                    [[ -z "$file" ]] && continue
                     local tmp
                     tmp=$(jq --arg file "$file" \
                         --argjson a "$i" --argjson b "$j" \
@@ -185,7 +185,7 @@ generate_report() {
 
             local conflict_count
             conflict_count=$(echo "$conflicts" | jq 'length')
-            if [ "$conflict_count" -gt 0 ]; then
+            if [[ "$conflict_count" -gt 0 ]]; then
                 echo ""
                 echo "## 冲突 ($conflict_count)"
                 echo ""
@@ -211,7 +211,7 @@ generate_report() {
 
             local conflict_count
             conflict_count=$(echo "$conflicts" | jq 'length')
-            if [ "$conflict_count" -gt 0 ]; then
+            if [[ "$conflict_count" -gt 0 ]]; then
                 echo "[aggregate] ⚠️  $conflict_count 个文件冲突"
             fi
             ;;
@@ -240,14 +240,14 @@ main() {
         local wt_path
         wt_path=$(echo "$manifest" | jq -r ".worktrees[$((i-1))].path")
 
-        if [ ! -d "$wt_path" ]; then
+        if [[ ! -d "$wt_path" ]]; then
             continue
         fi
 
         local wt_result
         wt_result=$(collect_worktree_output "$wt_path" "$i")
 
-        if [ "$first" = true ]; then
+        if [[ "$first" == true ]]; then
             results+="$wt_result"
             first=false
         else
