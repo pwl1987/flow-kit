@@ -6,7 +6,7 @@ ROOT_DIR := $(shell cd "$(shell dirname "${BASH_SOURCE[0]}")" && pwd)
 SCRIPTS_DIR := $(ROOT_DIR)/scripts
 LIB_DIR := $(ROOT_DIR)/lib
 
-.PHONY: help lint lint-shell lint-md lint-format test test-js format format-md benchmark clean info
+.PHONY: help lint lint-shell lint-md lint-format test test-js format format-md benchmark clean info install
 
 help:
 	@echo "flow-kit v3.6.0 build targets"
@@ -63,6 +63,13 @@ clean:
 	@find $(ROOT_DIR) -name '*.log' -delete 2>/dev/null || true
 	@rm -rf $(ROOT_DIR)/.flow-kit/tmp/* 2>/dev/null || true
 	@echo "[clean] done"
+
+node_modules/.bin/markdownlint-cli: package.json
+	npm install
+
+.PHONY: install
+install:
+	bash scripts/install.sh
 
 info:
 	@echo "flow-kit v3.6.0"

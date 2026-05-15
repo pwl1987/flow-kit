@@ -1,13 +1,18 @@
 {
   "name": "flow-kit",
-  "version": "3.6.0",
-  "private": true,
-  "description": "flow-kit JS test dependencies",
+  "version": "3.5.3",
+  "description": "Claude Code structured development workflow toolkit",
   "scripts": {
-    "test:js": "vitest run",
-    "test:js:watch": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint:md": "markdownlint-cli '**/*.md' '!.git/**'",
+    "lint:fix": "markdownlint-cli '**/*.md' --fix",
+    "benchmark": "node benchmarks/performance.js"
   },
   "devDependencies": {
-    "vitest": "^1.6.0"
+    "vitest": "^2.0.0",
+    "markdownlint-cli": "^0.41.0",
+    "@anthropic-ai/sdk": "^0.40.0"
   }
 }
