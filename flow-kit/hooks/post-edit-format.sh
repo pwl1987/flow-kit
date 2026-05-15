@@ -5,6 +5,20 @@
 
 set -uo pipefail
 
+# === CLI ===
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat << 'EOHELP'
+post-edit-format — PostToolUse hook: 自动格式化代码
+
+用法: post-edit-format
+
+无参数运行，hook 自动生效。
+
+-h, --help  显示此帮助
+EOHELP
+    exit 0
+fi
+
 INPUT=$(cat)
 
 # 获取项目目录

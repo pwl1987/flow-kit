@@ -1,116 +1,30 @@
-# flow-kit 编码规范
+# Shell 脚本编码规范
 
 ## 命名约定
-
-- 函数: `snake_case` — `session_get`, `check_lock_conflicts`
-- 常量: `UPPER_SNAKE_CASE` + `readonly` — `readonly FLOW_KIT_DIR="$PATHS_FLOW_KIT_DIR"`
-- 文件: `kebab-case` — `dispatch-lock.sh`, `session-state.sh`
-- 变量: `snake_case` — `task_desc`, `result_file`
+- 函数名：`snake_case`，公共函数加 `_` 前缀（如 `_ss_now`）
+- 全局常量：`UPPER_SNAKE_CASE`，加 `readonly`
+- 局部变量：`lower_snake_case`
+- 文件名：kebab-case（如 `session-state.sh`）
+- 测试文件：`test-<module>.sh`（如 `test-session-state.sh`）
 
 ## 注释标准
-
-- 仅写 **WHY** 注释（解释非显而易见的设计决策）
-- 不写 **WHAT** 注释（代码本身应自解释）
-- 函数头部保留一行描述注释
-
-```bash
-# 好：解释 WHY
-# v2.7.0 修复：僵尸进程 kill -0 仍返回 true，需双重检测
-if [ "$alive" = false ] || [ -f "$result_file" ]; then
-
-# 坏：解释 WHAT
-# 检查进程是否存活
-kill -0 "$pid"
-```
+- 文件头：功能描述 + 版本 + 依赖（3 行以内）
+- 函数注释：仅当逻辑复杂时添加 WHY 注释（解释为什么，而非做了什么）
+- 禁止 WHAT 注释（代码本身应自解释）
+- 变更记录：使用 git log，不在文件头维护变更历史
 
 ## 架构模式
+- 所有脚本必须 source error-handler.sh（通过 paths.sh 间接引用）
+- 禁止覆盖 error-handler.sh 的日志函数
+- 统一使用 `set -euo pipefail`（paths.sh 除外）
+- 统一使用 paths.sh 的路径常量，禁止硬编码路径
+- 所有临时文件必须使用 mktemp + trap 清理
+- 所有外部命令调用必须有 fallback 或错误处理
 
-### 必须遵守
-
-- 所有脚本 `set -euo pipefail`（paths.sh 除外，因被 source）
-- 必须 `source error-handler.sh` 或 `source paths.sh` 获取基础工具
-- **禁止覆盖** `log_info/log_warn/log_error/log_debug`，使用命名空间前缀（如 `scan_info`）
-- 临时文件在 `trap EXIT` 中清理
-- 路径常量统一在 `paths.sh` 定义，禁止脚本内硬编码
-
-### 文件结构
-
-```bash
-#!/bin/bash
-# filename.sh — 一行描述
-# v3.4.0 变更说明（可选）
-
-set -euo pipefail
-
-# source 依赖
-source "$SCRIPT_DIR/../lib/paths.sh"
-source "$SCRIPT_DIR/../lib/error-handler.sh"
-
-# 函数定义（先内部后公开）
-
-# main 入口
-main() { ... }
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
-```
-
-## 编码实践
-
-### 条件测试
-
-```bash
-# 用 [[ ]] 代替 [ ]
-if [[ -f "$file" ]]; then    # 好
-if [ -f "$file" ]; then      # 避免
-```
-
-### 命令替换
-
-```bash
-# 用 $( ) 代替反引号
-local dir=$(dirname "$0")    # 好
-local dir=`dirname "$0"`     # 避免
-```
-
-### 变量引用
-
-```bash
-# 总是双引号变量
-echo "$result"               # 好
-echo $result                 # 避免（word splitting 风险）
-```
-
-### local 赋值
-
-```bash
-# 分开声明和赋值（SC2155）
-local var                    # 声明
-var=$(some_command)          # 赋值
-
-# 避免：local var=$(some_command)  # 掩盖退出码
-```
-
-### 错误处理
-
-```bash
-# 用 || true 处理预期失败
-rm -f "$tmpfile" 2>/dev/null || true
-
-# 用 || 提供默认值
-local val=$(cat "$file" 2>/dev/null || echo "")
-```
-
-## 测试规范
-
-- 测试文件: `tests/test-{module}.sh`
-- 每个测试函数以 `test_` 前缀
-- 断言函数: `assert_equals`, `assert_contains`, `assert_file_exists`
-- 测试入口: `bash tests/run-tests.sh`
-
-## 版本规范
-
-- 版本号格式: `vMAJOR.MINOR.PATCH`
-- 版本文件: `flow-kit/VERSION`
-- 每次变更更新 VERSION + CLAUDE.md 版本行
+## 编码最佳实践
+- 优先使用内置 bash 功能，减少外部命令调用
+- 使用 `[[ ]]` 而非 `[ ]` 进行条件测试
+- 使用 `$( )` 而非反引号进行命令替换
+- 变量引用始终使用双引号（`"$var"`）
+- 使用 `local` 声明函数内变量
+- 避免使用 eval

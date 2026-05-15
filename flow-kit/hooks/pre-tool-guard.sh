@@ -5,6 +5,20 @@
 
 set -uo pipefail
 
+# === CLI ===
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat << 'EOHELP'
+pre-tool-guard — PreToolUse hook: 阻止危险命令和敏感文件编辑
+
+用法: pre-tool-guard
+
+无参数运行，hook 自动生效。
+
+-h, --help  显示此帮助
+EOHELP
+    exit 0
+fi
+
 INPUT=$(cat)
 
 # 轻量 JSON 解析（避免 source error-handler/time-utils/paths 链）

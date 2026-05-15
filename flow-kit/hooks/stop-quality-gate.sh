@@ -1,5 +1,20 @@
 #!/bin/bash
 set -euo pipefail
+
+# === CLI ===
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat << 'EOHELP'
+stop-quality-gate — Stop hook: 质量门禁
+
+用法: stop-quality-gate
+
+无参数运行，hook 自动生效。
+
+-h, --help  显示此帮助
+EOHELP
+    exit 0
+fi
+
 # stop-quality-gate.sh — Stop hook: 质量门禁
 # v2.7.0 P0 修复：除零错误 + set -euo pipefail
 # Reference: smallnest/autoresearch PASSING_SCORE + Claude Code Stop hook

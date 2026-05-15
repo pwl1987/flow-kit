@@ -1,7 +1,19 @@
 #!/bin/bash
 set -euo pipefail
-# session-start.sh — SessionStart hook: 注册命令 + 恢复会话状态
-# v3.4.0: ShellCheck 修复
+
+# === CLI ===
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat << 'EOHELP'
+session-start — SessionStart hook: 注册命令 + 恢复会话状态
+
+用法: session-start
+
+无参数运行，hook 自动生效。
+
+-h, --help  显示此帮助
+EOHELP
+    exit 0
+fi
 
 CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 

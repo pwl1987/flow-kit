@@ -1,5 +1,20 @@
 #!/bin/bash
 set -euo pipefail
+
+# === CLI ===
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat << 'EOHELP'
+notification — Notification hook: 桌面通知
+
+用法: notification [标题] [消息]
+
+无参数运行，hook 自动生效。
+
+-h, --help  显示此帮助
+EOHELP
+    exit 0
+fi
+
 # notification.sh — Notification hook: 桌面通知
 # v1.8 新增
 # v2.7.0 P1 修复: Windows 实现实际发送 Toast 通知 + set -euo pipefail
