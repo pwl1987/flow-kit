@@ -80,7 +80,7 @@ scan_sql_injection() {
     for pattern in "${patterns[@]}"; do
         while IFS= read -r file; do
             local matches
-            matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
+            matches=$(grep -c "$pattern" "$file" 2>/dev/null || echo 0)
             if [[ "$matches" -gt 0 ]]; then
                 scan_warn "发现疑似 SQL 注入风险: $file ($matches 处)"
                 found=$((found + 1))
@@ -112,7 +112,7 @@ scan_xss() {
     for pattern in "${patterns[@]}"; do
         while IFS= read -r file; do
             local matches
-            matches=$(grep -n "$pattern" "$file" 2>/dev/null | wc -l || echo 0)
+            matches=$(grep -c "$pattern" "$file" 2>/dev/null || echo 0)
             if [[ "$matches" -gt 0 ]]; then
                 scan_warn "发现疑似 XSS 风险: $file ($matches 处)"
                 found=$((found + 1))
@@ -157,6 +157,105 @@ scan_dangerous_shell() {
 }
 
 #------------------------------------------------------------------------------
+# 18 种密钥模式扫描（v3.6.0）
+#------------------------------------------------------------------------------
+scan_secrets() {
+    local scope="${1:-full}"
+    local found=0
+
+    local names=(
+        "GitHub PAT" "GitHub OAuth" "GitHub User-Server" "GitHub Server-Server"
+        "GitHub Refresh" "OpenAI Key" "AWS Access Key" "AWS Secret Key"
+        "JWT" "SSH Private Key" "Slack Bot Token" "Slack App Token"
+        "Slack User Token" "Generic API Key" "Generic Secret" "Generic Token"
+        "Generic Password" "Private Key Block"
+    )
+
+    local patterns=(
+        'ghp_[0-9a-zA-Z]{36}'
+        'gho_[0-9a-zA-Z]{36}'
+        'ghu_[0-9a-zA-Z]{36}'
+        'ghs_[0-9a-zA-Z]{36}'
+        'ghr_[0-9a-zA-Z]{36}'
+        'sk-[0-9a-zA-Z]{20,}T[a-zA-Z0-9]{24}'
+        'AKIA[0-9A-Z]{16}'
+        'aws_secret_access_key\s*[=:]\s*[A-Za-z0-9/+=]{40}'
+        'eyJ[A-Za-z0-9+/_-]+\.eyJ[A-Za-z0-9+/_-]+\.[A-Za-z0-9+/_-]+'
+        '\-\-\-\-\-BEGIN (RSA|EC|DSA|OPENSSH) PRIVATE KEY\-\-\-\-\-'
+        'xoxb-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24}'
+        'xapp-[0-9]-[A-Z0-9]{10,32}'
+        'xoxp-[0-9]{10,13}-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24}'
+        '[Aa][Pp][Ii][_\-]?[Kk]ey\s*[=:]\s*['"'"'"][0-9a-zA-Z]{20,}['"'"'"]'
+        '[Ss]ecret\s*[=:]\s*['"'"'"][0-9a-zA-Z]{20,}['"'"'"]'
+        '[Tt]oken\s*[=:]\s*['"'"'"][0-9a-zA-Z]{20,}['"'"'"]'
+        '[Pp]assword\s*[=:]\s*['"'"'"][0-9a-zA-Z!@#$%^&*]{8,}['"'"'"]'
+        '\-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-'
+    )
+
+    # 构建文件列表
+    local target_files=""
+    case "$scope" in
+        staged)
+            target_files=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null \
+                | grep -E '\.(sh|js|ts|py|yaml|yml|json|env)$' || true)
+            ;;
+        diff)
+            target_files=$(git diff --name-only --diff-filter=ACM 2>/dev/null \
+                | grep -E '\.(sh|js|ts|py|yaml|yml|json|env)$' || true)
+            ;;
+    esac
+
+    local i=0
+    while (( i < ${#patterns[@]} )); do
+        local pattern="${patterns[$i]}"
+        local name="${names[$i]}"
+        local matches=""
+
+        case "$scope" in
+            full)
+                matches=$(grep -rnE -e "$pattern" "$SCAN_DIR" \
+                    --include="*.sh" --include="*.js" --include="*.ts" \
+                    --include="*.py" --include="*.yaml" --include="*.yml" \
+                    --include="*.json" --include="*.env" \
+                    --exclude-dir=node_modules \
+                    2>/dev/null \
+                    | grep -v '\.env\.example' \
+                    | grep -v 'tests/fixtures/' \
+                    | grep -v '\.test\.' \
+                    | grep -v '_test\.' \
+                    | grep -v 'spec\.' \
+                    || true)
+                ;;
+            staged|diff)
+                if [[ -n "$target_files" ]]; then
+                    matches=$(echo "$target_files" | while IFS= read -r f; do
+                        [[ -f "$f" ]] || continue
+                        local hit
+                        hit=$(grep -nE -e "$pattern" "$f" 2>/dev/null || true)
+                        if [[ -n "$hit" ]]; then
+                            echo "${hit}"
+                        fi
+                    done || true)
+                fi
+                ;;
+        esac
+
+        if [[ -n "$matches" ]]; then
+            while IFS= read -r line; do
+                local file line_num
+                file=$(echo "$line" | cut -d: -f1)
+                line_num=$(echo "$line" | cut -d: -f2)
+                echo "[secrets] 警告：检测到可能的 ${name} 泄露：${file}:${line_num}"
+                found=$((found + 1))
+            done <<< "$matches"
+        fi
+        i=$((i + 1))
+    done
+
+    return "$found"
+}
+
+#------------------------------------------------------------------------------
 # 主函数
 #------------------------------------------------------------------------------
 main() {
@@ -176,6 +275,7 @@ main() {
     local ret=0
 
     scan_hardcoded_secrets; ret=$?; total_issues=$((total_issues + ret))
+    scan_secrets "$1"; ret=$?; total_issues=$((total_issues + ret))
     scan_sql_injection; ret=$?; total_issues=$((total_issues + ret))
     scan_xss; ret=$?; total_issues=$((total_issues + ret))
     scan_dangerous_shell; ret=$?; total_issues=$((total_issues + ret))

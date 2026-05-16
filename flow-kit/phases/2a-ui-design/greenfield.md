@@ -1,3 +1,18 @@
+---
+phase: 2a
+name: "界面设计（绿地）"
+stage: thinking
+allowed_operations:
+  - UI设计
+  - 组件规划
+  - 设计系统
+forbidden_operations:
+  - 代码修改
+  - 架构变更
+expected_artifacts:
+  - .flow-kit/ui-design.md
+next_phase: 3
+---
 # Phase 2a: UI 设计 — 绿地项目
 
 > 适用：全新项目，无既有视觉语言约束

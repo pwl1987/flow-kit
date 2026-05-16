@@ -1,3 +1,18 @@
+---
+phase: 3
+name: "执行计划（绿地）"
+stage: thinking
+allowed_operations:
+  - 任务拆分
+  - 优先级排序
+  - 依赖规划
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/DEV-PLAN.md
+next_phase: 4
+---
 # Phase 3: 任务拆解 — 绿地项目
 
 > 适用：从零开始的新项目开发

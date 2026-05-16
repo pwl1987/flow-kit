@@ -1,0 +1,11 @@
+{
+  "title": "用户认证系统",
+  "version": "1.0",
+  "requirements": {
+    "functional": ["邮箱登录", "手机号登录"],
+    "non_functional": {
+      "response_time": "200ms",
+      "availability": "99.9%"
+    }
+  }
+}

@@ -1,3 +1,17 @@
+---
+phase: 1
+name: "需求澄清"
+stage: thinking
+allowed_operations:
+  - 需求提问
+  - 验收标准定义
+forbidden_operations:
+  - 代码修改
+  - 测试编写
+expected_artifacts:
+  - .flow-kit/requirements.md
+next_phase: 2
+---
 --- BEGIN flow-kit/phases/1-requirement/1-requirement.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

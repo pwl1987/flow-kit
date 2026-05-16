@@ -11,8 +11,9 @@
     "benchmark": "node benchmarks/performance.js"
   },
   "devDependencies": {
-    "vitest": "^2.0.0",
+    "@anthropic-ai/sdk": "^0.40.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "markdownlint-cli": "^0.41.0",
-    "@anthropic-ai/sdk": "^0.40.0"
+    "vitest": "^2.0.0"
   }
 }

@@ -1,3 +1,18 @@
+---
+phase: 0
+name: "变更立项"
+stage: thinking
+allowed_operations:
+  - 影响范围评估
+  - 变更提议生成
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+  - 架构设计
+expected_artifacts:
+  - .flow-kit/change-proposal.md
+next_phase: 1
+---
 # Phase 0: Change ID - 变更识别与立项
 
 ## 触发条件

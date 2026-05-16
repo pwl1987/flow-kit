@@ -1,3 +1,18 @@
+---
+phase: 5
+name: "测试验证（绿地）"
+stage: execution
+allowed_operations:
+  - 测试编写
+  - 覆盖率检查
+  - 端到端测试
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 测试文件
+next_phase: 6
+---
 # Phase 5: 测试验证 — 绿地项目
 
 > 适用：从零开始的新项目开发

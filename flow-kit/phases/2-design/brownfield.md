@@ -1,3 +1,18 @@
+---
+phase: 2
+name: "方案设计（棕地）"
+stage: thinking
+allowed_operations:
+  - 架构设计
+  - ADR记录
+  - 兼容性分析
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/design.md
+next_phase: 3
+---
 # Phase 2: 架构设计 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

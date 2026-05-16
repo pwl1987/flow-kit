@@ -1,3 +1,18 @@
+---
+phase: 7
+name: "集成部署（绿地）"
+stage: execution
+allowed_operations:
+  - 部署脚本
+  - 版本标记
+  - 首次部署
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 部署记录
+next_phase: 8
+---
 # Phase 7: 集成归档 — 绿地项目
 
 > 适用：从零开始的新项目开发

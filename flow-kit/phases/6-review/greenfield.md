@@ -1,3 +1,17 @@
+---
+phase: 6
+name: "代码审查（绿地）"
+stage: thinking
+allowed_operations:
+  - Review反馈
+  - 问题标记
+  - 功能完整性审查
+forbidden_operations:
+  - 直接修改代码
+expected_artifacts:
+  - REVIEW.md
+next_phase: 7
+---
 # Phase 6: 代码审查 — 绿地项目
 
 > 适用：从零开始的新项目开发

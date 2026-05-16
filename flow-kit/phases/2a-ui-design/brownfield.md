@@ -1,3 +1,18 @@
+---
+phase: 2a
+name: "界面设计（棕地）"
+stage: thinking
+allowed_operations:
+  - UI设计
+  - 组件规划
+  - 样式兼容
+forbidden_operations:
+  - 代码修改
+  - 架构变更
+expected_artifacts:
+  - .flow-kit/ui-design.md
+next_phase: 3
+---
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本阶段在老项目前端变更时触发，确保视觉语汇一致，拦截 AI-slop 设计。
 

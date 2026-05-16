@@ -1,3 +1,17 @@
+---
+phase: 4
+name: "开发执行"
+stage: execution
+allowed_operations:
+  - 编码
+  - 单元测试
+forbidden_operations:
+  - 架构变更
+  - 需求修改
+expected_artifacts:
+  - 源码文件
+next_phase: 5
+---
 --- BEGIN flow-kit/phases/4-dev/4-dev.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

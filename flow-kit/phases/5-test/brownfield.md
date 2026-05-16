@@ -1,3 +1,18 @@
+---
+phase: 5
+name: "测试验证（棕地）"
+stage: execution
+allowed_operations:
+  - 测试编写
+  - 覆盖率检查
+  - 回归测试
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 测试文件
+next_phase: 6
+---
 # Phase 5: 测试验证 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

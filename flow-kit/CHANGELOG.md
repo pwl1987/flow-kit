@@ -2,6 +2,51 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [3.6.0] - 2026-05-16
+
+### 迭代 1：YAML Front Matter 体系
+
+- **lib/front-matter.sh** — YAML front matter 解析器
+  - `parse_front_matter <file>` → JSON 输出
+  - `get_front_matter_field <file> <field>` → 单字段提取
+  - 无 front matter 文件返回 `{"phase":-1}`
+- **phases/**/*.md** — 29 个 phase 文件全部添加 YAML front matter
+  - phase/name/stage/allowed_operations/forbidden_operations/expected_artifacts/next_phase
+- **hooks/post-edit-format.sh** — 新增边界警告（boundary warning）
+  - 思考阶段编辑非 .flow-kit/ 文件 → `[boundary]` 警告
+- **hooks/stop-quality-gate.sh** — 新增产出物检查
+  - 读取 phase front matter 的 `expected_artifacts`，缺少 → `[quality-gate]` 警告
+- **lib/security-scanner.sh** — Secrets 检测增强（18 种模式）
+  - GitHub PAT/OAuth/User-Server/Server-Server/Refresh、OpenAI、AWS、JWT、SSH、Slack 等
+
+### 迭代 2：Auto-pilot 状态机
+
+- **scripts/auto-pilot.sh** — 半自动执行状态机
+  - `--next` 推进阶段，`--status` 查看状态，`--depth` 选择执行深度
+  - auto-plan.json + session-state.json 双文件架构
+- **scripts/validate-phase.sh** — 产出物增强
+  - `validate_artifacts()` 检查产出物完整性
+  - `record_evidence()` 原子写入证据到 auto-plan.json
+- **hooks 集成验证** — post-edit + stop-quality-gate 联动测试
+
+### 迭代 3：PRD 预处理 + 回滚增强
+
+- **scripts/prd-parser.sh** — PRD 文件格式检测和解析
+  - 支持 Markdown 和 JSON 格式
+  - awk 单次遍历提取 headings/lists/tables
+- **phases/8-rollback/** — 增强回滚工作流
+  - 三档分级判定（P0/P1/P2）
+  - RCA 事故报告模板（5 Whys + 事后 5 件事）
+  - 棕地/绿地差异化回滚策略
+
+### 迭代 4：测试 + 文档
+
+- **138 项测试全通过**（单元 97 + 集成 19 + 边界 22）
+- **GO.md** — 新增 auto-pilot 和 prd-parser 使用说明
+- **CHANGELOG.md** — v3.6.0 变更记录
+
+---
+
 ## [3.4.0] - 2026-05-14
 
 ### P0: 架构重构

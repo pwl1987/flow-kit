@@ -1,3 +1,18 @@
+---
+phase: 3
+name: "执行计划（棕地）"
+stage: thinking
+allowed_operations:
+  - 任务拆分
+  - 优先级排序
+  - 回归评估
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/DEV-PLAN.md
+next_phase: 4
+---
 # Phase 3: 任务拆解 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

@@ -14,19 +14,19 @@ classify_requirement() {
     local req="$1"
 
     # 紧急修复关键词
-    if echo "$req" | grep -qiE "bug|修复|紧急|crash|error|错误|崩溃|异常|失败"; then
+    if grep -qiE "bug|修复|紧急|crash|error|错误|崩溃|异常|失败" <<< "$req"; then
         echo "紧急修复"
         return
     fi
 
     # 架构调整关键词
-    if echo "$req" | grep -qiE "重构|架构|refactor|design|设计|优化架构|重新设计"; then
+    if grep -qiE "重构|架构|refactor|design|设计|优化架构|重新设计" <<< "$req"; then
         echo "架构调整"
         return
     fi
 
     # 功能增强关键词
-    if echo "$req" | grep -qiE "添加|新增|优化|add|feature|功能|增强|改进|扩展"; then
+    if grep -qiE "添加|新增|优化|add|feature|功能|增强|改进|扩展" <<< "$req"; then
         echo "功能增强"
         return
     fi
@@ -80,51 +80,67 @@ detect_conflict() {
 }
 
 #------------------------------------------------------------------------------
-# 文件冲突检测
+# 文件冲突检测（两个变更之间）
+# detect_file_conflict <change-A> <change-B> <project_dir>
+# 返回冲突文件列表（逗号分隔），返回0表示有冲突
 #------------------------------------------------------------------------------
-detect_file_conflicts() {
-    local new_change="${1:-}"
-    local project_dir="${2:-$PROJECT_DIR}"
-    [[ -z "$new_change" ]] && return 1
+detect_file_conflict() {
+    local change_a="${1:-}"
+    local change_b="${2:-}"
+    local project_dir="${3:-$PROJECT_DIR}"
 
-    local current_change
-    current_change=$(session_get change 2>/dev/null || echo "")
-    [[ -z "$current_change" ]] && return 1
+    [[ -z "$change_a" || -z "$change_b" ]] && return 1
 
-    # 提取两个变更涉及的文件列表
-    local current_files new_files
-    current_files=$(_extract_change_files "$current_change" "$project_dir")
-    new_files=$(_extract_change_files "$new_change" "$project_dir")
+    local files_a files_b
+    files_a=$(_extract_change_files "$change_a" "$project_dir")
+    files_b=$(_extract_change_files "$change_b" "$project_dir")
 
-    [[ -z "$current_files" || -z "$new_files" ]] && return 1
+    [[ -z "$files_a" || -z "$files_b" ]] && return 1
 
-    # 找交集（按行精确匹配）
     local conflicts=""
     while IFS= read -r f; do
         [[ -z "$f" ]] && continue
-        if echo "$current_files" | grep -qxF "$f"; then
+        if [[ -n "$files_b" ]] && echo "$files_b" | grep -qxF -- "$f"; then
             [[ -n "$conflicts" ]] && conflicts="$conflicts,"
             conflicts="${conflicts}${f}"
         fi
-    done <<< "$new_files"
+    done <<< "$files_a"
 
-    if [[ -n "$conflicts" ]]; then
-        echo "$conflicts"
+    [[ -n "$conflicts" ]] && echo "$conflicts" && return 0
+    return 1
+}
+
+#------------------------------------------------------------------------------
+# 依赖冲突检测（变更是否影响目标模块）
+# detect_dependency_conflict <target_module> <change> <project_dir>
+# 返回目标模块（如果被修改），返回0表示有依赖冲突
+#------------------------------------------------------------------------------
+detect_dependency_conflict() {
+    local target_module="${1:-}"
+    local change="${2:-}"
+    local project_dir="${3:-$PROJECT_DIR}"
+
+    [[ -z "$target_module" || -z "$change" ]] && return 1
+
+    local change_files
+    change_files=$(_extract_change_files "$change" "$project_dir")
+
+    if echo "$change_files" | grep -qF -- "$target_module"; then
+        echo "$target_module"
         return 0
     fi
     return 1
 }
 
-# 从 .specs/<change>/ 提取涉及的文件列表
+# 从 .specs/<change>/ 提取涉及的文件列表（仅返回文件路径，无前缀）
 _extract_change_files() {
     local change="$1"
     local project_dir="$2"
     local specs_dir="$project_dir/.specs/$change"
 
-    [[ -d "$specs_dir" ]] || return
-
-    # 从 TASK.md/REQUIREMENT.md 提取文件引用
-    grep -oE '[a-zA-Z0-9_/-]+\.(sh|md|json|js|ts)' "$specs_dir"/*.md 2>/dev/null | sort -u || true
+    if [[ -d "$specs_dir" ]] && shopt -s nullglob && files=("$specs_dir"/*.md) && [[ ${#files[@]} -gt 0 ]]; then
+        grep -ohE '[a-zA-Z0-9_/-]+\.(sh|md|json|js|ts)' "${files[@]}" 2>/dev/null | sort -u
+    fi
 }
 
 #------------------------------------------------------------------------------

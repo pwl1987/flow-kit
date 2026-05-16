@@ -103,6 +103,58 @@ fi
 
 check_test_coverage
 
+#------------------------------------------------------------------------------
+# 产出物检查（v3.6.0）
+#------------------------------------------------------------------------------
+check_artifacts() {
+    local project_dir="${CLAUDE_PROJECT_DIR:-}"
+    if [[ -z "$project_dir" ]]; then
+        project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    fi
+    local session_file="$project_dir/.flow-kit/session-state.json"
+    if [[ ! -f "$session_file" ]]; then
+        return 0
+    fi
+
+    command -v jq &>/dev/null || return 0
+    local current_phase
+    current_phase=$(jq -r '.phase // empty' "$session_file" 2>/dev/null || echo "")
+    if [[ -z "$current_phase" ]]; then
+        return 0
+    fi
+
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local phases_dir="$script_dir/../phases"
+    local phase_file
+    phase_file=$(find "$phases_dir" -name "*.md" -path "*$current_phase*" 2>/dev/null | head -1)
+    if [[ -z "$phase_file" ]]; then
+        return 0
+    fi
+
+    local script_dir2
+    script_dir2="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    source "$script_dir2/../lib/front-matter.sh" 2>/dev/null || return 0
+    local artifacts_json
+    artifacts_json=$(parse_front_matter "$phase_file" | jq -r '.expected_artifacts // []' 2>/dev/null || echo "[]")
+
+    local count
+    count=$(echo "$artifacts_json" | jq 'length' 2>/dev/null || echo "0")
+    local i=0
+    while (( i < count )); do
+        local artifact
+        artifact=$(echo "$artifacts_json" | jq -r ".[$i]" 2>/dev/null)
+        if [[ -n "$artifact" && ! -f "$project_dir/$artifact" ]]; then
+            echo "[quality-gate] 产出物缺失：$artifact" >&2
+        fi
+        i=$((i + 1))
+    done
+
+    return 0
+}
+
+check_artifacts
+
 exit 0
 
 # v2.7.0 修复：URL 放在 bash 注释中避免被解析

@@ -1,3 +1,17 @@
+---
+phase: 3
+name: "执行计划"
+stage: thinking
+allowed_operations:
+  - 任务拆分
+  - 优先级排序
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/DEV-PLAN.md
+next_phase: 4
+---
 --- BEGIN flow-kit/phases/3-task/3-task.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

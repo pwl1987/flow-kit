@@ -1,3 +1,17 @@
+---
+phase: 2
+name: "方案设计"
+stage: thinking
+allowed_operations:
+  - 架构设计
+  - ADR记录
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/design.md
+next_phase: 3
+---
 --- BEGIN flow-kit/phases/2-design/2-design.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

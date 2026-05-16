@@ -1,3 +1,18 @@
+---
+phase: 2
+name: "方案设计（绿地）"
+stage: thinking
+allowed_operations:
+  - 架构设计
+  - ADR记录
+  - 技术选型
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/design.md
+next_phase: 3
+---
 # Phase 2: 架构设计 — 绿地项目
 
 > 适用：从零开始的新项目开发

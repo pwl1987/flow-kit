@@ -99,6 +99,32 @@ Phase 执行时自动检测项目类型，加载差异化工作流：
 ./flow-kit.sh change init "描述"        # 初始化变更
 ```
 
+## Auto-pilot 半自动执行
+
+```bash
+./scripts/auto-pilot.sh              # 查看当前状态 + 推荐下一步
+./scripts/auto-pilot.sh --next       # 推进到下一阶段
+./scripts/auto-pilot.sh --status     # 显示 auto-plan.json 状态
+./scripts/auto-pilot.sh --depth quick    # 快速模式（跳到 Phase 4）
+./scripts/auto-pilot.sh --depth campaign # 标准模式
+./scripts/auto-pilot.sh --depth deep     # 深度模式（全阶段）
+```
+
+**状态文件**：
+- `.flow-kit/auto-plan.json` — 执行计划（阶段列表、证据记录）
+- `.flow-kit/session-state.json` — 会话状态（当前阶段、项目类型）
+
+**产出物验证**：auto-pilot 自动检查当前阶段 `expected_artifacts`，缺少时提示。
+
+## PRD 预处理
+
+```bash
+./scripts/prd-parser.sh path/to/prd.md    # 解析 PRD 文件
+./scripts/prd-parser.sh path/to/prd.json  # 支持 JSON 格式
+```
+
+输出 JSON：`{ format, structure: { headings, lists, tables }, stats: { ... } }`
+
 ## v3.x 改进
 
 - **精简命令**：154 → 22 个核心命令

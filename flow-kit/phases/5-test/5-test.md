@@ -1,3 +1,17 @@
+---
+phase: 5
+name: "测试验证"
+stage: execution
+allowed_operations:
+  - 测试编写
+  - 覆盖率检查
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 测试文件
+next_phase: 6
+---
 --- BEGIN flow-kit/phases/5-test/5-test.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

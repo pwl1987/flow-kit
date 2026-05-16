@@ -1,3 +1,18 @@
+---
+phase: 1
+name: "需求澄清（绿地）"
+stage: thinking
+allowed_operations:
+  - 需求提问
+  - 验收标准定义
+  - 用户故事编写
+forbidden_operations:
+  - 代码修改
+  - 测试编写
+expected_artifacts:
+  - .flow-kit/requirements.md
+next_phase: 2
+---
 # Phase 1: 需求澄清 — 绿地项目
 
 > 适用：从零开始的新项目开发

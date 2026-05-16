@@ -1,3 +1,18 @@
+---
+phase: 4
+name: "开发执行（绿地）"
+stage: execution
+allowed_operations:
+  - 编码
+  - 单元测试
+  - 功能实现
+forbidden_operations:
+  - 架构变更
+  - 需求修改
+expected_artifacts:
+  - 源码文件
+next_phase: 5
+---
 # Phase 4: 开发执行 — 绿地项目
 
 > 适用：从零开始的新项目开发

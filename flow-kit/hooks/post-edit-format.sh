@@ -113,4 +113,24 @@ LOGS_DIR="$PROJECT_DIR/.flow-kit/logs"
 mkdir -p "$LOGS_DIR"
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] [post-edit-format] [OK] [${ELAPSED}ms]" >> "$LOGS_DIR/hooks-execution.log" 2>/dev/null || true
 
+# === 边界检查（v3.6.0）===
+SESSION_FILE="$PROJECT_DIR/.flow-kit/session-state.json"
+if [[ -f "$SESSION_FILE" ]] && command -v jq &>/dev/null; then
+    CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE" 2>/dev/null || echo "")
+    if [[ -n "$CURRENT_PHASE" ]]; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        PHASES_DIR="$SCRIPT_DIR/../phases"
+        PHASE_FILE=$(find "$PHASES_DIR" -name "*.md" -path "*$CURRENT_PHASE*" 2>/dev/null | head -1)
+        if [[ -n "$PHASE_FILE" ]]; then
+            STAGE=$(awk '/^---$/{n++; next} n==1 && /^stage:/{sub(/^stage:[[:space:]]*/, ""); print; exit}' "$PHASE_FILE" 2>/dev/null || echo "")
+            if [[ "$STAGE" == "thinking" ]]; then
+                REL_PATH="${FILE_PATH#"$PROJECT_DIR"/}"
+                if [[ "$REL_PATH" != .flow-kit/* && "$REL_PATH" != .flow-kit/* ]]; then
+                    echo "[boundary] 警告：当前 Phase $CURRENT_PHASE ($STAGE) 不建议修改：$FILE_PATH" >&2
+                fi
+            fi
+        fi
+    fi
+fi
+
 exit 0

@@ -1,3 +1,18 @@
+---
+phase: 0
+name: "变更立项（绿地）"
+stage: thinking
+allowed_operations:
+  - 需求分析
+  - 变更提议生成
+  - 技术选型
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+expected_artifacts:
+  - .flow-kit/change-proposal.md
+next_phase: 1
+---
 # Phase 0: 变更立项 — 绿地项目
 
 > 适用：从零开始的新项目开发

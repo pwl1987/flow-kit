@@ -1,3 +1,16 @@
+---
+phase: 6
+name: "代码审查"
+stage: thinking
+allowed_operations:
+  - Review反馈
+  - 问题标记
+forbidden_operations:
+  - 直接修改代码
+expected_artifacts:
+  - REVIEW.md
+next_phase: 7
+---
 --- BEGIN flow-kit/phases/6-review/6-review.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

@@ -1,3 +1,18 @@
+---
+phase: 7
+name: "集成部署（棕地）"
+stage: execution
+allowed_operations:
+  - 部署脚本
+  - 版本标记
+  - 灰度发布
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 部署记录
+next_phase: 8
+---
 # Phase 7: 集成归档 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

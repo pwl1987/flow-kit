@@ -1,3 +1,16 @@
+---
+phase: 8
+name: "变更回滚"
+stage: execution
+allowed_operations:
+  - 回滚操作
+  - RCA分析
+forbidden_operations:
+  - 新功能开发
+expected_artifacts:
+  - 事故报告
+next_phase: 0
+---
 > 【CLAUDE CODE INSTRUCTION 强制约束】
 > 本文件为 flow-kit 工作流系统的核心骨架文件，定义变更回滚的标准流程。
 > 所有 phase 文件必须遵循此模板结构，包含触发条件、核心行为、边界情况、输出物、用户调整标记五个标准章节。

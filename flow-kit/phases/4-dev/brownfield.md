@@ -1,3 +1,18 @@
+---
+phase: 4
+name: "开发执行（棕地）"
+stage: execution
+allowed_operations:
+  - 编码
+  - 单元测试
+  - 兼容性检查
+forbidden_operations:
+  - 架构变更
+  - 需求修改
+expected_artifacts:
+  - 源码文件
+next_phase: 5
+---
 # Phase 4: 开发执行 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

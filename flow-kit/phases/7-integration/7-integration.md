@@ -1,3 +1,17 @@
+---
+phase: 7
+name: "集成部署"
+stage: execution
+allowed_operations:
+  - 部署脚本
+  - 版本标记
+forbidden_operations:
+  - 需求修改
+  - 架构变更
+expected_artifacts:
+  - 部署记录
+next_phase: 8
+---
 --- BEGIN flow-kit/phases/7-integration/7-integration.md ---
 
 > 【CLAUDE CODE INSTRUCTION 强制约束】

@@ -18,6 +18,7 @@ fi
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/error-handler.sh"
+source "$SCRIPT_DIR/../lib/front-matter.sh" 2>/dev/null || true
 
 #------------------------------------------------------------------------------
 # 配置（v2.7.0 P2 修复：使用 paths.sh 中的绝对路径常量）
@@ -413,6 +414,98 @@ validate_patterns() {
     done
 
     printf '%s\n' "${errors[@]}"
+}
+
+#------------------------------------------------------------------------------
+# 产出物验证（v3.6.0）
+#------------------------------------------------------------------------------
+validate_artifacts() {
+    local phase_str="${1:-}"
+    local project_dir="${PATHS_PROJECT_DIR:-$CLAUDE_PROJECT_DIR}"
+    local phases_dir="${PATHS_FLOW_KIT_DIR:-$SCRIPT_DIR/..}/phases"
+
+    if [[ -z "$phase_str" ]]; then
+        local sf="$project_dir/.flow-kit/session-state.json"
+        if [[ -f "$sf" ]]; then
+            phase_str=$(jq -r '.phase // empty' "$sf" 2>/dev/null || echo "")
+        fi
+    fi
+    [[ -z "$phase_str" ]] && return 0
+
+    local phase_file
+    phase_file=$(find "$phases_dir" -name "*.md" -path "*$phase_str*" 2>/dev/null | head -1)
+    [[ -z "$phase_file" ]] && return 0
+
+    local artifacts_json
+    artifacts_json=$(parse_front_matter "$phase_file" 2>/dev/null | jq -r '.expected_artifacts // []' 2>/dev/null || echo "[]")
+    local count
+    count=$(echo "$artifacts_json" | jq 'length' 2>/dev/null || echo 0)
+    local i=0
+    local missing=()
+    while (( i < count )); do
+        local artifact
+        artifact=$(echo "$artifacts_json" | jq -r ".[$i]" 2>/dev/null)
+        if [[ -n "$artifact" && ! -f "$project_dir/$artifact" ]]; then
+            missing+=("$artifact")
+            echo "[validate-artifacts] 产出物缺失：$artifact"
+        fi
+        i=$((i + 1))
+    done
+
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        echo "[validate-artifacts] 所有产出物存在"
+        return 0
+    else
+        return 1
+    fi
+}
+
+record_evidence() {
+    local phase_num="$1"
+    local project_dir="${PATHS_PROJECT_DIR:-$CLAUDE_PROJECT_DIR}"
+    local pf="$project_dir/.flow-kit/auto-plan.json"
+    [[ ! -f "$pf" ]] && return 0
+
+    local sf="$project_dir/.flow-kit/session-state.json"
+    local phase_str
+    phase_str=$(jq -r '.phase // empty' "$sf" 2>/dev/null || echo "")
+
+    local phases_dir="${PATHS_FLOW_KIT_DIR:-$SCRIPT_DIR/..}/phases"
+    local phase_file
+    phase_file=$(find "$phases_dir" -name "*.md" -path "*$phase_str*" 2>/dev/null | head -1)
+    [[ -z "$phase_file" ]] && return 0
+
+    local artifacts_json
+    artifacts_json=$(parse_front_matter "$phase_file" 2>/dev/null | jq -r '.expected_artifacts // []' 2>/dev/null || echo "[]")
+    local count
+    count=$(echo "$artifacts_json" | jq 'length' 2>/dev/null || echo 0)
+
+    local evidence="[]"
+    local i=0
+    while (( i < count )); do
+        local artifact
+        artifact=$(echo "$artifacts_json" | jq -r ".[$i]" 2>/dev/null)
+        local result="fail"
+        if [[ -f "$project_dir/$artifact" ]]; then
+            result="pass"
+        fi
+        evidence=$(echo "$evidence" | jq --arg check "file_exists" --arg art "$artifact" --arg res "$result" \
+            '. + [{"check": $check, "artifact": $art, "result": $res}]')
+        i=$((i + 1))
+    done
+
+    local now
+    now=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
+    local has_phase
+    has_phase=$(jq --argjson pid "$phase_num" '.phases | map(select(.id == $pid)) | length' "$pf" 2>/dev/null || echo 0)
+
+    if [[ "$has_phase" == "0" ]]; then
+        jq --argjson pid "$phase_num" --arg name "$phase_str" --argjson ev "$evidence" --arg now "$now" \
+            '.phases += [{"id": $pid, "name": $name, "status": "in_progress", "evidence": $ev, "ts": $now}]' "$pf" > "$pf.tmp" && mv "$pf.tmp" "$pf"
+    else
+        jq --argjson pid "$phase_num" --argjson ev "$evidence" \
+            '(.phases[] | select(.id == $pid)).evidence = $ev' "$pf" > "$pf.tmp" && mv "$pf.tmp" "$pf"
+    fi
 }
 
 #------------------------------------------------------------------------------

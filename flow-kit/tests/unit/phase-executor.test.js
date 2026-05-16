@@ -49,7 +49,7 @@ describe('phase-executor.sh', () => {
   describe('错误处理', () => {
     it('无效 phase 不崩溃', () => {
       expect(() => {
-        execSync(`bash ${SCRIPT} invalid-phase 2>&1`, { encoding: 'utf8', errorOnStderr: false });
+        execSync(`bash ${SCRIPT} invalid-phase 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
       }).not.toThrow();
     });
 

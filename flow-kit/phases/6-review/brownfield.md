@@ -1,3 +1,17 @@
+---
+phase: 6
+name: "代码审查（棕地）"
+stage: thinking
+allowed_operations:
+  - Review反馈
+  - 问题标记
+  - 兼容性审查
+forbidden_operations:
+  - 直接修改代码
+expected_artifacts:
+  - REVIEW.md
+next_phase: 7
+---
 # Phase 6: 代码审查 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

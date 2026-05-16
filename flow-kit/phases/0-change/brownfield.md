@@ -1,3 +1,19 @@
+---
+phase: 0
+name: "变更立项（棕地）"
+stage: thinking
+allowed_operations:
+  - 影响范围评估
+  - 变更提议生成
+  - 代码库分析
+forbidden_operations:
+  - 代码修改
+  - 测试执行
+  - 架构设计
+expected_artifacts:
+  - .flow-kit/change-proposal.md
+next_phase: 1
+---
 # Phase 0: 变更立项 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发

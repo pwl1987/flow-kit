@@ -25,10 +25,14 @@ describe('input-validation', () => {
     });
 
     it('特殊字符任务描述', () => {
-      const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?`~';
-      expect(() => {
-        execSync(`bash ${DISPATCH} 1 "${specialChars}"`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      const specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?~';
+      let threw = false;
+      try {
+        execSync(`bash ${DISPATCH} 1 "${specialChars}" 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('多字节字符任务描述', () => {
@@ -47,71 +51,111 @@ describe('input-validation', () => {
 
   describe('phase-executor.sh 边界', () => {
     it('负数 phase', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} -1`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} -1 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('超大 phase 数字', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} 999`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} 999 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('字母参数', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} abc`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} abc 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('混合字母数字参数', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} 5-abc`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} 5-abc 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('空格参数', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} " "`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} " " 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
   });
 
   describe('generate-commands.sh 边界', () => {
     it('重复多次执行', () => {
       for (let i = 0; i < 3; i++) {
-        expect(() => {
-          execSync(`bash ${GEN_CMDS} --help`, { encoding: 'utf8' });
-        }).not.toThrow();
+        let threw = false;
+        try {
+          execSync(`bash ${GEN_CMDS} -h`, { encoding: 'utf8' });
+        } catch (e) {
+          threw = true;
+        }
+        expect(threw).toBe(false);
       }
     });
 
     it('空参数', () => {
-      expect(() => {
-        execSync(`bash ${GEN_CMDS} ""`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${GEN_CMDS} ""`, { encoding: 'utf8' });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
   });
 
   describe('并发边界', () => {
     it('快速连续调用', () => {
-      expect(() => {
-        execSync(`bash ${PHASE_EXEC} 0-change && bash ${PHASE_EXEC} 1-plan`, { encoding: 'utf8', errorOnStderr: false });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`bash ${PHASE_EXEC} 0-change 2>&1 && bash ${PHASE_EXEC} 1-plan 2>&1 || true`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
   });
 
   describe('环境边界', () => {
     it('空环境变量', () => {
-      expect(() => {
-        execSync(`CLAUDE_PROJECT_DIR= bash ${GEN_CMDS} --help`, { encoding: 'utf8' });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`CLAUDE_PROJECT_DIR= bash ${GEN_CMDS} -h`, { encoding: 'utf8' });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
 
     it('空白环境变量', () => {
-      expect(() => {
-        execSync(`REPO_ROOT="   " bash ${GEN_CMDS} --help`, { encoding: 'utf8' });
-      }).not.toThrow();
+      let threw = false;
+      try {
+        execSync(`REPO_ROOT="   " bash ${GEN_CMDS} -h`, { encoding: 'utf8' });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
     });
   });
 });

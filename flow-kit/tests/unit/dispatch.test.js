@@ -21,10 +21,16 @@ describe('dispatch.sh', () => {
   });
 
   describe('参数验证', () => {
-    it('无参数时退出码非0', () => {
-      expect(() => {
-        execSync(`bash ${SCRIPT}`, { encoding: 'utf8' });
-      }).toThrow();
+    it('无参数时显示帮助', () => {
+      let threw = false;
+      let out = '';
+      try {
+        out = execSync(`bash ${SCRIPT} 2>&1`, { encoding: 'utf8', errorOnStderr: false });
+      } catch (e) {
+        threw = true;
+      }
+      expect(threw).toBe(false);
+      expect(out).toMatch(/用法|dispatch/);
     });
 
     it('显示任务描述参数提示', () => {

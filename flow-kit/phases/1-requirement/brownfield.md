@@ -1,3 +1,18 @@
+---
+phase: 1
+name: "需求澄清（棕地）"
+stage: thinking
+allowed_operations:
+  - 需求提问
+  - 验收标准定义
+  - 影响分析
+forbidden_operations:
+  - 代码修改
+  - 测试编写
+expected_artifacts:
+  - .flow-kit/requirements.md
+next_phase: 2
+---
 # Phase 1: 需求澄清 — 棕地项目
 
 > 适用：已有代码库的业务迭代开发
