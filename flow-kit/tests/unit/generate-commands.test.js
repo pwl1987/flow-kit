@@ -79,4 +79,24 @@ describe('generate-commands.sh', () => {
       expect(out).toMatch(/选项|option/);
     });
   });
+
+  describe('v3.7.0 新命令注册', () => {
+    it('ralph.md 命令模板存在', () => {
+      const fs = require('fs');
+      const p = path.join(__dirname, '../../commands/ralph.md');
+      expect(fs.existsSync(p)).toBe(true);
+    });
+
+    it('metrics.md 命令模板存在', () => {
+      const fs = require('fs');
+      const p = path.join(__dirname, '../../commands/metrics.md');
+      expect(fs.existsSync(p)).toBe(true);
+    });
+
+    it('recall.md 命令模板存在', () => {
+      const fs = require('fs');
+      const p = path.join(__dirname, '../../commands/recall.md');
+      expect(fs.existsSync(p)).toBe(true);
+    });
+  });
 });

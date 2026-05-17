@@ -1,0 +1,25 @@
+# 需求文档
+
+## 变更 ID
+{{change_id}}
+
+## 需求背景
+{{background}}
+
+## 功能需求
+
+### 需求点 #1
+**描述**：{{description}}
+
+**验收标准**：
+- Given {{condition}}
+- When {{action}}
+- Then {{result}}
+
+## 非功能需求
+- 性能：
+- 安全：
+- 兼容性：
+
+## 边界条件
+{{edge_cases}}

@@ -1,0 +1,17 @@
+# 进度记录
+
+## 变更 ID
+{{change_id}}
+
+## 当前阶段
+Phase {{current_phase}}
+
+## 完成情况
+- [ ] Phase 0 变更立项
+- [ ] Phase 1 需求澄清
+- [ ] Phase 2 架构设计
+- [ ] Phase 3 任务拆解
+- [ ] Phase 4 开发执行
+- [ ] Phase 5 测试验证
+- [ ] Phase 6 代码审查
+- [ ] Phase 7 集成归档

@@ -2,6 +2,41 @@
 
 All notable changes to flow-kit will be documented in this file.
 
+## [3.7.0] - 2026-05-16
+
+### Phase 1: 基础设施
+
+- **lib/error-handler.sh** — 新增 setup_trap() 统一信号处理
+- **lib/cleanup.sh** — 新增 with_cleanup() 自动清理 wrapper
+- **scripts/dispatch-lock.sh** — 新增 acquire_lock/release_lock/is_lock_stale，300s 默认超时
+- **hooks/** — 验证全部 hook 含 set -uo pipefail
+
+### Phase 2: 核心功能
+
+- **lib/metrics-logger.sh** — JSONL 指标日志库（metrics_log_event/metrics_query/metrics_summary）
+- **scripts/metrics.sh** — /metrics CLI 命令（--summary/--detail/--clear）
+- **scripts/recall.sh** — /recall 项目上下文摘要（5 分钟缓存）
+- **commands/ralph.md** — /ralph 命令模板
+- **scripts/generate-commands.sh** — 注册 /ralph、/metrics、/recall
+
+### Phase 3: 质量 P1
+
+- **phase-executor** — 20 个测试（含指标埋点验证）
+- **auto-pilot** — 12 个测试（含指标埋点验证）
+- **flow-kit.sh** — 7 个 stub 命令修复（health/scan/cost-report/estimate-tokens/check-expiry/update-context/p0）
+
+### Phase 4: 质量 P2+P3
+
+- **lib/README.md** — 7 个分组文档
+- **scripts/README.md** — 8 个分组文档 + v3.8.0 迁移计划
+- **scripts/shellcheck-all.sh** — 并行 ShellCheck 检查
+- **scripts/generate-api-docs.sh** — API 文档生成器
+
+### Phase 5: 集成
+
+- **tests/e2e/** — 3 个 E2E 测试骨架（recall-flow、metrics-flow、command-routing）
+- **213 个测试全部通过**（从 138 基线增长）
+
 ## [3.6.0] - 2026-05-16
 
 ### 迭代 1：YAML Front Matter 体系

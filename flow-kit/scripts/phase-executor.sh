@@ -42,10 +42,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh"
 source "$SCRIPT_DIR/../lib/session-state.sh"
 source "$SCRIPT_DIR/../lib/project-info.sh"
+# v3.7.0: 指标埋点（静默降级）
+_METRICS_AVAILABLE=0
+if [[ -f "$LIB_DIR/metrics-logger.sh" ]]; then
+    source "$LIB_DIR/metrics-logger.sh" 2>/dev/null && _METRICS_AVAILABLE=1 || _METRICS_AVAILABLE=0
+fi
 
 PHASE_NUM="${1:-}"
 
 main() {
+    local _start_time=$SECONDS
+
     if [[ -z "$PHASE_NUM" ]]; then
         echo "用法: $0 <phase-num>"
         echo "示例: $0 0-change"
@@ -92,6 +99,12 @@ main() {
     if [[ ! -f "$guard_active_file" ]]; then
         echo "[phase-exec] 💡 建议激活护栏: /flow-kit:guard $guard_cmd"
         echo "[phase-exec] 激活后将不再提示"
+    fi
+
+    # v3.7.0: 指标埋点
+    if [[ $_METRICS_AVAILABLE -eq 1 ]]; then
+        local _elapsed=$(( SECONDS - _start_time ))
+        metrics_log_event "phase_complete" "phase=$phase_num_only type=$project_type duration=${_elapsed}s"
     fi
 }
 

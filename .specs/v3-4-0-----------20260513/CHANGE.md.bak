@@ -1,0 +1,22 @@
+# 变更摘要
+
+## 变更 ID
+{{change_id}}
+
+## 变更类型
+- [ ] Feature（功能新增）
+- [ ] Bugfix（缺陷修复）
+- [ ] Refactor（重构）
+- [ ] Docs（文档更新）
+- [ ] Config（配置变更）
+
+## 变更摘要
+{{summary}}
+
+## 影响范围
+- 修改文件：N 个
+- 修改模块：N 个
+- 风险等级：[高/中/低]
+
+## 关联需求
+{{related_requirements}}

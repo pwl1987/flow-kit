@@ -224,8 +224,22 @@ route_command() {
 
     case "$cmd" in
         health|scan|cost-report|estimate-tokens|check-expiry|update-context|p0)
-            echo "[flow-kit] 路由到 $cmd..."
-            echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:$cmd"
+            # v3.7.0: 查找命令文件并输出内容
+            local cmd_file=""
+            local cmd_dir="$(dirname "$0")/commands"
+            case "$cmd" in
+                health) cmd_file="$cmd_dir/M-health.md" ;;
+                scan)   cmd_file="$cmd_dir/I-intel-scan.md" ;;
+                p0)     cmd_file="$cmd_dir/p0-approval.md" ;;
+                *)      cmd_file="$cmd_dir/${cmd}.md" ;;
+            esac
+            if [[ -f "$cmd_file" ]]; then
+                cat "$cmd_file"
+            else
+                echo "[flow-kit] 命令 $cmd 未找到: $cmd_file"
+                echo "[flow-kit] 请在 Claude Code 中执行: /flow-kit:$cmd"
+                exit 1
+            fi
             ;;
 
         pr-description)

@@ -1,0 +1,28 @@
+{
+  "name": "flow-kit",
+  "version": "3.8.0",
+  "type": "module",
+  "description": "面向 Claude Code 的结构化开发流程工具包",
+  "main": "src/lib/index.mjs",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "test": "vitest",
+    "test:unit": "vitest tests/unit",
+    "test:tools": "vitest tests/tools",
+    "test:hooks": "vitest tests/hooks",
+    "test:e2e": "vitest tests/e2e"
+  },
+  "keywords": ["claude-code", "workflow", "mcp", "devtools"],
+  "author": "pwl1987",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0",
+    "yaml": "^2.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0"
+  }
+}

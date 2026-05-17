@@ -7,6 +7,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/paths.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/session-state.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../lib/front-matter.sh" 2>/dev/null || true
+# v3.7.0: 指标埋点（静默降级）
+_METRICS_AVAILABLE=0
+if [[ -f "${LIB_DIR:-$SCRIPT_DIR/../lib}/metrics-logger.sh" ]]; then
+    source "${LIB_DIR:-$SCRIPT_DIR/../lib}/metrics-logger.sh" 2>/dev/null && _METRICS_AVAILABLE=1 || _METRICS_AVAILABLE=0
+fi
 
 # === CLI ===
 ACTION=""
@@ -224,6 +229,7 @@ do_status() {
 
 # === 主函数 ===
 main() {
+    local _ap_start=$SECONDS
     parse_args "$@"
 
     case "$ACTION" in
@@ -245,6 +251,12 @@ main() {
             recommend_next_step
             ;;
     esac
+
+    # v3.7.0: 指标埋点
+    if [[ $_METRICS_AVAILABLE -eq 1 ]]; then
+        local _ap_elapsed=$(( SECONDS - _ap_start ))
+        metrics_log_event "auto_pilot" "action=$ACTION elapsed=${_ap_elapsed}s"
+    fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

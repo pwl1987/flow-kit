@@ -81,7 +81,12 @@ declare -A CORE_COMMANDS=(
   ["archive"]="flow-kit/commands/archive.md"
   ["scale"]="flow-kit/commands/scale-level.md"
   ["resume"]="flow-kit/commands/resume.md"
+  ["ralph"]="flow-kit/commands/ralph.md"
+  ["metrics"]="flow-kit/commands/metrics.md"
+  ["recall"]="flow-kit/commands/recall.md"
 )
+
+# v3.7.0: ralph/metrics/recall 新增命令
 
 declare -A PHASE_COMMANDS=(
   ["phase-0"]="变更立项"

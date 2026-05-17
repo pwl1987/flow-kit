@@ -4,35 +4,40 @@
       "matcher": "Bash|Edit|Write",
       "hooks": [{
         "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/pre-tool-guard.sh"
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/pre-tool-guard.sh",
+        "timeout": 10
       }]
     }],
     "PostToolUse": [{
       "matcher": "Edit|Write",
       "hooks": [{
         "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/post-edit-format.sh"
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/post-edit-format.sh",
+        "timeout": 15
       }]
     }],
     "Stop": [{
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/stop-quality-gate.sh"
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/stop-quality-gate.sh",
+        "timeout": 30
       }]
     }],
     "SessionStart": [{
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/session-start.sh"
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/session-start.sh",
+        "timeout": 10
       }]
     }],
     "Notification": [{
       "matcher": "",
       "hooks": [{
         "type": "command",
-        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/notification.sh"
+        "command": "$CLAUDE_PROJECT_DIR/flow-kit/hooks/notification.sh",
+        "timeout": 5
       }]
     }]
   }

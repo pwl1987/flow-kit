@@ -87,3 +87,74 @@ release_slot_from_trap() {
         rm -f "$slot_id_file"
     fi
 }
+
+#------------------------------------------------------------------------------
+# 锁超时机制（v3.7.0 F10）
+# 锁文件格式: PID:<pid>\nTIMESTAMP:<epoch>\n
+# 默认超时: 300s
+#------------------------------------------------------------------------------
+LOCK_TIMEOUT="${LOCK_TIMEOUT:-300}"
+
+# 获取锁。成功返回 0，锁被占用返回 1。
+# 自动清理过期锁（超时或进程已死）。
+acquire_lock() {
+    local resource="$1"
+    local timeout="${2:-$LOCK_TIMEOUT}"
+    local lock_file="$LOCK_DIR/${resource}.lock"
+
+    mkdir -p "$LOCK_DIR" 2>/dev/null || true
+
+    # 检查现有锁是否过期
+    if [[ -f "$lock_file" ]]; then
+        if is_lock_stale "$resource" "$timeout"; then
+            rm -f "$lock_file" 2>/dev/null || true
+        else
+            return 1
+        fi
+    fi
+
+    # 原子写入锁文件
+    local ts
+    ts=$(date +%s 2>/dev/null || printf '%s' "$SECONDS")
+    printf 'PID:%s\nTIMESTAMP:%s\n' "$$" "$ts" > "$lock_file"
+    return 0
+}
+
+# 释放锁
+release_lock() {
+    local resource="$1"
+    local lock_file="$LOCK_DIR/${resource}.lock"
+    rm -f "$lock_file" 2>/dev/null || true
+}
+
+# 判断锁是否过期。过期返回 0，未过期返回 1。
+is_lock_stale() {
+    local resource="$1"
+    local timeout="${2:-$LOCK_TIMEOUT}"
+    local lock_file="$LOCK_DIR/${resource}.lock"
+
+    if [[ ! -f "$lock_file" ]]; then
+        return 1
+    fi
+
+    local lock_pid lock_ts
+    lock_pid=$(sed -n 's/^PID://p' "$lock_file" 2>/dev/null | head -1)
+    lock_ts=$(sed -n 's/^TIMESTAMP://p' "$lock_file" 2>/dev/null | head -1)
+
+    # 进程已死 → 过期
+    if [[ -n "$lock_pid" ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+        return 0
+    fi
+
+    # 时间戳超时 → 过期
+    if [[ -n "$lock_ts" ]]; then
+        local now
+        now=$(date +%s 2>/dev/null || printf '%s' "$SECONDS")
+        local elapsed=$((now - lock_ts))
+        if [[ $elapsed -gt $timeout ]]; then
+            return 0
+        fi
+    fi
+
+    return 1
+}

@@ -218,3 +218,27 @@ aggregate_errors() {
 }
 
 # v3.5.2: 移除 _check_log_override（会自我 source 导致进程爆炸）
+
+# v3.7.0: setup_trap — 统一信号处理
+# 注册 ERR/EXIT trap，捕获信号时调用 die 记录上下文
+# 参数: $1 = 模块名（用于日志）
+_ERROR_HANDLER_MODULE="unknown"
+
+_error_handler_on_err() {
+    local exit_code=$?
+    local line="${BASH_LINENO[0]:-0}"
+    log_error "$_ERROR_HANDLER_MODULE" "命令失败 (行 $line, 退出码 $exit_code): $BASH_COMMAND"
+}
+
+_error_handler_on_exit() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        log_warn "$_ERROR_HANDLER_MODULE" "脚本退出，退出码 $exit_code"
+    fi
+}
+
+setup_trap() {
+    _ERROR_HANDLER_MODULE="${1:-unknown}"
+    trap '_error_handler_on_err' ERR
+    trap '_error_handler_on_exit' EXIT
+}
