@@ -15,7 +15,7 @@
 
 | # | 任务 | 详情文件 | 源 Shell | 依赖 | 状态 |
 |---|------|----------|---------|------|------|
-| 1.1 | paths.mjs + 测试 | tasks/1.1-paths.md | lib/paths.sh(178行) | 0.6 | [ ] |
+| 1.1 | paths.mjs + 测试 | tasks/1.1-paths.md | lib/paths.sh(178行) | 0.6 | [x] |
 | 1.2 | error-handler.mjs + 测试 | tasks/1.2-error-handler.md | lib/error-handler.sh(244行) | 1.1 | [ ] |
 | 1.3 | lock.mjs + 测试 | tasks/1.3-lock.md | scripts/dispatch-lock.sh(160行) | 1.1 | [ ] |
 | 1.4 | cleanup.mjs + 测试 | tasks/1.4-cleanup.md | lib/cleanup.sh(47行) | 1.1 | [ ] |
