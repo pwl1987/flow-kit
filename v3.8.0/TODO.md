@@ -31,41 +31,41 @@
 | 2.3 | front-matter.mjs + 测试 | tasks/2.3-front-matter.md | lib/front-matter.sh(80行) | 1.2 | [x] |
 | 2.4 | security-scanner.mjs + 测试 | tasks/2.4-security-scanner.md | lib/security-scanner.sh(296行) | 1.2 | [x] |
 | 2.5 | conflict-detector.mjs + 测试 | tasks/2.5-conflict-detector.md | lib/conflict-detector.sh(221行) | 2.1 | [x] |
-| 2.6 | context-budget.mjs + 测试 | tasks/2.6-context-budget.md | lib/context-budget.sh(476行) | 1.2,1.5 | [ ] |
-| 2.7 | project-info.mjs + 测试 | tasks/2.7-project-info.md | lib/project-info.sh(78行) | 1.1 | [ ] |
+| 2.6 | context-budget.mjs + 测试 | tasks/2.6-context-budget.md | lib/context-budget.sh(476行) | 1.2,1.5 | [x] |
+| 2.7 | project-info.mjs + 测试 | tasks/2.7-project-info.md | lib/project-info.sh(78行) | 1.1 | [x] |
 
 ## Wave 3: 业务逻辑层
 
 | # | 任务 | 详情文件 | 源 Shell | 依赖 | 状态 |
 |---|------|----------|---------|------|------|
-| 3.1 | phase-executor.mjs + 测试 | tasks/3.1-phase-executor.md | scripts/phase-executor.sh(113行) | 2.1,2.3 | [ ] |
-| 3.2 | auto-pilot.mjs + 测试 | tasks/3.2-auto-pilot.md | scripts/auto-pilot.sh(264行) | 2.1,3.1 | [ ] |
-| 3.3 | dispatch-core.mjs + 测试 | tasks/3.3-dispatch-core.md | scripts/dispatch.sh(890行) | 1.3,2.1 | [ ] |
-| 3.4 | dispatch-parse.mjs + 测试 | tasks/3.4-dispatch-parse.md | scripts/dispatch-parse.sh(90行) | 1.2 | [ ] |
-| 3.5 | command-gen.mjs + 测试 | tasks/3.5-command-gen.md | scripts/generate-commands.sh(293行) | 1.1,2.3 | [ ] |
-| 3.6 | init-change.mjs + 测试 | tasks/3.6-init-change.md | scripts/init-change.sh(330行) | 1.3,2.1 | [ ] |
-| 3.7 | validate-phase.mjs + 测试 | tasks/3.7-validate-phase.md | scripts/validate-phase.sh(650行) | 2.3,2.1 | [ ] |
+| 3.1 | phase-executor.mjs + 测试 | tasks/3.1-phase-executor.md | scripts/phase-executor.sh(113行) | 2.1,2.3 | [x] |
+| 3.2 | auto-pilot.mjs + 测试 | tasks/3.2-auto-pilot.md | scripts/auto-pilot.sh(264行) | 2.1,3.1 | [x] |
+| 3.3 | dispatch-core.mjs + 测试 | tasks/3.3-dispatch-core.md | scripts/dispatch.sh(890行) | 1.3,2.1 | [x] |
+| 3.4 | dispatch-parse.mjs + 测试 | tasks/3.4-dispatch-parse.md | scripts/dispatch-parse.sh(90行) | 1.2 | [x] |
+| 3.5 | command-gen.mjs + 测试 | tasks/3.5-command-gen.md | scripts/generate-commands.sh(293行) | 1.1,2.3 | [x] |
+| 3.6 | init-change.mjs + 测试 | tasks/3.6-init-change.md | scripts/init-change.sh(330行) | 1.3,2.1 | [x] |
+| 3.7 | validate-phase.mjs + 测试 | tasks/3.7-validate-phase.md | scripts/validate-phase.sh(650行) | 2.3,2.1 | [x] |
 
 ## Wave 4: MCP Server + 工具注册
 
 | # | 任务 | 详情文件 | 依赖 | 状态 |
 |---|------|----------|------|------|
-| 4.1 | server.mjs MCP Server 入口 | tasks/4.1-server.md | Wave 3 | [ ] |
-| 4.2 | 工具：status + version + health | tasks/4.2-tools-status.md | 4.1 | [ ] |
-| 4.3 | 工具：recall | tasks/4.3-tools-recall.md | 4.1 | [ ] |
-| 4.4 | 工具：metrics | tasks/4.4-tools-metrics.md | 4.1 | [ ] |
-| 4.5 | 工具：validate | tasks/4.5-tools-validate.md | 4.1 | [ ] |
-| 4.6 | 工具：next_phase + run_phase | tasks/4.6-tools-phase.md | 4.1 | [ ] |
-| 4.7 | 工具：init_change | tasks/4.7-tools-init.md | 4.1 | [ ] |
-| 4.8 | 工具：dispatch | tasks/4.8-tools-dispatch.md | 4.1 | [ ] |
-| 4.9 | 工具：shellcheck | tasks/4.9-tools-shellcheck.md | 4.1 | [ ] |
-| 4.10 | 工具：register | tasks/4.10-tools-register.md | 4.1 | [ ] |
-| 4.11 | hook：pre_tool_guard | tasks/4.11-hook-guard.md | 4.1 | [ ] |
-| 4.12 | hook：post_edit_format | tasks/4.12-hook-format.md | 4.1 | [ ] |
-| 4.13 | hook：quality_gate（async） | tasks/4.13-hook-quality.md | 4.1 | [ ] |
-| 4.14 | hook：session_restore | tasks/4.14-hook-session.md | 4.1 | [ ] |
-| 4.15 | hook：send_notification | tasks/4.15-hook-notify.md | 4.1 | [ ] |
-| 4.16 | 工具：watch（monitor） | tasks/4.16-tools-watch.md | 4.1 | [ ] |
+| 4.1 | server.mjs MCP Server 入口 | tasks/4.1-server.md | Wave 3 | [x] |
+| 4.2 | 工具：status + version + health | tasks/4.2-tools-status.md | 4.1 | [x] |
+| 4.3 | 工具：recall | tasks/4.3-tools-recall.md | 4.1 | [x] |
+| 4.4 | 工具：metrics | tasks/4.4-tools-metrics.md | 4.1 | [x] |
+| 4.5 | 工具：validate | tasks/4.5-tools-validate.md | 4.1 | [x] |
+| 4.6 | 工具：next_phase + run_phase | tasks/4.6-tools-phase.md | 4.1 | [x] |
+| 4.7 | 工具：init_change | tasks/4.7-tools-init.md | 4.1 | [x] |
+| 4.8 | 工具：dispatch | tasks/4.8-tools-dispatch.md | 4.1 | [x] |
+| 4.9 | 工具：shellcheck | tasks/4.9-tools-shellcheck.md | 4.1 | [x] |
+| 4.10 | 工具：register | tasks/4.10-tools-register.md | 4.1 | [x] |
+| 4.11 | hook：pre_tool_guard | tasks/4.11-hook-guard.md | 4.1 | [x] |
+| 4.12 | hook：post_edit_format | tasks/4.12-hook-format.md | 4.1 | [x] |
+| 4.13 | hook：quality_gate（async） | tasks/4.13-hook-quality.md | 4.1 | [x] |
+| 4.14 | hook：session_restore | tasks/4.14-hook-session.md | 4.1 | [x] |
+| 4.15 | hook：send_notification | tasks/4.15-hook-notify.md | 4.1 | [x] |
+| 4.16 | 工具：watch（monitor） | tasks/4.16-tools-watch.md | 4.1 | [x] |
 | 4.17 | hooks.json 配置 | tasks/4.17-hooks-json.md | 4.11-4.15 | [ ] |
 | 4.18 | plugin.json 更新 | tasks/4.18-plugin-update.md | 4.17 | [ ] |
 | 4.19 | esbuild 打包验证 | tasks/4.19-build-verify.md | 4.1-4.16 | [ ] |
