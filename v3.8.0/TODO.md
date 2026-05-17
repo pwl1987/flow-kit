@@ -19,7 +19,7 @@
 | 1.2 | error-handler.mjs + 测试 | tasks/1.2-error-handler.md | lib/error-handler.sh(244行) | 1.1 | [x] |
 | 1.3 | lock.mjs + 测试 | tasks/1.3-lock.md | scripts/dispatch-lock.sh(160行) | 1.1 | [x] |
 | 1.4 | cleanup.mjs + 测试 | tasks/1.4-cleanup.md | lib/cleanup.sh(47行) | 1.1 | [x] |
-| 1.5 | time-utils.mjs + 测试 | tasks/1.5-time-utils.md | lib/time-utils.sh(42行) | 1.1 | [ ] |
+| 1.5 | time-utils.mjs + 测试 | tasks/1.5-time-utils.md | lib/time-utils.sh(42行) | 1.1 | [x] |
 | 1.6 | preflight.mjs + 测试 | tasks/1.6-preflight.md | lib/preflight.sh(44行) | 1.1 | [ ] |
 
 ## Wave 2: 核心数据层
