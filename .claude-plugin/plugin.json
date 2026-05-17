@@ -1,0 +1,12 @@
+{
+  "name": "flow-kit",
+  "version": "3.8.0",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Flow Kit",
+    "shortDescription": "结构化开发流程工具包",
+    "category": "development-workflow",
+    "capabilities": ["phase-workflow", "conflict-detection", "session-memory", "guard-rails"]
+  }
+}

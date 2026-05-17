@@ -5,7 +5,7 @@
 | # | 任务 | 详情文件 | 依赖 | 状态 |
 |---|------|----------|------|------|
 | 0.1 | 目录骨架 + package.json + 依赖安装 | tasks/0.1-skeleton.md | — | [ ] |
-| 0.2 | 归档 v3.7.0 Shell | tasks/0.2-archive-shell.md | 0.1 | [ ] |
+| 0.2 | 归档 v3.7.0 Shell | tasks/0.2-archive-shell.md | 0.1 | [x] |
 | 0.3 | 创建 plugin.json | tasks/0.3-plugin-json.md | 0.1 | [ ] |
 | 0.4 | 创建 .mcp.json | tasks/0.4-mcp-json.md | 0.1 | [ ] |
 | 0.5 | 创建 esbuild.config.mjs | tasks/0.5-esbuild.md | 0.1 | [ ] |
