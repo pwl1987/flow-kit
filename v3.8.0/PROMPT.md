@@ -5,6 +5,7 @@
 - 一个任务一个迭代，不多做
 - 每任务完成后 `git add` + `git commit`，commit message：`feat: v3.8.0 任务 X.Y 描述`
 - git 操作使用 `/smart-commit` 技能规范 commit message
+- **循环终止条件**：检查 TODO.md 中 `unchecked === 0` 时才输出 `<promise>__DONE__</promise>`，否则继续下一个任务
 
 ## 日志规则（每步必须输出）
 每个迭代开始时输出日志头，每步执行后输出结果。格式：
@@ -100,4 +101,4 @@
 - CHANGELOG.md 更新
 - CLAUDE.md 更新
 - 撰写 v3.8.0-report.md
-- 输出 __DONE__
+- **输出 `<promise>__DONE__</promise>`**（只在 unchecked === 0 时）
