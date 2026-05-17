@@ -66,7 +66,7 @@
 | 4.14 | hook：session_restore | tasks/4.14-hook-session.md | 4.1 | [x] |
 | 4.15 | hook：send_notification | tasks/4.15-hook-notify.md | 4.1 | [x] |
 | 4.16 | 工具：watch（monitor） | tasks/4.16-tools-watch.md | 4.1 | [x] |
-| 4.17 | hooks.json 配置 | tasks/4.17-hooks-json.md | 4.11-4.15 | [ ] |
+| 4.17 | hooks.json 配置 | tasks/4.17-hooks-json.md | 4.11-4.15 | [x] |
 | 4.18 | plugin.json 更新 | tasks/4.18-plugin-update.md | 4.17 | [ ] |
 | 4.19 | esbuild 打包验证 | tasks/4.19-build-verify.md | 4.1-4.16 | [ ] |
 

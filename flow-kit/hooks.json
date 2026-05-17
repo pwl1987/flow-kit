@@ -1,0 +1,30 @@
+{
+  "hooks": [
+    {
+      "name": "pre_tool_guard",
+      "source": "file://src/hooks/hook-guard.mjs",
+      "description": "工具执行前守卫检查"
+    },
+    {
+      "name": "post_edit_format",
+      "source": "file://src/hooks/hook-format.mjs",
+      "description": "编辑后自动格式化"
+    },
+    {
+      "name": "quality_gate",
+      "source": "file://src/hooks/hook-quality.mjs",
+      "async": true,
+      "description": "Stop 事件时质量门禁检查"
+    },
+    {
+      "name": "session_restore",
+      "source": "file://src/hooks/hook-session.mjs",
+      "description": "新会话时恢复状态"
+    },
+    {
+      "name": "send_notification",
+      "source": "file://src/hooks/hook-notify.mjs",
+      "description": "发送通知"
+    }
+  ]
+}
