@@ -4,7 +4,7 @@
 
 | # | 任务 | 详情文件 | 依赖 | 状态 |
 |---|------|----------|------|------|
-| 0.1 | 目录骨架 + package.json + 依赖安装 | tasks/0.1-skeleton.md | — | [ ] |
+| 0.1 | 目录骨架 + package.json + 依赖安装 | tasks/0.1-skeleton.md | — | [x] |
 | 0.2 | 归档 v3.7.0 Shell | tasks/0.2-archive-shell.md | 0.1 | [x] |
 | 0.3 | 创建 plugin.json | tasks/0.3-plugin-json.md | 0.1 | [x] |
 | 0.4 | 创建 .mcp.json | tasks/0.4-mcp-json.md | 0.1 | [x] |
@@ -16,7 +16,7 @@
 | # | 任务 | 详情文件 | 源 Shell | 依赖 | 状态 |
 |---|------|----------|---------|------|------|
 | 1.1 | paths.mjs + 测试 | tasks/1.1-paths.md | lib/paths.sh(178行) | 0.6 | [x] |
-| 1.2 | error-handler.mjs + 测试 | tasks/1.2-error-handler.md | lib/error-handler.sh(244行) | 1.1 | [ ] |
+| 1.2 | error-handler.mjs + 测试 | tasks/1.2-error-handler.md | lib/error-handler.sh(244行) | 1.1 | [x] |
 | 1.3 | lock.mjs + 测试 | tasks/1.3-lock.md | scripts/dispatch-lock.sh(160行) | 1.1 | [ ] |
 | 1.4 | cleanup.mjs + 测试 | tasks/1.4-cleanup.md | lib/cleanup.sh(47行) | 1.1 | [ ] |
 | 1.5 | time-utils.mjs + 测试 | tasks/1.5-time-utils.md | lib/time-utils.sh(42行) | 1.1 | [ ] |
