@@ -27,7 +27,7 @@
 | # | 任务 | 详情文件 | 源 Shell | 依赖 | 状态 |
 |---|------|----------|---------|------|------|
 | 2.1 | session-state.mjs + 测试 | tasks/2.1-session-state.md | lib/session-state.sh(332行) | 1.2,1.5 | [x] |
-| 2.2 | metrics.mjs + 测试 | tasks/2.2-metrics.md | lib/metrics-logger.sh(73行) | 1.2,1.5 | [ ] |
+| 2.2 | metrics.mjs + 测试 | tasks/2.2-metrics.md | lib/metrics-logger.sh(73行) | 1.2,1.5 | [x] |
 | 2.3 | front-matter.mjs + 测试 | tasks/2.3-front-matter.md | lib/front-matter.sh(80行) | 1.2 | [ ] |
 | 2.4 | security-scanner.mjs + 测试 | tasks/2.4-security-scanner.md | lib/security-scanner.sh(296行) | 1.2 | [ ] |
 | 2.5 | conflict-detector.mjs + 测试 | tasks/2.5-conflict-detector.md | lib/conflict-detector.sh(221行) | 2.1 | [ ] |
