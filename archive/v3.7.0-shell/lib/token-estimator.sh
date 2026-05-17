@@ -1,0 +1,123 @@
+#!/bin/bash
+# token-estimator.sh — 基于 LOC 的 Token 估算
+# v2.7.0 新增：实现 /flow-kit:estimate-tokens 命令
+# 估算算法: Token ≈ LOC × 1.5 (经验公式)
+
+set -euo pipefail
+
+check_dependencies() {
+    if ! command -v jq &>/dev/null; then
+        printf '[错误] jq 未安装，无法执行 Token 估算。\n' >&2
+        return 1
+    fi
+}
+
+#------------------------------------------------------------------------------
+# 配置
+#------------------------------------------------------------------------------
+# 防止 TOKEN_BUDGET 被显式设为 0 导致除零
+if [[ "${TOKEN_BUDGET:-100000}" -eq 0 ]] 2>/dev/null; then
+    TOKEN_BUDGET=100000
+fi
+readonly TOKEN_BUDGET="${TOKEN_BUDGET:-100000}"
+
+# v2.7.0 P2 修复: DEFAULT_TARGET 移入 main() 避免顶层 $1 引用
+
+#------------------------------------------------------------------------------
+# 统计函数
+#------------------------------------------------------------------------------
+count_loc_in_dir() {
+    local target_dir="$1"
+    local total_loc=0
+    local phase_stats=()
+
+    if [[ ! -d "$target_dir" ]]; then
+        echo "目录不存在: $target_dir" >&2
+        return 1
+    fi
+
+    while IFS= read -r -d '' file; do
+        local basename
+        basename=$(basename "$file")
+        if [[ "$basename" =~ [Tt][Ee][Mm][Pp][Ll][Aa][Tt][Ee] ]]; then
+            continue
+        fi
+
+        local loc
+        loc=$(grep -c '' "$file" 2>/dev/null || echo 0)
+        total_loc=$((total_loc + loc))
+
+        local phase
+        phase=$(echo "$file" | sed 's|.*/phases/||' | cut -d/ -f1 || echo "unknown")
+        phase_stats+=("$phase:$loc")
+    done < <(find "$target_dir" -name "*.md" -type f -print0 2>/dev/null)
+
+    echo "$total_loc"
+    for stat in "${phase_stats[@]}"; do
+        echo "$stat"
+    done
+}
+
+#------------------------------------------------------------------------------
+# 主函数
+#------------------------------------------------------------------------------
+main() {
+    check_dependencies || return 1
+
+    local target_dir="${1:-.planning/phases}"
+
+    echo "=========================================="
+    echo "Token Estimation Report"
+    echo "=========================================="
+    echo "Target: $target_dir"
+    echo ""
+
+    local results
+    results=$(count_loc_in_dir "$target_dir")
+    local total_loc
+    total_loc=$(echo "$results" | head -1)
+    local estimated_tokens=$((total_loc * 3 / 2))
+
+    echo "Phase Breakdown:"
+    echo "| Phase | LOC | Est. Tokens |"
+    echo "|-------|-----|-------------|"
+
+    local phase_totals=()
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^([^:]+):([0-9]+)$ ]]; then
+            local phase="${BASH_REMATCH[1]}"
+            local loc="${BASH_REMATCH[2]}"
+            local tokens=$((loc * 3 / 2))
+            echo "| $phase | $loc | $tokens |"
+            phase_totals+=("$phase:$tokens")
+        fi
+    done < <(echo "$results" | tail -n +2)
+
+    echo "|-------|-----|-------------|"
+    echo "| **Total** | **$total_loc** | **$estimated_tokens** |"
+    echo ""
+    echo "=========================================="
+    echo "Total LOC: $total_loc"
+    echo "Estimated Tokens: $estimated_tokens (LOC × 1.5)"
+    echo "Budget: $TOKEN_BUDGET"
+    echo ""
+
+    local pct=$((estimated_tokens * 100 / TOKEN_BUDGET))
+    echo "Usage: $pct%"
+
+    if [[ "$pct" -ge 100 ]]; then
+        echo "Status: [BLOCK] Token budget exhausted"
+        return 2
+    elif [[ "$pct" -ge 80 ]]; then
+        echo "Status: [WARNING] Approaching token budget"
+        return 1
+    else
+        echo "Status: [HEALTHY] Within budget"
+        return 0
+    fi
+}
+
+# v2.7.0 P0 修复: 添加 sourcing guard 防止 source 时误触发 main()
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
